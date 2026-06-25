@@ -1,0 +1,19 @@
+{
+  "hooks": [
+    {
+      "event": "before:task",
+      "handler": "hooks/inject-rules.js",
+      "export": "preTask"
+    },
+    {
+      "event": "before:tool_use",
+      "handler": "hooks/inject-rules.js",
+      "export": "preTask"
+    },
+    {
+      "event": "after:task",
+      "handler": "hooks/inject-rules.js",
+      "export": "postTask"
+    }
+  ]
+}

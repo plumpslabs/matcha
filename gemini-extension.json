@@ -1,0 +1,14 @@
+{
+  "name": "matcha",
+  "version": "1.0.0",
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate",
+  "systemPrompt": {
+    "file": "AGENTS.md"
+  },
+  "contextFiles": [
+    "skills/matcha/SKILL.md"
+  ],
+  "triggers": {
+    "always": true
+  }
+}

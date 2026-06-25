@@ -1,0 +1,42 @@
+{
+  "name": "matcha",
+  "version": "1.0.0",
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
+  "author": "",
+  "license": "MIT",
+  "entry": "hooks/inject-rules.js",
+  "skills": [
+    "skills/matcha/SKILL.md"
+  ],
+  "commands": [
+    {
+      "name": "matcha:review",
+      "description": "Review current implementation for efficiency and redundancy",
+      "file": "commands/review.md"
+    },
+    {
+      "name": "matcha:audit",
+      "description": "Audit existing stack for overlaps and inefficiencies",
+      "file": "commands/audit.md"
+    },
+    {
+      "name": "matcha:why",
+      "description": "Run 5W1H check on the current task",
+      "file": "commands/why.md"
+    }
+  ],
+  "hooks": [
+    {
+      "event": "before:task",
+      "handler": "hooks/inject-rules.js"
+    },
+    {
+      "event": "before:tool_use",
+      "handler": "hooks/inject-rules.js"
+    },
+    {
+      "event": "after:task",
+      "handler": "hooks/inject-rules.js"
+    }
+  ]
+}

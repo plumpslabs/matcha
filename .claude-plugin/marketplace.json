@@ -1,0 +1,14 @@
+{
+  "name": "matcha",
+  "displayName": "🍵 matcha",
+  "version": "1.0.0",
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, snarky post-task suggestions, and cleanup protocols.",
+  "author": "YOUR_USERNAME",
+  "repository": "https://github.com/YOUR_USERNAME/matcha-convention",
+  "tags": ["engineering", "convention", "efficiency", "architecture"],
+  "commands": [
+    { "name": "matcha:why", "description": "5W1H check before starting any task" },
+    { "name": "matcha:audit", "description": "Audit stack for overlaps and redundancy" },
+    { "name": "matcha:review", "description": "Post-implementation efficiency review" }
+  ]
+}

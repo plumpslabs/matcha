@@ -1,0 +1,56 @@
+{
+  "name": "matcha-convention",
+  "version": "1.0.0",
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
+  "type": "module",
+  "main": "hooks/inject-rules.js",
+  "bin": {
+    "matcha": "./bin/matcha.js"
+  },
+  "scripts": {
+    "check": "node scripts/check-rule-copies.js",
+    "build": "node scripts/build-openclaw-skills.js",
+    "build:check": "npm run build && npm run check",
+    "test": "node tests/index.js"
+  },
+  "keywords": [
+    "ai-agent",
+    "convention",
+    "engineering",
+    "claude-code",
+    "cursor",
+    "windsurf",
+    "antigravity",
+    "opencode",
+    "codex",
+    "kiro",
+    "coding-standards",
+    "matcha",
+    "plugin"
+  ],
+  "files": [
+    "skills/",
+    "hooks/",
+    "commands/",
+    "bin/",
+    ".claude-plugin/",
+    ".cursor/",
+    ".windsurf/",
+    ".clinerules/",
+    ".kiro/",
+    ".agents/",
+    ".openclaw/",
+    ".opencode/",
+    "gemini-extension.json",
+    "AGENTS.md",
+    "README.md"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_USERNAME/matcha-convention"
+  }
+}

@@ -8,7 +8,7 @@ import { getMatchaInstructions } from "../../hooks/matcha-instructions.js";
 
 export default {
   name: "matcha",
-  version: "1.0.4",
+  version: "1.0.6",
 
   // Inject system prompt every turn
   async onSession(session) {

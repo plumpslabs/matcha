@@ -1,14 +1,18 @@
 {
   "name": "plumpslabs-matcha",
+  "owner": {
+    "name": "plumpslabs",
+    "url": "https://github.com/plumpslabs"
+  },
   "metadata": {
     "description": "Engineering philosophy ruleset for AI coding agents — simple, efficient, deliberate.",
-    "version": "1.0.1"
+    "version": "1.0.2"
   },
   "plugins": [
     {
       "name": "matcha",
       "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, snarky post-task suggestions, and cleanup protocols.",
-      "version": "1.0.1",
+      "version": "1.0.2",
       "author": "plumpslabs",
       "source": ".",
       "tags": ["engineering", "convention", "efficiency", "architecture"]

@@ -58,17 +58,17 @@ Usage:
   npx matcha-convention check      Validate all adapter copies are in sync
 
 Claude Code:
-  /plugin install https://github.com/YOUR_USERNAME/matcha-convention
+  /plugin install https://github.com/plumpslabs/matcha-convention
 
 Antigravity / Gemini CLI:
-  agy plugin install https://github.com/YOUR_USERNAME/matcha-convention
+  agy plugin install https://github.com/plumpslabs/matcha-convention
 
 Codex:
-  codex plugin marketplace add YOUR_USERNAME/matcha-convention
+  codex plugin marketplace add plumpslabs/matcha-convention
 
 OpenCode (opencode.json):
   { "plugin": ["matcha-convention"] }
 
-More: https://github.com/YOUR_USERNAME/matcha-convention
+More: https://github.com/plumpslabs/matcha-convention
 `);
 }

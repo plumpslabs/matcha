@@ -9,11 +9,11 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/farhank15/matcha/blob/main/LICENSE">
+  <a href="https://github.com/plumpslabs/matcha/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue" alt="License: MIT" />
   </a>
   
-  <a href="https://github.com/farhank15/matcha">
+  <a href="https://github.com/plumpslabs/matcha">
     <img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs welcome" />
   </a>
   <img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node >=18" />
@@ -43,7 +43,7 @@ That's it. Rules are copied to your project. Commit them and your AI agent will 
 <summary><b>Claude Code</b></summary>
 
 ```
-/plugin install https://github.com/farhank15/matcha-convention
+/plugin install https://github.com/plumpslabs/matcha-convention
 ```
 
 Or via UI: Customize → + personal plugins → Create plugin → Add from repository → enter URL.
@@ -53,7 +53,7 @@ Or via UI: Customize → + personal plugins → Create plugin → Add from repos
 <summary><b>Codex</b></summary>
 
 ```
-codex plugin marketplace add farhank15/matcha-convention
+codex plugin marketplace add plumpslabs/matcha-convention
 ```
 </details>
 
@@ -78,7 +78,7 @@ Add to your `opencode.json`:
 <summary><b>Antigravity / Gemini CLI</b></summary>
 
 ```
-agy plugin install https://github.com/farhank15/matcha-convention
+agy plugin install https://github.com/plumpslabs/matcha-convention
 ```
 </details>
 
@@ -222,4 +222,4 @@ PRs are welcome! See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide, pr
 
 ## 📄 License
 
-MIT © [farhank15](https://github.com/farhank15)
+MIT © [plumpslabs](https://github.com/plumpslabs)

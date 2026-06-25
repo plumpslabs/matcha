@@ -1,14 +1,29 @@
 {
   "name": "matcha",
   "version": "1.0.0",
-  "description": "Engineering philosophy ruleset — simple, efficient, deliberate",
-  "systemPrompt": {
-    "file": "AGENTS.md"
-  },
-  "contextFiles": [
-    "skills/matcha/SKILL.md"
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Never twice.",
+  "contextFileName": "AGENTS.md",
+  "skills": [
+    {
+      "name": "matcha",
+      "path": "skills/matcha"
+    }
   ],
-  "triggers": {
-    "always": true
-  }
+  "commands": [
+    {
+      "name": "matcha:why",
+      "description": "Run 5W1H check on current task",
+      "path": "commands/why.md"
+    },
+    {
+      "name": "matcha:audit",
+      "description": "Audit stack for overlaps and inefficiencies",
+      "path": "commands/audit.md"
+    },
+    {
+      "name": "matcha:review",
+      "description": "Post-implementation efficiency review",
+      "path": "commands/review.md"
+    }
+  ]
 }

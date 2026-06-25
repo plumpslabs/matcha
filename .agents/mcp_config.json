@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "kuma": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@plumpslabs/kuma"
+      ],
+      "env": {}
+    }
+  }
+}

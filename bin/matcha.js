@@ -2,9 +2,9 @@
 /**
  * matcha CLI
  * Usage:
- *   npx matcha-convention install     — copy files to current project
- *   npx matcha-convention check       — validate adapter copies
- *   npx matcha-convention help        — show this
+ *   npx matcha install     — copy files to current project
+ *   npx matcha check       — validate adapter copies
+ *   npx matcha help        — show this
  */
 
 import { execSync } from "child_process";
@@ -17,58 +17,65 @@ const PKG_ROOT = join(__dirname, "..");
 const CWD = process.cwd();
 
 const ADAPTERS = [
-  { src: "AGENTS.md", dest: "AGENTS.md" },
-  { src: "CLAUDE.md", dest: "CLAUDE.md" },
-  { src: ".cursor/rules/matcha.mdc", dest: ".cursor/rules/matcha.mdc", mkdir: ".cursor/rules" },
-  { src: ".windsurf/rules/matcha.md", dest: ".windsurf/rules/matcha.md", mkdir: ".windsurf/rules" },
-  { src: ".clinerules/matcha.md", dest: ".clinerules/matcha.md", mkdir: ".clinerules" },
-  { src: ".kiro/steering/matcha.md", dest: ".kiro/steering/matcha.md", mkdir: ".kiro/steering" },
-  { src: ".agents/rules/matcha.md", dest: ".agents/rules/matcha.md", mkdir: ".agents/rules" },
-  { src: "gemini-extension.json", dest: "gemini-extension.json" },
-  { src: ".claude-plugin/plugin.json", dest: ".claude-plugin/plugin.json", mkdir: ".claude-plugin" },
+  { id: "universal", src: "AGENTS.md", dest: "AGENTS.md", check: () => true },
+  { id: "cursor", src: ".cursor/rules/matcha.mdc", dest: ".cursor/rules/matcha.mdc", mkdir: ".cursor/rules", check: () => existsSync(join(CWD, ".cursor")) },
+  { id: "windsurf", src: ".windsurf/rules/matcha.md", dest: ".windsurf/rules/matcha.md", mkdir: ".windsurf/rules", check: () => existsSync(join(CWD, ".windsurf")) },
+  { id: "cline", src: ".clinerules/matcha.md", dest: ".clinerules/matcha.md", mkdir: ".clinerules", check: () => existsSync(join(CWD, ".clinerules")) || existsSync(join(CWD, ".cline")) },
+  { id: "kiro", src: ".kiro/steering/matcha.md", dest: ".kiro/steering/matcha.md", mkdir: ".kiro/steering", check: () => existsSync(join(CWD, ".kiro")) },
+  { id: "agents", src: ".agents/rules/matcha.md", dest: ".agents/rules/matcha.md", mkdir: ".agents/rules", check: () => existsSync(join(CWD, ".agents")) },
+  { id: "claude", src: "CLAUDE.md", dest: "CLAUDE.md", check: () => existsSync(join(CWD, "CLAUDE.md")) },
 ];
 
 const cmd = process.argv[2];
 
 if (cmd === "install") {
-  console.log("🍵 matcha — installing to current project...\n");
+  console.log("🍵 matcha — auto-detecting environment...\n");
+  let installedCount = 0;
+
   for (const adapter of ADAPTERS) {
-    if (adapter.mkdir) {
-      mkdirSync(join(CWD, adapter.mkdir), { recursive: true });
-    }
-    try {
-      copyFileSync(join(PKG_ROOT, adapter.src), join(CWD, adapter.dest));
-      console.log(`  ✓ ${adapter.dest}`);
-    } catch (e) {
-      console.warn(`  ⚠ skipped ${adapter.dest}: ${e.message}`);
+    if (adapter.check()) {
+      if (adapter.mkdir) {
+        mkdirSync(join(CWD, adapter.mkdir), { recursive: true });
+      }
+      try {
+        copyFileSync(join(PKG_ROOT, adapter.src), join(CWD, adapter.dest));
+        console.log(`  ✓ Installed for ${adapter.id} -> ${adapter.dest}`);
+        installedCount++;
+      } catch (e) {
+        console.warn(`  ⚠ skipped ${adapter.id}: ${e.message}`);
+      }
     }
   }
-  console.log("\n✅ matcha installed. Commit these files to your repo.\n");
-  console.log("Tip: for Claude Code, add via /plugin install or UI > Customize > plugins");
+  
+  console.log(`\n✅ matcha installed ${installedCount} file(s). Commit these to your repo.\n`);
+  console.log("For global CLI assistants, install manually:");
+  console.log("  Claude Code: /plugin install https://github.com/plumpslabs/matcha");
+  console.log("  Antigravity: agy plugin install https://github.com/plumpslabs/matcha");
+  console.log("  Codex:       codex plugin marketplace add plumpslabs/matcha\n");
 
 } else if (cmd === "check") {
   execSync("node " + join(PKG_ROOT, "scripts/check-rule-copies.js"), { stdio: "inherit" });
 
 } else {
   console.log(`
-🍵 matcha-convention
+🍵 matcha
 
 Usage:
-  npx matcha-convention install    Copy adapter files to current project
-  npx matcha-convention check      Validate all adapter copies are in sync
+  npx matcha install    Copy adapter files to current project
+  npx matcha check      Validate all adapter copies are in sync
 
 Claude Code:
-  /plugin install https://github.com/plumpslabs/matcha-convention
+  /plugin install https://github.com/plumpslabs/matcha
 
 Antigravity / Gemini CLI:
-  agy plugin install https://github.com/plumpslabs/matcha-convention
+  agy plugin install https://github.com/plumpslabs/matcha
 
 Codex:
-  codex plugin marketplace add plumpslabs/matcha-convention
+  codex plugin marketplace add plumpslabs/matcha
 
 OpenCode (opencode.json):
-  { "plugin": ["matcha-convention"] }
+  { "plugin": ["matcha"] }
 
-More: https://github.com/plumpslabs/matcha-convention
+More: https://github.com/plumpslabs/matcha
 `);
 }

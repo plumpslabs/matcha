@@ -1,5 +1,5 @@
 {
-  "name": "matcha-convention",
+  "name": "matcha",
   "version": "1.0.0",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
   "type": "module",
@@ -51,6 +51,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/plumpslabs/matcha-convention"
+    "url": "https://github.com/plumpslabs/matcha"
   }
 }

@@ -32,61 +32,23 @@
 ## 🚀 Quick Start
 
 ```bash
-npx matcha-convention install
+npx matcha install
 ```
 
-That's it. Rules are copied to your project. Commit them and your AI agent will follow matcha from the next task.
+That's it. The script will automatically detect your project's AI assistant (`.cursor`, `.windsurf`, `.clinerules`, etc.) and copy the correct rules. Commit them and your AI agent will follow matcha from the next task.
 
-### Per-agent setup
-
-<details>
-<summary><b>Claude Code</b></summary>
-
-```
-/plugin install https://github.com/plumpslabs/matcha-convention
-```
-
-Or via UI: Customize → + personal plugins → Create plugin → Add from repository → enter URL.
-</details>
-
-<details>
-<summary><b>Codex</b></summary>
-
-```
-codex plugin marketplace add plumpslabs/matcha-convention
-```
-</details>
-
-<details>
-<summary><b>Cursor / Windsurf / Cline / Kiro</b></summary>
+For global CLI assistants, install manually:
 
 ```bash
-npx matcha-convention install
+# Claude Code
+/plugin install https://github.com/plumpslabs/matcha
+
+# Antigravity / Gemini CLI
+agy plugin install https://github.com/plumpslabs/matcha
+
+# Codex
+codex plugin marketplace add plumpslabs/matcha
 ```
-</details>
-
-<details>
-<summary><b>OpenCode</b></summary>
-
-Add to your `opencode.json`:
-```json
-{ "plugin": ["matcha-convention"] }
-```
-</details>
-
-<details>
-<summary><b>Antigravity / Gemini CLI</b></summary>
-
-```
-agy plugin install https://github.com/plumpslabs/matcha-convention
-```
-</details>
-
-<details>
-<summary><b>Any agent (universal fallback)</b></summary>
-
-Copy `AGENTS.md` to your project root. Most modern agents auto-load it with zero configuration.
-</details>
 
 ---
 

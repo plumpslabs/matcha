@@ -1,7 +1,7 @@
 /**
  * matcha — OpenCode plugin
  * Injects matcha ruleset every turn and registers slash commands.
- * Add to opencode.json: { \"plugin\": [\"matcha-convention\"] }
+ * Add to opencode.json: { "plugin": ["matcha"] }
  */
 
 import { getMatchaInstructions } from "../../hooks/matcha-instructions.js";

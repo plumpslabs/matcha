@@ -20,7 +20,7 @@ export async function preTask(event, context) {
 
 You are operating under the matcha engineering philosophy.
 Full ruleset injected below — follow it for every action in this session.
-At the END of every task response, include 3 matcha suggestions (casual, direct, slightly sarcastic tone).
+At the END of every task response, include 3 matcha suggestions (match the user's conversation language, casual, direct, slightly sarcastic tone).
 
 ${instructions}
 ---

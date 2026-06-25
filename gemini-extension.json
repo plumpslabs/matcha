@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Never twice.",
   "contextFileName": "AGENTS.md",
   "skills": [

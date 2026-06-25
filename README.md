@@ -32,7 +32,7 @@
 ## 🚀 Quick Start
 
 ```bash
-npx matcha install
+npx https://github.com/plumpslabs/matcha install
 ```
 
 That's it. The script will automatically detect your project's AI assistant (`.cursor`, `.windsurf`, `.clinerules`, etc.) and copy the correct rules. Commit them and your AI agent will follow matcha from the next task.
@@ -41,14 +41,30 @@ For global CLI assistants, install manually:
 
 ```bash
 # Claude Code
-/plugin install https://github.com/plumpslabs/matcha
+/plugin marketplace add plumpslabs/matcha
+/plugin install matcha
 
 # Antigravity / Gemini CLI
 agy plugin install https://github.com/plumpslabs/matcha
 
 # Codex
 codex plugin marketplace add plumpslabs/matcha
+
+# OpenCode
+# Add to opencode.json:
+# { "plugin": ["matcha"] }
+
+# Cursor / Windsurf / Cline / Kiro
+# Copy the rules file manually:
+#   npx https://github.com/plumpslabs/matcha install
+# Or copy from this repo:
+#   .cursor/rules/matcha.mdc  →  your-project/.cursor/rules/
+#   .windsurf/rules/matcha.md →  your-project/.windsurf/rules/
+#   .clinerules/matcha.md     →  your-project/.clinerules/
+#   .kiro/steering/matcha.md  →  your-project/.kiro/steering/
 ```
+
+> **Tip:** Run `npx https://github.com/plumpslabs/matcha install` from your project root to auto-detect and install for all supported agents.
 
 ---
 

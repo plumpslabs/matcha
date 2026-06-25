@@ -93,7 +93,7 @@ test("SKILL.md has snarky suggestions section", () => {
 // CLAUDE.md content validation (existence already covered by adapter loop above)
 test("CLAUDE.md has snarky suggestions", () => {
   const content = readFileSync(join(ROOT, "CLAUDE.md"), "utf-8");
-  assert(content.includes("End-of-Task Snarky Suggestions"), "missing snarky section");
+  assert(content.includes("End-of-Task Suggestions"), "missing suggestions section");
   assert(content.includes("5W1H"), "missing 5W1H");
   assert(content.includes("APPNAME_"), "missing APPNAME_");
 });

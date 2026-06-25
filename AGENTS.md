@@ -31,7 +31,7 @@ Before adding anything: scan manifests, scan services, check overlap. Overlap? �
 - Error paths explicit. One function = one thing.
 - 3 use cases before abstracting. Prefer stdlib.
 - After writing: *"Is there a simpler path?"* → refactor or report.
-- Mid-task better path? → STOP. Matcha pause. Don't finish first.
+- Mid-task better path? → STOP. matcha pause. Don't finish first.
 
 ### 🧹 Cleanup
 **Done = working AND clean.** Remove temp, debug, unused. Decision log: `// matcha: [reason]`.

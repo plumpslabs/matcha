@@ -48,9 +48,9 @@ No bloat. Just a deliberate gate between you and messy code.
 /plugin install matcha@plumpslabs-matcha</pre></td>
   </tr>
   <tr>
-    <td><code>agy</code></td>
+    <td><code>agy plugin</code></td>
     <td>Antigravity CLI</td>
-    <td><pre>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</pre></td>
+    <td><pre>agy plugin install https://github.com/plumpslabs/matcha</pre></td>
   </tr>
 </table>
 
@@ -196,6 +196,7 @@ matcha/
 ├── .kiro/steering/               ← Kiro (auto + manual modes)
 ├── .openclaw/skills/             ← OpenClaw
 ├── .claude-plugin/               ← Claude Code plugin manifest
+├── gemini-extension.json         ← Antigravity CLI plugin manifest
 ├── AGENTS.md / CLAUDE.md         ← context files
 ├── QUICKSTART.md                 ← 5-minute setup
 └── ai-agent-guide.md             ← full reference guide

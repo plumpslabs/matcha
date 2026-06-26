@@ -2,11 +2,17 @@
   "name": "matcha",
   "version": "1.1.0",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
-  "author": "plumpslabs",
+  "author": {
+    "name": "plumpslabs",
+    "url": "https://github.com/plumpslabs"
+  },
   "license": "MIT",
-  "entry": "hooks/inject-rules.js",
   "skills": [
-    "skills/matcha/SKILL.md"
+    {
+      "name": "matcha",
+      "description": "Engineering philosophy ruleset",
+      "file": "skills/matcha/SKILL.md"
+    }
   ],
   "commands": [
     {
@@ -35,18 +41,5 @@
       "file": "commands/status.md"
     }
   ],
-  "hooks": [
-    {
-      "event": "before:task",
-      "handler": "hooks/inject-rules.js"
-    },
-    {
-      "event": "before:tool_use",
-      "handler": "hooks/inject-rules.js"
-    },
-    {
-      "event": "after:task",
-      "handler": "hooks/inject-rules.js"
-    }
-  ]
+  "hooks": "hooks/hooks.json"
 }

@@ -52,6 +52,11 @@ Every implementation passes through 4 checkpoints. Stop and verify before procee
 
 Can't answer **Why** and **How**? → **STOP. Ask the user.**
 
+### 🔎 Checkpoint 1.5: Reuse
+**Hunter Protocol** — Before writing any new code.
+
+Search codebase for existing implementations of the same logic. Function already exists? Utility already handles it? Business flow already implemented? → **Reuse. Don't rewrite.** Report exact `path:line`.
+
 ### 🔍 Checkpoint 2: Stack
 **Audit Protocol** — Before adding anything new.
 

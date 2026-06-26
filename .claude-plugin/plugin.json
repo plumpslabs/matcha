@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "1.0.6",
+  "version": "1.1.0",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": "plumpslabs",
   "license": "MIT",
@@ -23,6 +23,16 @@
       "name": "matcha:why",
       "description": "Run 5W1H check on the current task",
       "file": "commands/why.md"
+    },
+    {
+      "name": "matcha:intensity",
+      "description": "Set matcha intensity: observe, enforce, or audit",
+      "file": "commands/intensity.md"
+    },
+    {
+      "name": "matcha:status",
+      "description": "Show matcha session status",
+      "file": "commands/status.md"
     }
   ],
   "hooks": [

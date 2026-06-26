@@ -23,6 +23,9 @@ alwaysApply: true
 ### 🎯 Purpose — 5W1H
 What → Why → Who → When → Where → How. Can't answer Why/How? → STOP. Ask.
 
+### 🔎 Reuse — Hunter
+Before writing any new code: search codebase for existing implementations. Same logic/business flow already exists? → reuse, don't rewrite. Report exact location.
+
 ### 🔍 Stack — Audit
 Before adding: scan manifests, scan services, check overlap. Overlap? → STOP.
 

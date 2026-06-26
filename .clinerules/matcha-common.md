@@ -1,0 +1,1 @@
+../.agents/rules/matcha-common.md

@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# 🍵 matcha — install.sh
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash -s -- --target /path
+#   ./install.sh              # from cloned repo
+
+GH_RAW="https://raw.githubusercontent.com/plumpslabs/matcha/main"
+HERE="$(cd "$(dirname "$0")" 2>/dev/null && pwd || echo "")"
+CLONED=false
+[ -n "$HERE" ] && [ -f "$HERE/install.sh" ] && [ -f "$HERE/skills/matcha/SKILL.md" ] && CLONED=true
+
+TARGET="${PWD}"
+[ "${1:-}" = "--target" ] && [ -n "${2:-}" ] && TARGET="$2"
+
+fetch() {
+  if $CLONED; then
+    cat "$HERE/$1"
+  else
+    curl -fsSL "$GH_RAW/$1"
+  fi
+}
+
+echo "🍵 matcha install"
+echo "Target: $TARGET"
+$CLONED && echo "Mode: local (cloned repo)" || echo "Mode: remote (fetching from GitHub)"
+echo ""
+
+PLATFORMS=""
+[ -d "$TARGET/.claude" ] && PLATFORMS="$PLATFORMS claude"
+[ -d "$TARGET/.opencode" ] && PLATFORMS="$PLATFORMS opencode"
+[ -d "$TARGET/.cursor" ] && PLATFORMS="$PLATFORMS cursor"
+[ -d "$TARGET/.agents" ] && PLATFORMS="$PLATFORMS agents"
+[ -d "$TARGET/.clinerules" ] && PLATFORMS="$PLATFORMS clinerules"
+[ -d "$TARGET/.windsurf" ] && PLATFORMS="$PLATFORMS windsurf"
+[ -d "$TARGET/.kiro" ] && PLATFORMS="$PLATFORMS kiro"
+[ -d "$TARGET/.openclaw" ] && PLATFORMS="$PLATFORMS openclaw"
+[ -d "$HOME/.gemini/antigravity-cli" ] && PLATFORMS="$PLATFORMS agy_global"
+
+if [ -z "$PLATFORMS" ]; then
+  echo "No supported AI platform detected in $TARGET"
+  echo "Supported: .claude .opencode .cursor .agents .clinerules .windsurf .kiro .openclaw .gemini/antigravity-cli (agy)"
+  exit 1
+fi
+
+echo "Detected platforms:$PLATFORMS"
+echo ""
+
+install_file() { local dst="$1" src="$2"; mkdir -p "$(dirname "$dst")"; fetch "$src" > "$dst"; echo "  ✅ $dst"; }
+
+install_agents() {
+  local target="$1"
+  mkdir -p "$target"
+  for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger; do
+    install_file "$target/$agent.md" ".claude/agents/$agent.md"
+  done
+}
+
+install_commands() {
+  local target="$1"
+  mkdir -p "$target"
+  for cmd in why review audit intensity status; do
+    install_file "$target/$cmd.md" "commands/$cmd.md"
+  done
+}
+
+install_skill() {
+  install_file "$1" "skills/matcha/SKILL.md"
+}
+
+install_rules() {
+  local target="$1" ext="$2" fmt="$3"
+  mkdir -p "$target"
+  for lang in common go typescript python php java react-native react angular nextjs nestjs nuxt tanstack redis tailwind; do
+    local name="matcha-$lang"
+    local dst="$target/$name.$ext"
+    if [ "$fmt" = "cursor_mdc" ]; then
+      install_file "$dst" ".cursor/rules/$name.mdc"
+    elif [ "$fmt" = "kiro_steering" ]; then
+      # Build Kiro-format steering file
+      local pattern="*.$lang"
+      [ "$lang" = "typescript" ] && pattern="*.ts|*.tsx|*.js|*.jsx"
+      [ "$lang" = "react-native" ] && pattern="*.tsx|*.jsx"
+      [ "$lang" = "react" ] && pattern="*.tsx|*.jsx"
+      [ "$lang" = "angular" ] && pattern="*.ts"
+      [ "$lang" = "nextjs" ] && pattern="*.tsx|*.ts"
+      [ "$lang" = "nestjs" ] && pattern="*.ts"
+      [ "$lang" = "nuxt" ] && pattern="*.vue|*.ts"
+      [ "$lang" = "tanstack" ] && pattern="*.ts|*.tsx"
+      [ "$lang" = "tailwind" ] && pattern="*.css|*.tsx|*.jsx|*.html|*.vue"
+      {
+        echo "---"
+        echo "description: Matcha $lang coding standards and patterns"
+        if [ "$lang" = "common" ]; then
+          echo "inclusion: auto"
+        else
+          echo "inclusion: fileMatch"
+          echo "fileMatchPattern: \"$pattern\""
+        fi
+        echo "---"
+        fetch ".cursor/rules/$name.mdc" | sed '1,/^---$/d'
+      } > "$dst"
+      echo "  ✅ $dst"
+    else
+      install_file "$dst" ".agents/rules/$name.md"
+    fi
+  done
+}
+
+for p in $PLATFORMS; do
+  echo "── $p ──"
+  case "$p" in
+    claude)
+      install_agents "$TARGET/.claude/agents"
+      install_commands "$TARGET/.claude/commands"
+      install_skill "$TARGET/.claude/skills/matcha/SKILL.md"
+      install_rules "$TARGET/.claude/rules" "md" "standard_md" ;;
+    opencode)
+      install_agents "$TARGET/.opencode/agents"
+      install_commands "$TARGET/.opencode/commands"
+      install_skill "$TARGET/.opencode/skills/matcha/SKILL.md"
+      install_rules "$TARGET/.opencode/rules" "md" "standard_md" ;;
+    cursor)    install_rules "$TARGET/.cursor/rules" "mdc" "cursor_mdc" ;;
+    agents)
+      install_rules "$TARGET/.agents/rules" "md" "standard_md"
+      install_skill "$TARGET/.agents/skills/matcha/SKILL.md"
+      echo "  ✅ .agents/mcp_config.json (exists)" ;;
+    clinerules) install_rules "$TARGET/.clinerules" "md" "standard_md" ;;
+    windsurf)  install_rules "$TARGET/.windsurf/rules" "md" "standard_md" ;;
+    kiro)
+      install_rules "$TARGET/.kiro/steering" "md" "kiro_steering"
+      install_file "$TARGET/.kiro/steering/dev-mode.md" ".kiro/steering/dev-mode.md"
+      install_file "$TARGET/.kiro/steering/review-mode.md" ".kiro/steering/review-mode.md" ;;
+    openclaw)  install_skill "$TARGET/.openclaw/skills/matcha/SKILL.md" ;;
+    agy_global)
+      install_skill "$HOME/.gemini/antigravity-cli/skills/matcha/SKILL.md"
+      echo "  ✅ Global agy skill installed" ;;
+  esac
+  echo ""
+done
+
+echo "🍵 matcha: install complete"
+echo "Run /matcha:status to verify."

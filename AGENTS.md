@@ -23,6 +23,9 @@ This project uses the **matcha** engineering philosophy. Always take the **easie
 ### 🎯 Purpose — 5W1H Gate
 **What** (actual problem) → **Why** (what breaks?) → **Who** (depends?) → **When** (now?) → **Where** (location?) → **How** (simplest solution?). Can't answer Why/How? → STOP. Ask.
 
+### 🔎 Reuse — Hunter
+Before writing new code: search codebase for existing implementations. Same logic exists? → reuse, don't rewrite.
+
 ### 🔍 Stack — Audit
 Before adding anything: scan manifests, scan services, check overlap. Overlap? → STOP. Report.
 

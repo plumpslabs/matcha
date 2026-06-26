@@ -1,0 +1,28 @@
+---
+description: Matcha Next.js coding standards
+globs: ["**/*.{tsx,ts}"]
+alwaysApply: false
+---
+
+# Next.js Standards
+
+## App Router Only
+- Server Components by default, "use client" only for interactivity
+- `loading.tsx`, `error.tsx`, `not-found.tsx` per route segment
+
+## Data Fetching
+```tsx
+// ✅ Server Component — fetch directly
+async function Page() { const data = await fetch(url).then(r => r.json()); return ...; }
+// ✅ Server Actions for mutations
+async function action(data: FormData) { 'use server'; ... }
+```
+
+## Performance
+- `next/image` with width/height or fill
+- `next/font` for zero FOOT
+- Streaming via loading.tsx + Suspense
+- ISR with fetch revalidate
+
+# 🔎 Reuse check
+Check next.config.ts capabilities before adding plugins

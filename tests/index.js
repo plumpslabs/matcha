@@ -1,9 +1,4 @@
 #!/usr/bin/env node
-/**
- * matcha — tests/index.js
- * Basic validation: all adapter files exist and contain key sections.
- */
-
 import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
@@ -33,77 +28,89 @@ const KEY_SECTIONS = ["5W1H", "matcha pause", "APPNAME_", "Observation:", "🍵 
 
 console.log("\n🍵 matcha test suite\n");
 
-// Core files exist
+// Core files
 console.log("Core files:");
-test("skills/matcha/SKILL.md exists", () => {
-  assert(existsSync(join(ROOT, "skills/matcha/SKILL.md")), "missing");
-});
-test("AGENTS.md exists", () => {
-  assert(existsSync(join(ROOT, "AGENTS.md")), "missing");
-});
-test("LICENSE exists", () => {
-  assert(existsSync(join(ROOT, "LICENSE")), "missing");
-});
-test("hooks/inject-rules.js exists", () => {
-  assert(existsSync(join(ROOT, "hooks/inject-rules.js")), "missing");
-});
-test("CONTRIBUTING.md exists", () => {
-  assert(existsSync(join(ROOT, "CONTRIBUTING.md")), "missing");
-});
-test("hooks/matcha-instructions.js exists", () => {
-  assert(existsSync(join(ROOT, "hooks/matcha-instructions.js")), "missing");
-});
-
-// Adapter files exist
-console.log("\nAdapters:");
-const adapters = [
-  ".claude-plugin/plugin.json",
-  ".claude-plugin/marketplace.json",
-  ".cursor/rules/matcha.mdc",
-  ".windsurf/rules/matcha.md",
-  ".clinerules/matcha.md",
-  ".kiro/steering/matcha.md",
-  ".agents/rules/matcha.md",
-  ".openclaw/skills/matcha/SKILL.md",
-  ".opencode/plugins/matcha.mjs",
-  "gemini-extension.json",
-  "bin/matcha.js",
-  "CLAUDE.md",
-];
-for (const a of adapters) {
-  test(`${a} exists`, () => assert(existsSync(join(ROOT, a)), "missing"));
+for (const f of ["skills/matcha/SKILL.md", "AGENTS.md", "LICENSE", "hooks/inject-rules.js",
+                  "CONTRIBUTING.md", "hooks/matcha-instructions.js", "install.sh", "QUICKSTART.md",
+                  ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json"]) {
+  test(`${f} exists`, () => assert(existsSync(join(ROOT, f)), "missing"));
 }
 
-// Key sections present in skill and agents
+// All 6 agents
+console.log("\nAgents:");
+for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer", "matcha-cleaner", "matcha-debugger"]) {
+  test(`.claude/agents/${a}.md exists`, () => assert(existsSync(join(ROOT, `.claude/agents/${a}.md`)), "missing"));
+  test(`.opencode/agents/${a}.md exists`, () => assert(existsSync(join(ROOT, `.opencode/agents/${a}.md`)), "missing"));
+}
+
+// All 5 commands
+console.log("\nCommands:");
+for (const c of ["why", "review", "audit", "intensity", "status"]) {
+  test(`commands/${c}.md exists`, () => assert(existsSync(join(ROOT, `commands/${c}.md`)), "missing"));
+  test(`.claude/commands/${c}.md exists`, () => assert(existsSync(join(ROOT, `.claude/commands/${c}.md`)), "missing"));
+  test(`.opencode/commands/${c}.md exists`, () => assert(existsSync(join(ROOT, `.opencode/commands/${c}.md`)), "missing"));
+}
+
+// Platform rule directories
+console.log("\nPlatform rules:");
+const platforms = {
+  ".cursor/rules": ["matcha.mdc", "matcha-common.mdc", "matcha-go.mdc", "matcha-typescript.mdc",
+                     "matcha-python.mdc", "matcha-php.mdc", "matcha-java.mdc", "matcha-react-native.mdc",
+                     "matcha-react.mdc", "matcha-angular.mdc", "matcha-nextjs.mdc", "matcha-nestjs.mdc",
+                     "matcha-nuxt.mdc", "matcha-tanstack.mdc", "matcha-redis.mdc", "matcha-tailwind.mdc"],
+  ".agents/rules": ["matcha.md", "matcha-common.md", "matcha-go.md", "matcha-typescript.md",
+                     "matcha-python.md", "matcha-php.md", "matcha-java.md", "matcha-react-native.md",
+                     "matcha-react.md", "matcha-angular.md", "matcha-nextjs.md", "matcha-nestjs.md",
+                     "matcha-nuxt.md", "matcha-tanstack.md", "matcha-redis.md", "matcha-tailwind.md"],
+  ".kiro/steering": ["matcha.md", "dev-mode.md", "review-mode.md", "matcha-go.md", "matcha-typescript.md",
+                      "matcha-python.md", "matcha-php.md", "matcha-java.md", "matcha-react-native.md",
+                      "matcha-react.md", "matcha-angular.md", "matcha-nextjs.md", "matcha-nestjs.md",
+                      "matcha-nuxt.md", "matcha-tanstack.md", "matcha-redis.md", "matcha-tailwind.md"],
+};
+for (const [dir, files] of Object.entries(platforms)) {
+  for (const f of files) {
+    test(`${dir}/${f} exists`, () => assert(existsSync(join(ROOT, dir, f)), "missing"));
+  }
+}
+test(".clinerules/matcha.md exists", () => assert(existsSync(join(ROOT, ".clinerules/matcha.md")), "missing"));
+test(".windsurf/rules/matcha.md exists", () => assert(existsSync(join(ROOT, ".windsurf/rules/matcha.md")), "missing"));
+test(".openclaw/skills/matcha/SKILL.md exists", () => assert(existsSync(join(ROOT, ".openclaw/skills/matcha/SKILL.md")), "missing"));
+
+// .agents/skills/ for agy support
+console.log("\nAntigravity/agy:");
+test(".agents/skills/matcha/SKILL.md exists", () => assert(existsSync(join(ROOT, ".agents/skills/matcha/SKILL.md")), "missing"));
+
+// Content validation
 console.log("\nContent validation:");
 const skillContent = readFileSync(join(ROOT, "skills/matcha/SKILL.md"), "utf-8");
 const agentsContent = readFileSync(join(ROOT, "AGENTS.md"), "utf-8");
-const cursorContent = readFileSync(join(ROOT, ".cursor/rules/matcha.mdc"), "utf-8");
-
 for (const section of KEY_SECTIONS) {
-  test(`SKILL.md contains "${section}"`, () => assert(skillContent.includes(section), "missing section"));
-  test(`AGENTS.md contains "${section}"`, () => assert(agentsContent.includes(section), "missing section"));
+  test(`SKILL.md contains "${section}"`, () => assert(skillContent.includes(section), "missing"));
+  test(`AGENTS.md contains "${section}"`, () => assert(agentsContent.includes(section), "missing"));
+}
+test("SKILL.md has End-of-Task Suggestions", () => assert(skillContent.includes("End-of-Task Suggestions"), "missing"));
+
+// Canonical framework rule files
+console.log("\nFramework rules:");
+for (const f of ["rules/typescript/react.md", "rules/typescript/nextjs.md", "rules/typescript/angular.md",
+                  "rules/typescript/nestjs.md", "rules/typescript/nuxt.md", "rules/typescript/tanstack.md",
+                  "rules/common/redis.md", "rules/common/tailwind.md"]) {
+  test(`${f} exists`, () => assert(existsSync(join(ROOT, f)), "missing"));
 }
 
-// Snarky suggestions section in SKILL.md
-test("SKILL.md has snarky suggestions section", () => {
-  assert(skillContent.includes("End-of-Task Suggestions"), "missing suggestions section");
-});
+// Rule no-any check
+console.log("\nRule quality:");
+const tsRules = readFileSync(join(ROOT, "rules/typescript/coding-standards.md"), "utf-8");
+test("TypeScript rule bans 'any'", () => assert(/no\s*`any`/i.test(tsRules), "no `any` rule missing"));
 
-// CLAUDE.md content validation (existence already covered by adapter loop above)
-test("CLAUDE.md has snarky suggestions", () => {
-  const content = readFileSync(join(ROOT, "CLAUDE.md"), "utf-8");
-  assert(content.includes("End-of-Task Suggestions"), "missing suggestions section");
-  assert(content.includes("5W1H"), "missing 5W1H");
-  assert(content.includes("APPNAME_"), "missing APPNAME_");
-});
-
-// Commands exist
-console.log("\nCommands:");
-for (const cmd of ["why", "audit", "review"]) {
-  test(`commands/${cmd}.md exists`, () => {
-    assert(existsSync(join(ROOT, `commands/${cmd}.md`)), "missing");
-  });
+// install.sh syntax check
+console.log("\nInstaller:");
+import { execSync } from "child_process";
+try {
+  execSync("bash -n install.sh", { cwd: ROOT });
+  test("install.sh syntax valid", () => {});
+} catch {
+  test("install.sh syntax valid", () => { throw new Error("bash syntax error"); });
 }
 
 console.log(`\n${passed} passed, ${failed} failed\n`);

@@ -1,7 +1,6 @@
 ---
 description: matcha engineering philosophy — enforce efficient, deliberate thinking on all coding and architecture tasks
-globs: ["**/*"]
-alwaysApply: true
+inclusion: auto
 ---
 
 # 🍵 matcha Convention
@@ -22,6 +21,9 @@ alwaysApply: true
 
 ### 🎯 Purpose — 5W1H
 What → Why → Who → When → Where → How. Can't answer Why/How? → STOP. Ask.
+
+### 🔎 Reuse — Hunter
+Before writing any new code: search codebase for existing implementations. Same logic/business flow already exists? → reuse, don't rewrite. Report exact location.
 
 ### 🔍 Stack — Audit
 Before adding: scan manifests, scan services, check overlap. Overlap? → STOP.

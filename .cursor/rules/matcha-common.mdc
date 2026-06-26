@@ -1,0 +1,51 @@
+---
+description: Matcha universal coding standards — testing, git, and conventions for all projects
+alwaysApply: true
+---
+
+# Common Coding Standards
+
+## No Hardcoded Values
+Use env vars: `APPNAME_VAR_NAME`
+```env
+MATCHA_API_URL=https://api.example.com
+```
+
+## Error Handling
+```typescript
+// ❌ Bad — swallowed
+try { await risky(); } catch {}
+
+// ✅ Good — explicit
+try { await risky(); } catch (e) {
+  logger.error("failed", e);
+  throw;
+}
+```
+
+## One Function, One Thing
+```typescript
+// ❌ Bad
+function handle(data) { validate(data); save(data); email(data); }
+
+// ✅ Good
+async function createUser(data) {
+  await validate(data);
+  return save(data);
+}
+```
+
+## Prefer Stdlib over new deps
+3 use cases before abstracting
+
+# Testing Standards
+- Tests must be deterministic
+- Test behavior, not implementation
+- Min 80% coverage on new code
+- Before commit → test suite must pass
+
+# Git Workflow
+- Conventional commits: `feat:` `fix:` `refactor:` `docs:` `test:` `chore:`
+- Subject ≤72 chars, imperative mood
+- Body explains WHY, not what
+- One commit = one logical change

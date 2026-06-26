@@ -24,18 +24,9 @@
 
 ## Why matcha?
 
-AI coding toolkits are bloated. **ECC** ships 67 agents, 271 skills, npm packages, dashboards, and pricing tiers. That's an operating system, not a convention.
+Every AI coding session starts the same: jump in, write code, realize mid-way you missed something obvious. matcha is a **5-checkpoint filter** that runs before, during, and after every implementation — catching the things you'd catch yourself if you stopped to think.
 
-**matcha** does one thing: **enforces a 5-checkpoint filter** on every implementation. No bloat. Just a deliberate gate between you and messy code.
-
-| | ECC | matcha |
-|---|---|---|
-| Agents | 67 | 6 (mapped to 5 checkpoints + debugger) |
-| Skills | 271 | 1 (the philosophy itself) |
-| Commands | 92 | 5 |
-| Language rules | 17 | 6 (only the ones you use) |
-| Installer | npm + dashboard + GitHub App | 1 bash script |
-| Philosophy | "agent harness OS" | **"anti-bloat engineering"** |
+No bloat. Just a deliberate gate between you and messy code.
 
 ---
 

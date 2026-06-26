@@ -4,11 +4,15 @@
  * Simple. Efficient. Deliberate. Never twice.
  *
  * Usage:
- *   npx matcha init        — Install matcha to current project
- *   npx matcha status      — Show matcha version & platform detection
- *   npx matcha why         — 5W1H interactive check
- *   npx matcha audit       — Quick project stack audit
- *   npx matcha help        — Show help
+ *   git clone https://github.com/plumpslabs/matcha.git
+ *   cd matcha
+ *   node bin/matcha.js status   — Show matcha version & platform detection
+ *   node bin/matcha.js why      — 5W1H interactive check
+ *   node bin/matcha.js audit    — Quick project stack audit
+ *   node bin/matcha.js help     — Show help
+ *
+ * Install via:
+ *   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
  */
 
 import { execSync } from "child_process";
@@ -33,18 +37,15 @@ function showHelp() {
   console.log(`
 🍵 matcha v${VERSION} — Engineering Convention for AI Coding Agents
 
-Usage:
-  npx matcha init           Install matcha to current project (auto-detect platform)
-  npx matcha status         Show version, platform, and installed components
-  npx matcha why            Run 5W1H check — clarify purpose before coding
-  npx matcha audit          Quick project stack audit
-  npx matcha verify         Auto-detect test framework and run tests + typecheck
-  npx matcha help           Show this help
+Usage (from cloned repo):
+  node bin/matcha.js status    Show version, platform, and installed components
+  node bin/matcha.js why       Run 5W1H check — clarify purpose before coding
+  node bin/matcha.js audit     Quick project stack audit
+  node bin/matcha.js verify    Auto-detect test framework and run tests + typecheck
+  node bin/matcha.js help      Show this help
 
-Install methods:
-  curl | bash               https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh
-  npx matcha init           Same as above, via npm
-  /plugin install           Claude Code marketplace
+Install:
+  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
 
 Docs: https://github.com/plumpslabs/matcha
 `);
@@ -68,8 +69,8 @@ function cmdInit() {
   }
 
   console.log("\n💡 Next steps:");
-  console.log("   Run  npx matcha status   to verify installation");
-  console.log("   See  QUICKSTART.md        for usage guide");
+  console.log("   Run  node bin/matcha.js status   to verify installation");
+  console.log("   See  QUICKSTART.md               for usage guide");
 }
 
 // ─── Status ───────────────────────────────────────────────────────────────────
@@ -114,7 +115,8 @@ function cmdStatus() {
 
   if (found.length === 0) {
     console.log("  Platform:   (none detected)");
-    console.log("  → Run  npx matcha init  to install");
+    console.log("  → Run  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash");
+    console.log("  → Or   cd path/to/matcha && node bin/matcha.js init  (from cloned repo)");
   }
 
   // Check AGENTS.md
@@ -174,7 +176,7 @@ function cmdWhy() {
     questions.forEach(({ q, desc }) => {
       console.log(`  ${q} — ${desc}`);
     });
-    console.log(`\n  Example: echo "fix login bug|users can't log in|auth service|now|auth/login.ts|check token expiry" | npx matcha why`);
+    console.log(`\n  Example: echo "fix login bug|users can't log in|auth service|now|auth/login.ts|check token expiry" | node bin/matcha.js why`);
   }
 }
 

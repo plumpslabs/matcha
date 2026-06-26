@@ -8,13 +8,7 @@
 
 Choose your method:
 
-### A) npx (easiest, any project)
-
-```bash
-npx matcha init
-```
-
-### B) curl (any AI agent)
+### A) curl (any AI agent — recommended)
 
 ```bash
 # One-liner — auto-detect + install to current project
@@ -32,14 +26,14 @@ curl -fsSL ... | bash -s -- --target /path/to/your-project
 
 The script auto-detects **12 platforms** (`.claude/`, `.cursor/`, `.kiro/`, `.qoder/`, `.qwen/`, `.opencode/`, etc.) and installs the right files.
 
-### C) Claude Code Plugin
+### B) Claude Code Plugin
 
 ```bash
 /plugin marketplace add https://github.com/plumpslabs/matcha
 /plugin install matcha@plumpslabs-matcha
 ```
 
-### D) Antigravity CLI / agy
+### C) Antigravity CLI / agy
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
@@ -50,9 +44,11 @@ curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh |
 ## 2. Verify
 
 ```bash
-npx matcha status
-# or inside AI agent:
+# Inside your AI agent:
 /matcha:status
+
+# Or from cloned matcha repo:
+node bin/matcha.js status
 ```
 
 Should show: version, platform detected, components installed, shield status.
@@ -62,11 +58,11 @@ Should show: version, platform detected, components installed, shield status.
 ## 3. Daily Flow
 
 ```
-Planning       → @matcha-planner  or  npx matcha why
+Planning       → @matcha-planner  or  node bin/matcha.js why
 Before coding  → @matcha-finder (reuse check — "never write twice")
 While coding   → @matcha-debugger (stuck on bug?)
 After coding   → /matcha:review  +  @matcha-reviewer  +  @matcha-cleaner
-Verify         → npx matcha verify (auto-run tests + typecheck + lint)
+Verify         → @matcha-reviewer (auto-run tests + typecheck + lint)
 Deploy         → /matcha:audit
 Check status   → /matcha:status
 Intensity      → /matcha:enforce (default)
@@ -96,7 +92,7 @@ Plus:
 | Resource | Link |
 |----------|------|
 | Full philosophy | `skills/matcha/SKILL.md` |
-| CLI commands | `npx matcha help` — init, status, why, audit, verify |
+| CLI commands | `node bin/matcha.js help` — status, why, audit, verify |
 | Agent reference | `.claude/agents/` or `.opencode/agents/` |
 | Command reference | `commands/` |
 | Language rules | `rules/` |

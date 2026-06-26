@@ -105,13 +105,12 @@ Invoke: `@matcha-reviewer` or let Claude auto-route via description.
 | `/matcha:audit` | Stack audit for overlaps & inefficiencies | Claude, OpenCode |
 | `/matcha:observe\|enforce\|audit` | Set intensity level | Claude, OpenCode |
 | `/matcha:status` | Session health + component availability | Claude, OpenCode |
-| `npx matcha init` | Install matcha to project | Any (npm) |
-| `npx matcha status` | Show version, platform, shield status | Any (npm) |
-| `npx matcha why` | 5W1H interactive check (piped input) | Any (npm) |
-| `npx matcha audit` | Quick project stack audit | Any (npm) |
-| `npx matcha verify` | Auto-run tests + typecheck + lint | Any (npm) |
+| `node bin/matcha.js status` | Show version, platform, shield status | Cloned repo |
+| `node bin/matcha.js why` | 5W1H interactive check (piped input) | Cloned repo |
+| `node bin/matcha.js audit` | Quick project stack audit | Cloned repo |
+| `node bin/matcha.js verify` | Auto-run tests + typecheck + lint | Cloned repo |
 
-Slash commands available on Claude Code, OpenCode. npx commands available wherever Node.js is installed.
+Slash commands available on Claude Code, OpenCode. CLI commands available from cloned repo via `node bin/matcha.js`.
 
 ### 🛡️ Safety Shield
 
@@ -172,7 +171,7 @@ Rules are available on all platforms (Cursor `.mdc`, Kiro steering, Claude rules
 | **Qwen Code** | `curl ... \| bash` (detects `.qwen/`) | QWEN.md + skill + settings.json |
 | **Codebuff / agy** | `curl ... \| bash` (detects `.agents/` or global) | agents + commands + rules + skill |
 | **Any / None** | `curl ... \| bash` (no platform → creates `.agents/`) | universal format (agents + rules + commands + skill) |
-| **Any (npm)** | `npx matcha init` | auto-detect + install |
+| **Any (cloned)** | `node bin/matcha.js init` | auto-detect + install (from cloned repo) |
 
 ---
 
@@ -206,18 +205,22 @@ Recommendation: [which and why]
 
 ---
 
-## CLI (npx matcha)
+## CLI (from cloned repo)
 
 ```
-npx matcha init        Install matcha to current project
-npx matcha status      Show version, platform, components
-npx matcha why         5W1H interactive check (piped input supported)
-npx matcha audit       Quick project stack audit
-npx matcha verify      Auto-detect + run tests, typecheck, lint
-npx matcha help        Show usage
+node bin/matcha.js status      Show version, platform, components
+node bin/matcha.js why          5W1H interactive check (piped input supported)
+node bin/matcha.js audit        Quick project stack audit
+node bin/matcha.js verify       Auto-detect + run tests, typecheck, lint
+node bin/matcha.js help         Show usage
 ```
 
 Supports: npm test, jest, vitest, pytest, go test, cargo test, phpunit, mvn test, gradle test, make test.
+
+Install via:
+```bash
+curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+```
 
 ---
 
@@ -225,7 +228,7 @@ Supports: npm test, jest, vitest, pytest, go test, cargo test, phpunit, mvn test
 
 ```
 matcha/
-├── bin/matcha.js                  ← CLI (npx matcha)
+├── bin/matcha.js                  ← CLI (node bin/matcha.js)
 ├── install.sh                     ← 1-script installer
 ├── QWEN.md                        ← Qwen Code context template
 ├── AGENTS.md / CLAUDE.md          ← context / persona files

@@ -346,9 +346,9 @@ test("README has Qwen row", () => {
   const readme = readFileSync(join(ROOT, "README.md"), "utf-8");
   assert(readme.includes("Qwen Code"), "missing Qwen in platform table");
 });
-test("README has CLI init row", () => {
+test("README has CLI node bin/matcha.js reference", () => {
   const readme = readFileSync(join(ROOT, "README.md"), "utf-8");
-  assert(readme.includes("npx matcha init"), "missing npx init");
+  assert(readme.includes("node bin/matcha.js"), "missing CLI reference");
 });
 test("README has 12+ platform rows", () => {
   const readme = readFileSync(join(ROOT, "README.md"), "utf-8");

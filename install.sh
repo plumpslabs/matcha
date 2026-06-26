@@ -126,7 +126,7 @@ resolve_langs "$PROFILE"
 
 # ─── Warn about invalid lang values ──────────────────────────────────────────
 for lang in $LANG_FILTER; do
-  local valid=false
+  valid=false
   for al in $ALL_LANGS; do [ "$lang" = "$al" ] && valid=true && break; done
   $valid || echo "  ⚠ Unknown language: $lang (ignored)"
 done

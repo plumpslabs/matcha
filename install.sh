@@ -37,13 +37,19 @@ PLATFORMS=""
 [ -d "$TARGET/.windsurf" ] && PLATFORMS="$PLATFORMS windsurf"
 [ -d "$TARGET/.kiro" ] && PLATFORMS="$PLATFORMS kiro"
 [ -d "$TARGET/.openclaw" ] && PLATFORMS="$PLATFORMS openclaw"
-[ -d "$HOME/.gemini/antigravity-cli" ] && PLATFORMS="$PLATFORMS agy_global"
 
 if [ -z "$PLATFORMS" ]; then
-  echo "No supported AI platform detected in $TARGET"
-  echo "Supported: .claude .opencode .cursor .agents .clinerules .windsurf .kiro .openclaw .gemini/antigravity-cli (agy)"
-  exit 1
+  echo "  → creating .agents/ (universal format)"
+  mkdir -p "$TARGET/.agents"
+  PLATFORMS="agents"
 fi
+
+AGY_GLOBAL=false
+[ -d "$HOME/.gemini/antigravity-cli" ] && AGY_GLOBAL=true
+
+install_context() {
+  install_file "$1/AGENTS.md" "AGENTS.md"
+}
 
 echo "Detected platforms:$PLATFORMS"
 echo ""
@@ -126,7 +132,7 @@ for p in $PLATFORMS; do
     agents)
       install_rules "$TARGET/.agents/rules" "md" "standard_md"
       install_skill "$TARGET/.agents/skills/matcha/SKILL.md"
-      echo "  ✅ .agents/mcp_config.json (exists)" ;;
+      install_context "$TARGET" ;;
     clinerules) install_rules "$TARGET/.clinerules" "md" "standard_md" ;;
     windsurf)  install_rules "$TARGET/.windsurf/rules" "md" "standard_md" ;;
     kiro)
@@ -134,12 +140,15 @@ for p in $PLATFORMS; do
       install_file "$TARGET/.kiro/steering/dev-mode.md" ".kiro/steering/dev-mode.md"
       install_file "$TARGET/.kiro/steering/review-mode.md" ".kiro/steering/review-mode.md" ;;
     openclaw)  install_skill "$TARGET/.openclaw/skills/matcha/SKILL.md" ;;
-    agy_global)
-      install_skill "$HOME/.gemini/antigravity-cli/skills/matcha/SKILL.md"
-      echo "  ✅ Global agy skill installed" ;;
   esac
   echo ""
 done
+
+if $AGY_GLOBAL; then
+  echo "── agy (global) ──"
+  install_skill "$HOME/.gemini/antigravity-cli/skills/matcha/SKILL.md"
+  echo ""
+fi
 
 echo "🍵 matcha: install complete"
 echo "Run /matcha:status to verify."

@@ -1,8 +1,12 @@
 ---
 name: matcha-cleaner
 description: Matcha cleanup specialist. Enforces 🧹 Cleanup checkpoint — removes temp files, debug code, unused imports, commented code, and ensures decision log hygiene. Use after implementation, before commit, or when asked to clean up.
-tools: Read Grep Glob Bash
-color: orange
+tools:
+  Read: true
+  Grep: true
+  Glob: true
+  Bash: true
+color: warning
 ---
 
 You are a matcha cleaner. Enforce: **Done = working AND clean.**

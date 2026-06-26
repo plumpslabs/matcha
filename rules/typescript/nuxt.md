@@ -42,3 +42,58 @@ const { data: posts } = await useFetch("/api/posts");
 - Composables in `composables/` → auto-imported
 - Components in `components/` → auto-imported
 - No manual import needed (tree-shaken at build)
+
+## Server Routes (Nitro)
+```typescript
+// server/api/users.ts — auto-registered as /api/users
+export default defineEventHandler(async (event) => {
+  const users = await db.user.findMany();
+  return { data: users };
+});
+
+// Server-only code, never bundles to client
+// Use server/utils/ for shared server logic
+```
+
+## Layers
+```
+my-app/
+├── layers/
+│   ├── base/          ← shared theme, components
+│   └── admin/         ← admin panel features
+├── nuxt.config.ts     ← extend layers
+└── app.vue
+```
+- Layers allow code sharing across Nuxt apps
+- `nuxt.config.ts`: `extends: ['./layers/base']`
+- Each layer has its own components, composables, pages
+
+## SEO
+- `useSeoMeta` for per-page SEO (OG tags, title, description)
+- `useHead` for `<head>` management
+- `nuxt-schema-org` for structured data
+- `@nuxtjs/sitemap` for sitemap generation
+
+## Rendering Modes
+```typescript
+// nuxt.config.ts
+export default defineNuxtConfig({
+  routeRules: {
+    '/':              { prerender: true },        // static
+    '/dashboard/**':  { ssr: false },             // SPA
+    '/blog/**':       { swr: 3600 },              // static + revalidate
+    '/api/**':        { cors: true },             // API routes
+  },
+});
+```
+- `prerender`: static generation (fastest)
+- `ssr: false`: client-side only (dashboard)
+- `swr`: stale-while-revalidate (blog/content)
+- `isr`: incremental static regeneration
+
+## Performance
+- `NuxtImage` / `NuxtImg` for optimized images (requires `@nuxt/image`)
+- Route transitions with `<NuxtPage transition="..." />`
+- `keepalive: true` for cached pages
+- Lazy hydrate components with `lazy` prefix: `<LazyFooter />`
+- `definePageMeta({ keepalive: true })` for page-level caching

@@ -2,14 +2,43 @@
 
 ## Type Hints
 ```python
-# ❌ Bad
+# ❌ Bad — no type hints
 def process(data):
     return data["value"]
 
-# ✅ Good
-from typing import Any
+# ✅ Good — typed
 def process(data: dict[str, Any]) -> str:
     return str(data["value"])
+
+# ✅ Pydantic v2 for data validation
+from pydantic import BaseModel, EmailStr
+
+class User(BaseModel):
+    id: str
+    email: EmailStr
+    name: str = ""  # default value
+    tags: list[str] = []  # typed list
+```
+
+## Data Classes
+```python
+from dataclasses import dataclass, field
+
+# ✅ dataclass for internal data containers (no validation needed)
+@dataclass
+class Coordinates:
+    lat: float
+    lng: float
+    label: str = ""
+
+# ✅ Path handling with pathlib
+from pathlib import Path
+
+BASE_DIR = Path(__file__).parent
+config_path = BASE_DIR / "config" / "settings.yaml"
+# No more os.path.join, os.path.exists — use Path methods
+if config_path.exists():
+    content = config_path.read_text()
 ```
 
 ## Error Handling

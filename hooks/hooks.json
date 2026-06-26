@@ -6,7 +6,7 @@
     },
     {
       "event": "before:tool_use",
-      "handler": "hooks/inject-rules.js"
+      "handler": "hooks/matcha-shield.js"
     }
   ]
 }

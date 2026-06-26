@@ -43,7 +43,58 @@ controller → service → repository
           ↕          ↕
         dto        entity
 ```
-- Controllers: HTTP concerns only
-- Services: business logic
+- Controllers: HTTP concerns only (parse request, validate, return response)
+- Services: business logic, orchestration
 - Repositories: data access (TypeORM / Prisma)
-- Guards for auth, Interceptors for logging/transformation
+- Guards for auth, Interceptors for logging/transformation, Pipes for validation
+
+## Testing
+```typescript
+// ✅ TestingModule for isolated service tests
+import { Test, TestingModule } from '@nestjs/testing';
+
+describe('UserService', () => {
+  let service: UserService;
+  let repo: MockType<Repository<User>>;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        UserService,
+        { provide: getRepositoryToken(User), useFactory: mockRepository },
+      ],
+    }).compile();
+    service = module.get(UserService);
+    repo = module.get(getRepositoryToken(User));
+  });
+});
+```
+
+## Custom Decorators
+```typescript
+// ✅ Combined decorator
+import { applyDecorators, UseGuards, SetMetadata } from '@nestjs/common';
+
+export function Auth(role: Role) {
+  return applyDecorators(
+    SetMetadata('role', role),
+    UseGuards(AuthGuard, RolesGuard),
+  );
+}
+```
+
+## Lifecycle
+- `OnModuleInit` for startup logic (cache warmup, connection check)
+- `OnModuleDestroy` for cleanup (close connections, flush queues)
+- `OnApplicationShutdown` for graceful shutdown (signal handling)
+
+## Circular Dependencies
+- Use `forwardRef(() => ModuleB)` in module imports
+- Or restructure: extract shared logic into a shared module
+- Avoid bidirectional module dependencies where possible
+
+## Performance
+- Enable compression (`@nestjs/platform-express` → compression middleware)
+- Use caching (`@nestjs/cache-manager` + Redis)
+- Serialization: `@SerializeOptions` / `ClassSerializerInterceptor`
+- Queue heavy tasks with `@nestjs/bull` + Redis

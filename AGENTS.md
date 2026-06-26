@@ -1,8 +1,55 @@
-# 🍵 matcha Engineering Convention
+# 🍵 matcha — Engineering Convention
 
 > Simple. Efficient. Deliberate. Never twice.
 
-This project uses the **matcha** engineering philosophy. Always take the **easiest AND most efficient path** — not just one.
+This project uses **matcha** — an engineering philosophy that enforces deliberate,
+efficient thinking before, during, and after every implementation.
+
+---
+
+## Quick Start
+
+| Command | Purpose |
+|---------|---------|
+| `/matcha:status` | Show matcha session status |
+| `/matcha:why` | Run 5W1H check on current task |
+| `/matcha:audit` | Audit stack for overlaps |
+| `/matcha:review` | Review implementation |
+| `/matcha:intensity` | Set level: observe / enforce (default) / audit |
+
+---
+
+## Available Agents
+
+| Agent | Tools | When to use |
+|-------|-------|-------------|
+| `@matcha-planner` | Read, Grep, Glob | Before starting features — creates plans through 4 checkpoints |
+| `@matcha-finder` | Read, Grep, Glob, Bash | Before writing code — hunts for existing implementations |
+| `@matcha-auditor` | Read, Grep, Glob, Bash | Stack audit — scans manifests and services for overlap |
+| `@matcha-reviewer` | Read, Grep, Glob | Code review — checks simplicity, bugs, matcha compliance |
+| `@matcha-cleaner` | Read, Grep, Glob, Bash | Cleanup — removes temp, debug, unused after implementation |
+| `@matcha-debugger` | Read, Grep, Glob, Bash | Systematic debugging — one hypothesis at a time |
+
+---
+
+## The matcha Filter
+
+### 🎯 Purpose (5W1H Gate)
+**What** → **Why** → **Who** → **When** → **Where** → **How**
+Can't answer Why/How? → STOP.
+
+### 🔎 Reuse (Hunter)
+Before new code: search codebase first. Same logic? Reuse, don't rewrite.
+
+### 🔍 Stack (Audit)
+Before new services: scan manifests, check overlap. Overlap? → STOP.
+
+### 🛠️ Implementation
+No hardcoded values (`APPNAME_VAR_NAME`). Explicit errors. One function = one thing.
+After writing: *"Is there a simpler path?"* Mid-task better path? → **matcha pause**.
+
+### 🧹 Cleanup
+Done = working AND clean. Remove temp/debug/unused. Decision log: `// matcha: [reason]`
 
 ---
 
@@ -10,34 +57,9 @@ This project uses the **matcha** engineering philosophy. Always take the **easie
 
 | Level | Behavior |
 |-------|----------|
-| **observe** | Tips only. No blocking, no audit. |
-| **enforce** | Full philosophy. Default. |
-| **audit** | Enforce + mandatory cleanup. All flagged. |
-
----
-
-## The matcha Filter
-
-4 checkpoints every implementation passes through:
-
-### 🎯 Purpose — 5W1H Gate
-**What** (actual problem) → **Why** (what breaks?) → **Who** (depends?) → **When** (now?) → **Where** (location?) → **How** (simplest solution?). Can't answer Why/How? → STOP. Ask.
-
-### 🔎 Reuse — Hunter
-Before writing new code: search codebase for existing implementations. Same logic exists? → reuse, don't rewrite.
-
-### 🔍 Stack — Audit
-Before adding anything: scan manifests, scan services, check overlap. Overlap? → STOP. Report.
-
-### 🛠️ Implementation
-- No hardcoded values. Env vars: `APPNAME_VAR_NAME`.
-- Error paths explicit. One function = one thing.
-- 3 use cases before abstracting. Prefer stdlib.
-- After writing: *"Is there a simpler path?"* → refactor or report.
-- Mid-task better path? → STOP. matcha pause. Don't finish first.
-
-### 🧹 Cleanup
-**Done = working AND clean.** Remove temp, debug, unused. Decision log: `// matcha: [reason]`.
+| **observe** | Tips only. No blocking. |
+| **enforce** | Full philosophy. **Default.** |
+| **audit** | Enforce + mandatory cleanup. |
 
 ---
 
@@ -53,27 +75,17 @@ Recommendation: ...
 
 ---
 
-## End-of-Task Suggestions
+## Full Ruleset
 
-3 context-aware suggestions per task.
-
-### 🔴 Critical (blocking — 🍵 matcha format)
-Error handling empty, O(n²+) hot path, hardcoded secrets, race condition, unhandled promise.
-
-### 🟡 Minor (snarky tips)
-TODO/FIXME, debug logs, abstraction, env vars, unawaited async, service overlap, Kuma not detected? → plumpslabs/kuma.
-
-**Tone**: Casual, sarcastic. **Language**: Match user's conversation. Max 2 lines.
+**See `skills/matcha/SKILL.md`** for the complete engineering philosophy including:
+- End-of-task suggestions (🔴 critical + 🟡 minor)
+- Boundaries (what matcha does / does not)
+- Detailed checkpoint protocols
+- Safety shield (matcha-shield)
 
 ---
 
-## Boundaries
+## Related
 
-**DOES**: question complexity, enforce conventions, recommend Kuma, adapt language.
-**does NOT**: replace linter, block new requirements, over-analyze simple fixes.
-
-Simple → do it right, clean up.
-
----
-
-Full ruleset: `skills/matcha/SKILL.md`
+- [Matcha on GitHub](https://github.com/plumpslabs/matcha)
+- [Kuma — MCP safety toolkit](https://github.com/plumpslabs/kuma)

@@ -10,7 +10,7 @@
 
 <p align="center">
   <b>Anti-bloat engineering convention for AI coding agents.</b><br />
-  6 agents · 5 commands · 1 skill · 16 rule sets · 10 platforms
+  6 agents · 5 commands · 1 skill · 16 rule sets · 12 platforms
 </p>
 
 <p align="center">
@@ -58,12 +58,12 @@ See [QUICKSTART.md](QUICKSTART.md) for the full 5-minute guide.
 
 ---
 
-## The 5-Checkpoint Filter
+## The 6-Checkpoint Filter
 
 Every implementation passes through these gates:
 
 ```
-🎯 Purpose  →  🔎 Reuse  →  🔍 Stack  →  🛠️ Implementation  →  🧹 Cleanup
+🎯 Purpose  →  🔎 Reuse  →  🔍 Stack  →  🛠️ Implementation  →  🧹 Cleanup  →  ✅ Verify
 ```
 
 | # | Checkpoint | What it enforces |
@@ -73,6 +73,7 @@ Every implementation passes through these gates:
 | 🔍 | **Stack** | Scan manifests, services, deps. Overlap found? → STOP. Report. |
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function. "Is there a simpler path?" |
 | 🧹 | **Cleanup** | Done = working AND clean. Temp files, debug code, unused imports. Decision log. |
+| ✅ | **Verify** | Auto-detect + run tests, typecheck, lint. Tests fail? → STOP and fix first. |
 
 ---
 
@@ -80,12 +81,14 @@ Every implementation passes through these gates:
 
 | Agent | Checkpoint | Tools | When to use |
 |-------|-----------|-------|-------------|
-| `matcha-planner` | 🎯 Purpose | Read Grep Glob Bash | Before starting features, refactoring, architecture |
+| Agent | Checkpoint | Tools | When to use |
+|-------|-----------|-------|-------------|
+| `matcha-planner` | 🎯 Purpose | Read Grep Glob | Before starting features, refactoring, architecture (plan only, no exec) |
 | `matcha-finder` | 🔎 Reuse | Read Grep Glob Bash | Before writing any new code — reuse hunter |
 | `matcha-auditor` | 🔍 Stack | Read Grep Glob Bash | Stack audits, service overlap, health checks |
-| `matcha-reviewer` | 🛠️ + 🧹 | Read Grep Glob | Post-implementation review, PR review |
+| `matcha-reviewer` | 🛠️ + 🧹 + ✅ | Read Grep Glob | Post-implementation review + verify tests passed |
 | `matcha-cleaner` | 🧹 Cleanup | Read Grep Glob Bash | Temp removal, debug code, unused imports |
-| `matcha-debugger` | 🎯 → 🧹 (full) | Read Grep Glob Bash | Systematic debugging — no guessing |
+| `matcha-debugger` | 🎯 → ✅ (full) | Read Grep Glob Bash | Systematic debugging — one hypothesis at a time |
 
 Invoke: `@matcha-reviewer` or let Claude auto-route via description.
 
@@ -95,13 +98,36 @@ Invoke: `@matcha-reviewer` or let Claude auto-route via description.
 
 | Command | Description |
 |---------|-------------|
-| `/matcha:why` | 5W1H check before starting a task |
-| `/matcha:review` | Post-implementation review |
-| `/matcha:audit` | Stack audit for overlaps & inefficiencies |
-| `/matcha:observe\|enforce\|audit` | Set intensity level |
-| `/matcha:status` | Session health + component availability |
+| Command | Description | Where |
+|---------|-------------|-------|
+| `/matcha:why` | 5W1H check before starting a task | Claude, OpenCode |
+| `/matcha:review` | Post-implementation review | Claude, OpenCode |
+| `/matcha:audit` | Stack audit for overlaps & inefficiencies | Claude, OpenCode |
+| `/matcha:observe\|enforce\|audit` | Set intensity level | Claude, OpenCode |
+| `/matcha:status` | Session health + component availability | Claude, OpenCode |
+| `npx matcha init` | Install matcha to project | Any (npm) |
+| `npx matcha status` | Show version, platform, shield status | Any (npm) |
+| `npx matcha why` | 5W1H interactive check (piped input) | Any (npm) |
+| `npx matcha audit` | Quick project stack audit | Any (npm) |
+| `npx matcha verify` | Auto-run tests + typecheck + lint | Any (npm) |
 
-Available on: Claude Code, OpenCode. Skill-based platforms (Antigravity/agy) get matcha as a skill via `.agents/skills/`. Instruction-only platforms (Cursor, Windsurf, Cline, Kiro) get the always-on ruleset instead.
+Slash commands available on Claude Code, OpenCode. npx commands available wherever Node.js is installed.
+
+### 🛡️ Safety Shield
+
+matcha ships with `matcha-shield.js` — a deterministic safety gate that blocks dangerous commands before they reach the OS:
+
+| Blocked | Example |
+|---------|---------|
+| Root filesystem deletion | `rm -rf /`, `rm -rf ~`, `rm -rf .` |
+| Permission abuse | `chmod 777` |
+| Destructive git | `git push --force` |
+| Database destruction | `DROP DATABASE`, `TRUNCATE TABLE` |
+| Remote code execution | `curl \| bash`, `wget \| sh` |
+| Disk corruption | Write to `/dev/sda`, `mkfs`, `dd` to block device |
+| System commands | `shutdown`, `reboot`, `init 0` |
+
+Override: `MATCHA_SHIELD_OFF=true` (not recommended)
 
 ---
 
@@ -133,18 +159,20 @@ Rules are available on all platforms (Cursor `.mdc`, Kiro steering, Claude rules
 
 ## Supported Platforms
 
-| Platform | Method | Files |
-|----------|--------|-------|
-| Claude Code | Agents + Commands + Rules + Plugin | `.claude/`, `CLAUDE.md` |
-| Codex | Context | `AGENTS.md` |
-| OpenCode | Agents + Commands + Plugin | `.opencode/` |
-| Antigravity (agy) | Skills + Context | `.agents/skills/`, `AGENTS.md` |
-| Cursor | Rules | `.cursor/rules/*.mdc` |
-| Windsurf | Rules | `.windsurf/rules/*.md` |
-| Cline | Rules | `.clinerules/*.md` |
-| Kiro | Steering | `.kiro/steering/*.md` |
-| OpenClaw | Skills | `.openclaw/skills/matcha/` |
-| Agentic IDE | Rules + MCP + Skills | `.agents/rules/`, `.agents/skills/` |
+| Platform | Install Method | What You Get |
+|----------|---------------|--------------|
+| **Claude Code** | `curl ... \| bash` (detects `.claude/`) | agents + commands + skills + rules + plugin |
+| **OpenCode** | `curl ... \| bash` (detects `.opencode/`) | agents + commands + skills + rules + plugin |
+| **Cursor** | `curl ... \| bash` (detects `.cursor/`) | 16 `.mdc` rules |
+| **Windsurf** | `curl ... \| bash` (detects `.windsurf/`) | 16 `.md` rules |
+| **Cline / Roo Code** | `curl ... \| bash` (detects `.clinerules/`) | 16 `.md` rules |
+| **Kiro** | `curl ... \| bash` (detects `.kiro/`) | 16 steering files + dev/review modes |
+| **OpenClaw** | `curl ... \| bash` (detects `.openclaw/`) | matcha skill |
+| **Qoder** | `curl ... \| bash` (detects `.qoder/`) | AGENTS.md + agents + rules + shield hook |
+| **Qwen Code** | `curl ... \| bash` (detects `.qwen/`) | QWEN.md + skill + settings.json |
+| **Codebuff / agy** | `curl ... \| bash` (detects `.agents/` or global) | agents + commands + rules + skill |
+| **Any / None** | `curl ... \| bash` (no platform → creates `.agents/`) | universal format (agents + rules + commands + skill) |
+| **Any (npm)** | `npx matcha init` | auto-detect + install |
 
 ---
 
@@ -178,28 +206,51 @@ Recommendation: [which and why]
 
 ---
 
+## CLI (npx matcha)
+
+```
+npx matcha init        Install matcha to current project
+npx matcha status      Show version, platform, components
+npx matcha why         5W1H interactive check (piped input supported)
+npx matcha audit       Quick project stack audit
+npx matcha verify      Auto-detect + run tests, typecheck, lint
+npx matcha help        Show usage
+```
+
+Supports: npm test, jest, vitest, pytest, go test, cargo test, phpunit, mvn test, gradle test, make test.
+
+---
+
 ## Project Structure
 
 ```
 matcha/
-├── install.sh                    ← 1-script installer
-├── rules/                        ← canonical language rules (6 langs)
-├── skills/matcha/SKILL.md        ← philosophy (canonical)
-├── commands/                     ← 5 slash commands
-├── hooks/                        ← lifecycle hooks
-├── .claude/                      ← Claude Code (agents + commands + skills)
-├── .opencode/                    ← OpenCode (agents + commands + skills + plugin)
-├── .cursor/rules/                ← Cursor (.mdc rules)
-├── .agents/rules/                ← Agentic IDE
-├── .clinerules/                  ← Cline (symlinks)
-├── .windsurf/rules/              ← Windsurf (symlinks)
-├── .kiro/steering/               ← Kiro (auto + manual modes)
-├── .openclaw/skills/             ← OpenClaw
-├── .claude-plugin/               ← Claude Code plugin manifest
-├── gemini-extension.json         ← Antigravity CLI plugin manifest
-├── AGENTS.md / CLAUDE.md         ← context files
-├── QUICKSTART.md                 ← 5-minute setup
-└── ai-agent-guide.md             ← full reference guide
+├── bin/matcha.js                  ← CLI (npx matcha)
+├── install.sh                     ← 1-script installer
+├── QWEN.md                        ← Qwen Code context template
+├── AGENTS.md / CLAUDE.md          ← context / persona files
+├── rules/                         ← canonical language rules (6 langs)
+├── skills/matcha/SKILL.md         ← philosophy + 6 checkpoints
+├── commands/                      ← 5 slash commands
+├── hooks/                         ← lifecycle hooks + shield
+│   ├── hooks.json
+│   ├── inject-rules.js
+│   ├── matcha-instructions.js
+│   └── matcha-shield.js           ← safety gate
+├── .claude/                       ← Claude Code (agents + commands + skills)
+├── .opencode/                     ← OpenCode (agents + commands + skills + plugin)
+├── .cursor/rules/                 ← Cursor (.mdc rules)
+├── .agents/                       ← Universal format
+├── .clinerules/                   ← Cline
+├── .windsurf/rules/               ← Windsurf
+├── .kiro/steering/                ← Kiro
+├── .openclaw/skills/              ← OpenClaw
+├── .qoder/                        ← Qoder (agents + rules + hooks)
+├── .qwen/                         ← Qwen Code (skill + settings.json)
+├── .claude-plugin/                ← Claude Code plugin manifest
+├── gemini-extension.json          ← Antigravity CLI plugin manifest
+├── tests/index.js                 ← 216+ tests
+└── QUICKSTART.md                  ← 1-minute setup
 ```
 
 ---

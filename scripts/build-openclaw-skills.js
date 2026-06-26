@@ -38,6 +38,15 @@ write(".clinerules/matcha.md", cursorContent);
 write(".kiro/steering/matcha.md", cursorContent);
 write(".agents/rules/matcha.md", cursorContent);
 
+// Agents & commands — sync from .claude/ (canonical) to .agents/ (universal)
+console.log("");
+for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer", "matcha-cleaner", "matcha-debugger"]) {
+  write(`.agents/agents/${a}.md`, read(`.claude/agents/${a}.md`));
+}
+for (const c of ["why", "review", "audit", "intensity", "status"]) {
+  write(`.agents/commands/${c}.md`, read(`.claude/commands/${c}.md`));
+}
+
 // Sync CLAUDE.md from AGENTS.md (Claude Code fallback)
 write("CLAUDE.md", agentsContent);
 

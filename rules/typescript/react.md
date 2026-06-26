@@ -27,19 +27,62 @@ function Component() { return <div onClick={useCallback(() => {}, [])} />; }
 - `useMemo` for derived data, not premature optimization
 - Virtualize long lists (`react-window`)
 
-## Signals (React 19+)
+## Server Components (React 19+)
 ```tsx
-import { use, useSignal } from "react";
-// ✅ useSignal for reactive state
-const count = useSignal(0);
-// ✅ use() for promises
-function Comments({ promise }) { const data = use(promise); return <div>{data}</div>; }
+// ✅ Default to Server Components (no "use client")
+async function ProductPage({ id }: { id: string }) {
+  const product = await db.product.findUnique({ where: { id } });
+  return <div>{product.name}</div>;
+}
+
+// ❌ Only add "use client" when needed: useState, useEffect, event handlers, browser APIs
+"use client";
+function AddToCart({ productId }: { productId: string }) {
+  const [added, setAdded] = useState(false);
+  return <button onClick={() => setAdded(true)}>{added ? 'Added' : 'Add to Cart'}</button>;
+}
 ```
+
+## Hooks (React 19+)
+```tsx
+import { use, useActionState, useOptimistic } from "react";
+
+// ✅ use() for promises and context
+function Comments({ commentsPromise }: { commentsPromise: Promise<Comment[]> }) {
+  const comments = use(commentsPromise);
+  return <div>{comments.map(c => <p key={c.id}>{c.text}</p>)}</div>;
+}
+
+// ✅ useActionState for form handling
+function CreateUser() {
+  const [state, formAction, pending] = useActionState(
+    async (prev: State, formData: FormData) => { /* mutation */ },
+    { error: null }
+  );
+  return <form action={formAction}>...</form>;
+}
+
+// ✅ useOptimistic for instant UI updates
+function LikeButton({ likes }: { likes: number }) {
+  const [optimisticLikes, addOptimistic] = useOptimistic(likes);
+  return <button onClick={() => addOptimistic((prev) => prev + 1)}>{optimisticLikes}</button>;
+}
+```
+
+## Component Library
+- **shadcn/ui** for copy-paste components (Tailwind-based, customizable)
+- Or **Radix UI** primitives for custom implementations
+- Avoid heavy component libraries (MUI, Antd) unless project already uses them
 
 ## File Structure
 ```
 components/
-├── ui/          ← shared primitives (Button, Input)
-├── feature/     ← feature-specific (UserCard, OrderForm)
-└── layout/      ← layout components (Header, Sidebar)
+├── ui/          ← shared primitives (Button, Input, Dialog)
+├── feature/     ← feature-specific (UserCard, OrderForm, ProductList)
+└── layout/      ← layout components (Header, Sidebar, Navbar)
+
+lib/
+├── utils.ts     ← shared utilities (cn, formatDate)
+├── validations/ ← Zod schemas
+└── api/         ← API client / fetch wrappers
 ```

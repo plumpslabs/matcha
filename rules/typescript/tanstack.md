@@ -22,11 +22,61 @@ function useUpdateUser() {
   });
 }
 ```
-- Always type `queryKey` and `queryFn`
+- Always type `queryKey` and `queryFn` — no `any`
 - `staleTime` over `refetchInterval` for polling
-- Separate query keys: `["entity"]`, `["entity", id]`, `["entity", { filters }]`
-- `placeholderData: keepPreviousData` for pagination
-- Mutations: `onMutate` (optimistic) → `onError` (rollback) → `onSettled` (refetch)
+
+## Query Key Factory
+```typescript
+export const userKeys = {
+  all:    ['users'] as const,
+  lists:  () => [...userKeys.all, 'list'] as const,
+  list:   (filters: UserFilters) => [...userKeys.lists(), filters] as const,
+  details:() => [...userKeys.all, 'detail'] as const,
+  detail: (id: string) => [...userKeys.details(), id] as const,
+};
+// Usage: queryKey: userKeys.detail(id)
+```
+
+## Mutations with Optimistic Update
+```typescript
+function useUpdateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (data: User) => api.updateUser(data),
+    onMutate: async (newUser) => {
+      await qc.cancelQueries({ queryKey: userKeys.detail(newUser.id) });
+      const previous = qc.getQueryData(userKeys.detail(newUser.id));
+      qc.setQueryData(userKeys.detail(newUser.id), newUser);
+      return { previous }; // for rollback
+    },
+    onError: (err, newUser, context) => {
+      qc.setQueryData(userKeys.detail(newUser.id), context?.previous);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: userKeys.all }),
+  });
+}
+```
+
+## Infinite Queries
+```typescript
+function useInfiniteProducts() {
+  return useInfiniteQuery({
+    queryKey: ['products', 'infinite'],
+    queryFn: ({ pageParam = 0 }) => api.getProducts({ offset: pageParam, limit: 20 }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
+  });
+}
+```
+
+## Query Cancellation
+```typescript
+const query = useQuery({
+  queryKey: ['products'],
+  queryFn: ({ signal }) => fetch('/api/products', { signal }).then(r => r.json()),
+});
+// TanStack Query auto-aborts when query becomes stale/unmounted
+```
 
 ## TanStack Router
 ```typescript

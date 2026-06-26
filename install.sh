@@ -4,7 +4,8 @@ set -euo pipefail
 # 🍵 matcha — install.sh
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
-#   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash -s -- --target /path
+#   curl -fsSL ... | bash -s -- --target /path --lang typescript,react
+#   curl -fsSL ... | bash -s -- --profile minimal
 #   ./install.sh              # from cloned repo
 
 GH_RAW="https://raw.githubusercontent.com/plumpslabs/matcha/main"
@@ -13,21 +14,124 @@ CLONED=false
 [ -n "$HERE" ] && [ -f "$HERE/install.sh" ] && [ -f "$HERE/skills/matcha/SKILL.md" ] && CLONED=true
 
 TARGET="${PWD}"
-[ "${1:-}" = "--target" ] && [ -n "${2:-}" ] && TARGET="$2"
+f=""; for a in "$@"; do [ "$f" = "--target" ] && TARGET="$a" && break; f="$a"; done
+
+ALL_LANGS="common go typescript python php java react-native react angular nextjs nestjs nuxt tanstack redis tailwind"
+LANG_FILTER=""     # --lang typescript,react
+PROFILE="full"     # minimal | core | full
+AUTO_DETECT=false  # auto-detect from manifests
 
 fetch() {
-  if $CLONED; then
-    cat "$HERE/$1"
-  else
-    curl -fsSL "$GH_RAW/$1"
-  fi
+  if $CLONED; then cat "$HERE/$1"; else curl -fsSL "$GH_RAW/$1"; fi
 }
 
-echo "🍵 matcha install"
-echo "Target: $TARGET"
-$CLONED && echo "Mode: local (cloned repo)" || echo "Mode: remote (fetching from GitHub)"
-echo ""
+# ─── Argument parsing ─────────────────────────────────────────────────────────
+parse_args() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --target) shift 2 ;;
+      --target*) TARGET="${1#--target=}"; shift ;;
+      --lang)
+        LANG_FILTER="$2"; AUTO_DETECT=false
+        shift 2 ;;
+      --lang=*)
+        LANG_FILTER="${1#--lang=}"; AUTO_DETECT=false
+        shift ;;
+      --profile)
+        PROFILE="$2"
+        shift 2 ;;
+      --profile=*)
+        PROFILE="${1#--profile=}"
+        shift ;;
+      *) shift ;;
+    esac
+  done
+}
+parse_args "$@"
 
+# ─── Language detection ───────────────────────────────────────────────────────
+detect_languages() {
+  local detected="common"
+  [ -f "$TARGET/package.json" ] && detected="$detected typescript"
+  [ -f "$TARGET/pyproject.toml" ] || [ -f "$TARGET/requirements.txt" ] || [ -f "$TARGET/setup.py" ] && detected="$detected python"
+  [ -f "$TARGET/go.mod" ] && detected="$detected go"
+  [ -f "$TARGET/composer.json" ] && detected="$detected php"
+  [ -f "$TARGET/pom.xml" ] || [ -f "$TARGET/build.gradle" ] || [ -f "$TARGET/build.gradle.kts" ] && detected="$detected java"
+
+  # Framework detection from package.json
+  if [ -f "$TARGET/package.json" ]; then
+    local deps
+    deps=$(cat "$TARGET/package.json" 2>/dev/null || echo "")
+    echo "$deps" | grep -q '"react"' && [[ "$deps" != *'"react-native"'* ]] && detected="$detected react"
+    echo "$deps" | grep -q '"react-native"' && detected="$detected react-native"
+    echo "$deps" | grep -q '"next"' && detected="$detected nextjs"
+    echo "$deps" | grep -q '"@nestjs/core"' && detected="$detected nestjs"
+    echo "$deps" | grep -q '"nuxt"' || echo "$deps" | grep -q '"nuxt3"' && detected="$detected nuxt"
+    echo "$deps" | grep -q '"@angular/core"' && detected="$detected angular"
+    echo "$deps" | grep -q '"@tanstack/react-query"' && detected="$detected tanstack"
+    echo "$deps" | grep -q '"ioredis"' || echo "$deps" | grep -q '"redis"' && detected="$detected redis"
+    echo "$deps" | grep -q '"tailwindcss"' && detected="$detected tailwind"
+  fi
+  # Config file detection for frameworks
+  [ -f "$TARGET/next.config.js" ] || [ -f "$TARGET/next.config.ts" ] && [[ "$detected" != *"nextjs"* ]] && detected="$detected nextjs"
+  [ -f "$TARGET/nuxt.config.ts" ] || [ -f "$TARGET/nuxt.config.js" ] && [[ "$detected" != *"nuxt"* ]] && detected="$detected nuxt"
+  [ -f "$TARGET/nest-cli.json" ] && [[ "$detected" != *"nestjs"* ]] && detected="$detected nestjs"
+  [ -f "$TARGET/angular.json" ] && [[ "$detected" != *"angular"* ]] && detected="$detected angular"
+  [ -f "$TARGET/tailwind.config.js" ] || [ -f "$TARGET/tailwind.config.ts" ] && [[ "$detected" != *"tailwind"* ]] && detected="$detected tailwind"
+  # React detection from tsx/jsx files (check root + common subdirs)
+  if [[ "$detected" != *"react"* ]] && [[ "$detected" != *"react-native"* ]]; then
+    ls "$TARGET"/*.tsx "$TARGET"/*.jsx 2>/dev/null | head -1 >/dev/null && detected="$detected react" && return
+    ls "$TARGET"/src/*.tsx "$TARGET"/src/*.jsx 2>/dev/null | head -1 >/dev/null && detected="$detected react" && return
+    ls "$TARGET"/app/*.tsx 2>/dev/null | head -1 >/dev/null && detected="$detected react" && return
+    ls "$TARGET"/pages/*.tsx "$TARGET"/pages/*.jsx 2>/dev/null | head -1 >/dev/null && detected="$detected react"
+  fi
+
+  echo "$detected"
+}
+
+# ─── Profile → language resolution ───────────────────────────────────────────
+resolve_langs() {
+  local profile="$1"
+
+  case "$profile" in
+    minimal)
+      # common + auto-detected only
+      if [ -z "$LANG_FILTER" ]; then
+        LANG_FILTER=$(detect_languages)
+        AUTO_DETECT=true
+      fi
+      ;;
+    core)
+      # common + 1 main language (first detected or typescript)
+      if [ -z "$LANG_FILTER" ]; then
+        local detected=$(detect_languages)
+        local first=""
+        for l in $detected; do
+          [ "$l" = "common" ] && continue
+          first="$l" && break
+        done
+        [ -z "$first" ] && first="typescript"
+        LANG_FILTER="common $first"
+        AUTO_DETECT=true
+      fi
+      ;;
+    full)
+      # all languages (default)
+      LANG_FILTER="$ALL_LANGS"
+      ;;
+  esac
+}
+
+resolve_langs "$PROFILE"
+
+# ─── Warn about invalid lang values ──────────────────────────────────────────
+for lang in $LANG_FILTER; do
+  local valid=false
+  for al in $ALL_LANGS; do [ "$lang" = "$al" ] && valid=true && break; done
+  $valid || echo "  ⚠ Unknown language: $lang (ignored)"
+done
+
+# ─── Platform detection ───────────────────────────────────────────────────────
 PLATFORMS=""
 [ -d "$TARGET/.claude" ] && PLATFORMS="$PLATFORMS claude"
 [ -d "$TARGET/.opencode" ] && PLATFORMS="$PLATFORMS opencode"
@@ -37,6 +141,8 @@ PLATFORMS=""
 [ -d "$TARGET/.windsurf" ] && PLATFORMS="$PLATFORMS windsurf"
 [ -d "$TARGET/.kiro" ] && PLATFORMS="$PLATFORMS kiro"
 [ -d "$TARGET/.openclaw" ] && PLATFORMS="$PLATFORMS openclaw"
+[ -d "$TARGET/.qoder" ] && PLATFORMS="$PLATFORMS qoder"
+[ -d "$TARGET/.qwen" ] && PLATFORMS="$PLATFORMS qwen"
 
 if [ -z "$PLATFORMS" ]; then
   echo "  → creating .agents/ (universal format)"
@@ -47,14 +153,20 @@ fi
 AGY_GLOBAL=false
 [ -d "$HOME/.gemini/antigravity-cli" ] && AGY_GLOBAL=true
 
-install_context() {
-  install_file "$1/AGENTS.md" "AGENTS.md"
-}
-
-echo "Detected platforms:$PLATFORMS"
+# ─── Install helpers ──────────────────────────────────────────────────────────
+echo "🍵 matcha install"
+echo "Target: $TARGET"
+$CLONED && echo "Mode: local (cloned repo)" || echo "Mode: remote (fetching from GitHub)"
+echo "Profile: $PROFILE"
+if [ "$PROFILE" != "full" ]; then
+  echo "Auto-detected: $AUTO_DETECT"
+  echo "Languages: $LANG_FILTER"
+fi
 echo ""
 
 install_file() { local dst="$1" src="$2"; mkdir -p "$(dirname "$dst")"; fetch "$src" > "$dst"; echo "  ✅ $dst"; }
+
+install_context() { install_file "$1/AGENTS.md" "AGENTS.md"; }
 
 install_agents() {
   local target="$1"
@@ -72,20 +184,22 @@ install_commands() {
   done
 }
 
-install_skill() {
-  install_file "$1" "skills/matcha/SKILL.md"
-}
+install_skill() { install_file "$1" "skills/matcha/SKILL.md"; }
 
 install_rules() {
   local target="$1" ext="$2" fmt="$3"
   mkdir -p "$target"
-  for lang in common go typescript python php java react-native react angular nextjs nestjs nuxt tanstack redis tailwind; do
+  for lang in $LANG_FILTER; do
+    # Validate against allowed list
+    local valid=false
+    for al in $ALL_LANGS; do [ "$lang" = "$al" ] && valid=true && break; done
+    $valid || continue
+
     local name="matcha-$lang"
     local dst="$target/$name.$ext"
     if [ "$fmt" = "cursor_mdc" ]; then
       install_file "$dst" ".cursor/rules/$name.mdc"
     elif [ "$fmt" = "kiro_steering" ]; then
-      # Build Kiro-format steering file
       local pattern="*.$lang"
       [ "$lang" = "typescript" ] && pattern="*.ts|*.tsx|*.js|*.jsx"
       [ "$lang" = "react-native" ] && pattern="*.tsx|*.jsx"
@@ -115,6 +229,7 @@ install_rules() {
   done
 }
 
+# ─── Install per platform ─────────────────────────────────────────────────────
 for p in $PLATFORMS; do
   echo "── $p ──"
   case "$p" in
@@ -130,6 +245,8 @@ for p in $PLATFORMS; do
       install_rules "$TARGET/.opencode/rules" "md" "standard_md" ;;
     cursor)    install_rules "$TARGET/.cursor/rules" "mdc" "cursor_mdc" ;;
     agents)
+      install_agents "$TARGET/.agents/agents"
+      install_commands "$TARGET/.agents/commands"
       install_rules "$TARGET/.agents/rules" "md" "standard_md"
       install_skill "$TARGET/.agents/skills/matcha/SKILL.md"
       install_context "$TARGET" ;;
@@ -140,6 +257,48 @@ for p in $PLATFORMS; do
       install_file "$TARGET/.kiro/steering/dev-mode.md" ".kiro/steering/dev-mode.md"
       install_file "$TARGET/.kiro/steering/review-mode.md" ".kiro/steering/review-mode.md" ;;
     openclaw)  install_skill "$TARGET/.openclaw/skills/matcha/SKILL.md" ;;
+    qoder)
+      # Qoder reads AGENTS.md from project root + .qoder/ for agents, rules & hooks
+      install_context "$TARGET"
+      install_agents "$TARGET/.qoder/agents"
+      install_rules "$TARGET/.qoder/rules" "md" "standard_md"
+      # Copy shield as a hooks example for Qoder
+      install_file "$TARGET/.qoder/hooks/matcha-shield.js" "hooks/matcha-shield.js" ;;
+    qwen)
+      # Qwen Code uses .qwen/settings.json + .qwen/skills/
+      install_skill "$TARGET/.qwen/skills/matcha/SKILL.md"
+      # Generate default settings.json if not exists
+      if [ ! -f "$TARGET/.qwen/settings.json" ]; then
+        # Generate QWEN.md first (referenced by settings.json)
+        if [ ! -f "$TARGET/QWEN.md" ]; then
+          install_file "$TARGET/QWEN.md" "QWEN.md"
+        else
+          echo "  ⏭ $TARGET/QWEN.md (exists)"
+        fi
+        cat > "$TARGET/.qwen/settings.json" << 'JSONEOF'
+{
+  "version": "1.0",
+  "name": "matcha",
+  "description": "🍵 matcha engineering convention",
+  "skills": {
+    "matcha": {
+      "path": "skills/matcha/SKILL.md",
+      "autoLoad": true
+    }
+  },
+  "instructions": {
+    "files": ["AGENTS.md", "QWEN.md"]
+  }
+}
+JSONEOF
+        echo "  ✅ $TARGET/.qwen/settings.json (generated)"
+      else
+        echo "  ⏭ $TARGET/.qwen/settings.json (exists)"
+        # Still try to create QWEN.md even if settings exists
+        if [ ! -f "$TARGET/QWEN.md" ]; then
+          install_file "$TARGET/QWEN.md" "QWEN.md"
+        fi
+      fi ;;
   esac
   echo ""
 done

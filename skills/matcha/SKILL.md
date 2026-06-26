@@ -101,6 +101,17 @@ Alternative: [what you found]
 Trade-off: [changes]
 ```
 
+**Real example** — AI about to write `console.log` for error logging:
+```
+⚠️ matcha pause
+Current: adding console.log for error logging in user creation
+Issue: no structured logger in this project
+Alternative: A) setup pino/winston (proper, but adds dep)
+           B) console.log is fine (small script, no need for more)
+Trade-off: A = +5 min setup, cleaner debugging. B = simpler, less deps
+```
+→ Stop. Ask user. Don't write console.log first and "optimize later".
+
 Wait for user. Don't finish current approach first.
 
 ### 🧹 Checkpoint 4: Cleanup
@@ -111,6 +122,54 @@ Wait for user. Don't finish current approach first.
 - Feature flags → note when to remove
 - **Decision log**: mark deliberate shortcuts with `// matcha: [reason]`
   (`// matcha: skipped pagination, add when >100 rows`)
+
+### ✅ Checkpoint 5: Verify (Feedback Harness)
+
+**After cleanup — verify the code actually works.**
+
+1. **Detect test framework** — scan project for known manifest files:
+   - `package.json` → `npm test`, `npm run test`, `npx jest`, `npx vitest`
+   - `pyproject.toml` → `pytest`
+   - `go.mod` → `go test ./...`
+   - `Cargo.toml` → `cargo test`
+   - `Makefile` → `make test`
+   - `Justfile` → `just test`
+
+2. **Run tests** — execute the detected test command:
+   - If tests pass → confirm with: "✅ Tests passed"
+   - If tests fail → **STOP**. Report failures. Fix before declaring done.
+   - If no test framework detected → suggest: "No test framework detected. Run relevant checks manually."
+
+3. **Run type check** (if applicable):
+   - TypeScript: `npx tsc --noEmit`
+   - Python: `mypy .`
+   - Java: `./gradlew build` or `mvn compile`
+
+4. **Lint** (if config exists):
+   - ESLint: `npx eslint .`
+   - Ruff: `ruff check .`
+   - golangci-lint: `golangci-lint run`
+
+**If no automated checks exist → run a manual sanity check:**
+- Does the new code run without errors?
+- Are edge cases handled?
+- Are error messages logged properly?
+
+---
+
+## Test-Driven Development (TDD) Mode
+
+When user explicitly requests TDD or the task is safety-critical:
+1. **Write test first** — before any implementation code
+2. **Run test** — expect red (failing)
+3. **Write minimum code** — just enough to pass
+4. **Run test** — expect green (passing)
+5. **Refactor** — clean up, re-run test to confirm still green
+6. **Review** — is the test testing the right behavior?
+
+```
+Red → Green → Refactor → Verify
+```
 
 ---
 

@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
   "type": "module",
   "main": "hooks/inject-rules.js",
@@ -19,7 +19,6 @@
     "benchmark:agentic": "node benchmark/matcha-bench.js --agentic --iters 4",
     "benchmark:eval": "promptfoo eval",
     "benchmark:podman": "podman build -t matcha-bench -f Dockerfile.bench . && podman run --rm -v \"$PWD:/app\" matcha-bench node benchmark/matcha-bench.js --agentic --json"
-
   },
   "keywords": [
     "ai-agent",

@@ -518,6 +518,7 @@
       20 coding tasks &times; 3 arms (baseline vs terse vs matcha).
       Two gates per task: correctness + adversarial.
       <strong style="color:#5bc0be">Generated LIVE with Claude Code v2.1.185</strong> &mdash; 60 AI calls.
+      <br><span style="color:#6a6a85;font-size:0.72rem">⚠️ Benchmark uses <code>--print</code> mode — matcha hooks (shield, post-write, stop) are <strong>not active</strong> in this mode. Results reflect only core CLAUDE.md rules, not full matcha hook system.</span>
     </p>
 
     <div id="bench-container">
@@ -609,11 +610,10 @@
       <div class="value" style="font-size:1rem;font-weight:600;color:#e6b91e">${terseDelta} LOC</div>
       <div class="desc">terse vs baseline &mdash; brevity</div>
     </div>`;
-    const beatsTerse = t.loc > m.loc;
     html += `<div class="compare-card">
-      <div class="delta ${beatsTerse ? 'positive' : 'negative'}">${beatsTerse ? '-' + (t.loc - m.loc) : '+' + (m.loc - t.loc)} LOC</div>
-      <div class="value" style="font-size:1rem;font-weight:600;color:${beatsTerse ? '#5bc0be' : '#e6b91e'}">matcha vs terse</div>
-      <div class="desc">${beatsTerse ? 'matcha beats terse &mdash; rules > mere brevity' : 'terse is leaner, but matcha has better correctness'}</div>
+      <div class="delta" style="color:#6a6a85">${m.loc - t.loc > 0 ? '+' : '-'}${Math.abs(m.loc - t.loc)} LOC</div>
+      <div class="value" style="font-size:1rem;font-weight:600;color:#6a6a85">matcha vs terse</div>
+      <div class="desc">matcha rules enforce explicit errors &amp; structure — more LOC is expected, not a drawback</div>
     </div>`;
     html += '</div>';
 

@@ -1,9 +1,10 @@
 import { execSync } from "child_process";
-import { mkdirSync, writeFileSync } from "fs";
+import { cpSync, existsSync, mkdirSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = join(__dirname, "..");
 
 export function countLOC(code) {
   return code.split("\n").filter((l) => l.trim() && !l.trim().startsWith("//")).length;
@@ -20,28 +21,25 @@ export function checkTool(name) {
   } catch { return false; }
 }
 
-const MATCHA_TEMPLATE = `# 🍵 matcha — Engineering Convention
-
-Simple. Efficient. Deliberate. Never twice.
-
-## Core Rules
-- One function = one thing. No monolithic functions.
-- No hardcoded values. Use named constants (APPNAME_VAR_NAME).
-- Explicit error messages. Don't silently swallow errors.
-- Prefer const over let, arrow functions, concise expressions.
-- Remove temp/debug code before finishing.
-- No unnecessary abstractions. Don't build what you don't need.
-
-## Before Writing
-1. **Purpose**: What am I solving? Why?
-2. **Simplicity**: Is there a simpler path? Fewer functions? Fewer lines?
-3. **Reuse**: Can I use an existing approach instead of inventing a new one?
-
-## Intensity: enforce
-`;
-
+/**
+ * Injects the full matcha convention into a target directory.
+ * Copies the complete .claude/ folder (settings.json + skills + agents)
+ * and the hooks/ directory so hooks (shield, post-write, stop) are available.
+ * This replaces the old behavior that only wrote a minimal CLAUDE.md template.
+ */
 export function injectMatchaRules(dir) {
-  const claudeDir = join(dir, ".claude");
-  mkdirSync(claudeDir, { recursive: true });
-  writeFileSync(join(claudeDir, "CLAUDE.md"), MATCHA_TEMPLATE, "utf-8");
+  const srcClaude = join(ROOT, ".claude");
+  const srcHooks = join(ROOT, "hooks");
+  const dstClaude = join(dir, ".claude");
+  const dstHooks = join(dir, "hooks");
+
+  // Copy .claude/ folder (settings.json, skills, agents)
+  if (existsSync(srcClaude)) {
+    cpSync(srcClaude, dstClaude, { recursive: true, force: true });
+  }
+
+  // Copy hooks/ folder (shield.js, post-write.js, stop.js, etc.)
+  if (existsSync(srcHooks)) {
+    cpSync(srcHooks, dstHooks, { recursive: true, force: true });
+  }
 }

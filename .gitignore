@@ -1,3 +1,4 @@
 .kuma/
 .agent-backups/
 node_modules/
+.tmp-*

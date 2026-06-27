@@ -7,7 +7,9 @@ function check(input, expected) {
   const result = isValidEmail(input);
   if (result === expected) passed++;
   else {
-    console.error(`FAIL: isValidEmail(${JSON.stringify(input)}) → ${result}, expected ${expected}`);
+    console.error(
+      `FAIL: isValidEmail(${JSON.stringify(input)}) → ${result}, expected ${expected}`,
+    );
     failed++;
   }
 }
@@ -31,7 +33,7 @@ check("test@<script>alert(1)</script>.com", false);
 check("test@x.com<script>", false);
 
 // SQL injection — should NOT pass
-check(""' OR '1'='1", false);
+check('" OR "1"="1', false);
 
 // Boundary: extremely long
 check("a".repeat(320) + "@b.com", false);

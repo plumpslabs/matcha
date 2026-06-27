@@ -17,7 +17,15 @@
  */
 
 import { execSync, spawn } from "child_process";
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, mkdirSync, readdirSync } from "fs";
+import {
+  readFileSync,
+  writeFileSync,
+  existsSync,
+  mkdtempSync,
+  rmSync,
+  mkdirSync,
+  readdirSync,
+} from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -52,13 +60,18 @@ const ARMS = [
 
 function discoverTasks() {
   const dirs = readdirSync(TASKS_DIR, { withFileTypes: true })
-    .filter(d => d.isDirectory())
-    .map(d => d.name);
+    .filter((d) => d.isDirectory())
+    .map((d) => d.name);
 
-  return dirs.map(id => {
+  return dirs.map((id) => {
     const spec = readFileSync(join(TASKS_DIR, id, "spec.md"), "utf-8");
     const testPath = join(TASKS_DIR, id, "test.js");
-    return { id, name: id.replace(/-/g, " ").replace(/\b\w/g, c => c.toUpperCase()), spec, testPath };
+    return {
+      id,
+      name: id.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase()),
+      spec,
+      testPath,
+    };
   });
 }
 
@@ -80,11 +93,57 @@ function checkClaude() {
 // ─── Tools ─────────────────────────────────────────────────────────────────
 
 function countLOC(code) {
-  return code.split("\n").filter(l => l.trim() && !l.trim().startsWith("//")).length;
+  return code.split("\n").filter((l) => l.trim() && !l.trim().startsWith("//"))
+    .length;
 }
 
 function estimateTokens(code) {
   return Math.ceil(code.length / 4);
+}
+
+// ─── Extract JS code from Claude stdout ───────────────────────────────────
+
+/**
+ * Claude often wraps output in narration + ```js fences, or plain narration.
+ * Strategy:
+ *   1. If fenced code block exists → extract content inside first ```...```
+ *   2. Otherwise → strip leading/trailing prose lines, keep JS lines
+ */
+function stripFences(text) {
+  text = text.trim();
+
+  // Strategy 1: extract content from first fenced block
+  const fenceMatch = text.match(
+    /```(?:js|javascript)?\r?\n?([\s\S]*?)\r?\n?```/i,
+  );
+  if (fenceMatch) return fenceMatch[1].trim();
+
+  // Strategy 2: strip leading/trailing prose lines, keep JS lines
+  const lines = text.split("\n");
+  const isCodeLine = (l) => {
+    const t = l.trim();
+    if (!t) return true; // blank lines ok inside code
+    // Prose heuristic: starts with capital + no JS keywords/punctuation → narration
+    if (
+      /^[A-Z][a-z]/.test(t) &&
+      !/^(const|let|var|function|class|import|export|module|return|if|for|while|\/\/)/.test(
+        t,
+      ) &&
+      !/[=({;]/.test(t)
+    )
+      return false;
+    return true;
+  };
+
+  let start = 0;
+  let end = lines.length - 1;
+  while (start < lines.length && !isCodeLine(lines[start])) start++;
+  while (end > start && !isCodeLine(lines[end])) end--;
+
+  return lines
+    .slice(start, end + 1)
+    .join("\n")
+    .trim();
 }
 
 // ─── Matcha injection ──────────────────────────────────────────────────────
@@ -129,13 +188,15 @@ Simple. Efficient. Deliberate. Never twice.
  * 2. Writes the spec as a prompt file
  * 3. Optionally injects matcha rules
  * 4. Spawns Claude Code with the spec
- * 5. Waits for solution.js to appear
+ * 5. Strips markdown fences from stdout and writes to solution.js
  * 6. Runs the test harness
  * 7. Reports results
  */
 async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
   const { simulate = false, keep = false, timeout = 120_000 } = options;
-  const tmpDir = mkdtempSync(join(__dirname, ".tmp-" + taskId + "-" + arm.id + "-"));
+  const tmpDir = mkdtempSync(
+    join(__dirname, ".tmp-" + taskId + "-" + arm.id + "-"),
+  );
   const specFile = join(tmpDir, "prompt.md");
   const solutionFile = join(tmpDir, "solution.js");
 
@@ -150,38 +211,53 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
     error: null,
     code: "",
     tmpDir,
-  };    try {
-      // Write package.json to override parent's "type": "module"
-      writeFileSync(join(tmpDir, "package.json"), JSON.stringify({ type: "commonjs" }), "utf-8");
+  };
 
-      // Write spec file
-      const fullSpec = arm.id === "terse"
+  try {
+    // Write package.json to override parent's "type": "module"
+    writeFileSync(
+      join(tmpDir, "package.json"),
+      JSON.stringify({ type: "commonjs" }),
+      "utf-8",
+    );
+
+    // Build prompt — terse arm gets brevity hint, all arms get code-only instruction
+    let fullSpec =
+      arm.id === "terse"
         ? `${spec}\n\nIMPORTANT: Be brief. Write minimal working code. No comments. No explanations. Short variable names OK.`
         : spec;
-      writeFileSync(specFile, fullSpec, "utf-8");
 
-      // Inject matcha rules for matcha arm
-      if (arm.injectMatcha) {
-        injectMatcha(tmpDir);
-      }
+    // Critical: tell Claude to output raw JS only — no markdown, no narration
+    fullSpec +=
+      "\n\nCRITICAL: Respond with ONLY raw JavaScript code. No markdown fences, no backticks, no explanation, no file creation commands. Just the code.";
+
+    writeFileSync(specFile, fullSpec, "utf-8");
+
+    // Inject matcha rules for matcha arm
+    if (arm.injectMatcha) {
+      injectMatcha(tmpDir);
+    }
 
     // Spawn Claude Code or simulate
     if (simulate) {
       // Simulated mode: write a basic solution to pass tests
       writeFileSync(solutionFile, getDefaultSolution(taskId, arm.id), "utf-8");
     } else {
-      // Real Claude Code invocation
+      // Real Claude Code invocation — pass prompt as arg so Claude outputs to stdout
       const claudeArgs = ["--print", fullSpec];
-      // Change to temp dir so Claude writes output there
       const child = spawn("claude", claudeArgs, {
         cwd: tmpDir,
         stdio: ["pipe", "pipe", "pipe"],
-        shell: true,
       });
 
-      // Collect stdout for logging
       let stdout = "";
-      child.stdout.on("data", (data) => { stdout += data.toString(); });
+      let stderr = "";
+      child.stdout.on("data", (data) => {
+        stdout += data.toString();
+      });
+      child.stderr.on("data", (data) => {
+        stderr += data.toString();
+      });
 
       await new Promise((resolve, reject) => {
         const timer = setTimeout(() => {
@@ -195,11 +271,18 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
         });
         child.on("error", reject);
       });
+
+      // Strip markdown fences and write to solution.js
+      // Claude wraps output in ```js ... ``` even when instructed not to
+      if (stdout.trim()) {
+        const code = stripFences(stdout);
+        writeFileSync(solutionFile, code, "utf-8");
+      }
     }
 
     // Check if solution.js was generated
     if (!existsSync(solutionFile)) {
-      throw new Error("solution.js not generated within timeout");
+      throw new Error("solution.js not generated — Claude produced no stdout");
     }
 
     // Read generated code
@@ -211,7 +294,6 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
     // Run test harness
     if (existsSync(testPath)) {
       try {
-        // Copy test into temp dir and run
         const testInTmp = join(tmpDir, "_test.cjs");
         writeFileSync(testInTmp, readFileSync(testPath, "utf-8"), "utf-8");
 
@@ -242,7 +324,9 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
 
   // Cleanup unless --keep
   if (!keep) {
-    try { rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+    try {
+      rmSync(tmpDir, { recursive: true, force: true });
+    } catch {}
   }
 
   return result;
@@ -261,23 +345,30 @@ function runAdversarialTest(taskId, code) {
   try {
     switch (taskId) {
       case "email-validator": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return isValidEmail;`)();
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return isValidEmail;`,
+        )();
         if (fn(null) !== false || fn(undefined) !== false) return false;
         if (fn("<script>alert(1)</script>@x.com") !== false) return false;
-        if (fn('"' + '><script>alert(1)<' + '/script>@x.com') !== false) return false;
+        if (fn('"' + "><script>alert(1)<" + "/script>@x.com") !== false)
+          return false;
         if (fn("a".repeat(320) + "@b.com") !== false) return false;
         return true;
       }
       case "csv-sum": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return sumColumn;`)();
-        if (fn('', 0) !== 0) return false;
-        if (fn('a,b\n../../../etc/passwd,2', 1) !== 2) return false; // path traversal
-        if (fn('a,b\nNaN,1', 1) !== 1) return false; // NaN safe
-        if (fn('a,b\n1,2', 5) !== 0) return false; // OOB index
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return sumColumn;`,
+        )();
+        if (fn("", 0) !== 0) return false;
+        if (fn("a,b\n../../../etc/passwd,2", 1) !== 2) return false;
+        if (fn("a,b\nNaN,1", 1) !== 1) return false;
+        if (fn("a,b\n1,2", 5) !== 0) return false;
         return true;
       }
       case "fizzbuzz": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return fizzBuzz;`)();
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return fizzBuzz;`,
+        )();
         if (!Array.isArray(fn(0)) || fn(0).length !== 0) return false;
         if (!Array.isArray(fn(NaN))) return false;
         const large = fn(10000);
@@ -285,67 +376,111 @@ function runAdversarialTest(taskId, code) {
         return true;
       }
       case "array-flatten": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return flatten;`)();
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return flatten;`,
+        )();
         if (!Array.isArray(fn(null))) return false;
         if (!Array.isArray(fn(undefined))) return false;
         const deep = [1];
         let ref = deep;
-        for (let i = 0; i < 100; i++) { ref.push([i]); ref = ref[1]; }
+        for (let i = 0; i < 100; i++) {
+          ref.push([i]);
+          ref = ref[1];
+        }
         if (!Array.isArray(fn(deep)) || fn(deep).length < 50) return false;
         return true;
       }
       case "date-fmt": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return formatDate;`)();
-        try { fn(null, "YYYY-MM-DD"); } catch { return false; }
-        if (fn(new Date("2024-02-29"), "YYYY-MM-DD") !== "2024-02-29") return false;
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return formatDate;`,
+        )();
+        try {
+          fn(null, "YYYY-MM-DD");
+        } catch {
+          return false;
+        }
+        if (fn(new Date("2024-02-29"), "YYYY-MM-DD") !== "2024-02-29")
+          return false;
         return true;
       }
       case "log-filter": {
-        const fn = new Function(`"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return filterLogs;`)();
+        const fn = new Function(
+          `"use strict"; ${code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim()}; return filterLogs;`,
+        )();
         if (!Array.isArray(fn(null, "INFO"))) return false;
         if (!Array.isArray(fn(undefined, "WARN"))) return false;
-        if (fn([{level:"INFO",msg:"x"}], "TRACE").length !== 0) return false;
+        if (fn([{ level: "INFO", msg: "x" }], "TRACE").length !== 0)
+          return false;
         return true;
       }
-
       case "palindrome-checker": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return isPalindrome;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return isPalindrome;",
+        )();
         if (fn(null) !== false || fn(undefined) !== false) return false;
         if (fn("<script>alert(1)</script>") !== false) return false;
         if (fn(123) !== false) return false;
         return true;
       }
       case "anagram-group": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return anagramGroups;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return anagramGroups;",
+        )();
         if (!Array.isArray(fn(null))) return false;
         if (!Array.isArray(fn(undefined))) return false;
         if (!Array.isArray(fn([]))) return false;
-        const result = fn(["a","b","a"]);
+        const result = fn(["a", "b", "a"]);
         if (!Array.isArray(result)) return false;
         return true;
       }
       case "deep-merge": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return deepMerge;")();
-        const r = fn(null, {a:1});
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return deepMerge;",
+        )();
+        const r = fn(null, { a: 1 });
         if (!r || r.a !== 1) return false;
-        const r2 = fn({a:1}, null);
+        const r2 = fn({ a: 1 }, null);
         if (!r2 || r2.a !== 1) return false;
         return true;
       }
       case "retry-async": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return retry;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return retry;",
+        )();
         fn("not a function").catch(() => {});
         return true;
       }
       case "throttle": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return throttle;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return throttle;",
+        )();
         const noop = fn("not a function", 100);
         if (typeof noop !== "function") return false;
         noop();
         return true;
       }
       case "deep-clone": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return deepClone;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return deepClone;",
+        )();
         if (fn(null) !== null) return false;
         if (fn(42) !== 42) return false;
         const d = new Date();
@@ -353,57 +488,100 @@ function runAdversarialTest(taskId, code) {
         return true;
       }
       case "semver-compare": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return semverCompare;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return semverCompare;",
+        )();
         if (typeof fn("0.0.0", "0.0.0") !== "number") return false;
         return true;
       }
       case "config-parser": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return parseConfig;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return parseConfig;",
+        )();
         if (JSON.stringify(fn(null)) !== "{}") return false;
         if (JSON.stringify(fn("")) !== "{}") return false;
         return true;
       }
       case "memoize": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return memoize;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return memoize;",
+        )();
         const n = fn("not a function");
         n();
         let count = 0;
-        const d = fn(x => { count++; return x * 2; });
-        d(5); d(5);
+        const d = fn((x) => {
+          count++;
+          return x * 2;
+        });
+        d(5);
+        d(5);
         if (count !== 1) return false;
         return true;
       }
       case "chunk-array": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return chunk;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return chunk;",
+        )();
         if (!Array.isArray(fn(null, 2))) return false;
         if (!Array.isArray(fn([], 2))) return false;
         if (fn([1], 0).length !== 0) return false;
-        if (fn([1,2,3], 2).length !== 2) return false;
+        if (fn([1, 2, 3], 2).length !== 2) return false;
         return true;
       }
       case "unique-filter": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return unique;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return unique;",
+        )();
         if (!Array.isArray(fn(null))) return false;
         if (!Array.isArray(fn([]))) return false;
-        const r = fn([1,2,2,3]);
+        const r = fn([1, 2, 2, 3]);
         if (r.length !== 3) return false;
         return true;
       }
       case "deep-get": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return deepGet;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return deepGet;",
+        )();
         if (fn(null, "a") !== undefined) return false;
         if (fn({}, "") === undefined) return false;
         return true;
       }
       case "pipe-compose": {
-        const fn = new Function("use strict", code.replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "").trim() + "; return pipe;")();
+        const fn = new Function(
+          "use strict",
+          code
+            .replace(/module\.exports\s*=\s*\{[^}]*\}\s*;?\s*$/gm, "")
+            .trim() + "; return pipe;",
+        )();
         const id = fn();
         if (id(42) !== 42) return false;
-        try { fn("not a function"); return false; } catch { return true; }
+        try {
+          fn("not a function");
+          return false;
+        } catch {
+          return true;
+        }
       }
-
       default:
-        return true; // no adversarial checks = assume pass
+        return true;
     }
   } catch {
     return false;
@@ -428,7 +606,7 @@ module.exports={isValidEmail};`,
 const isValidEmail = (email) => typeof email === "string" && EMAIL_RE.test(email);
 module.exports = { isValidEmail };`,
     },
-    "debounce": {
+    debounce: {
       baseline: `function debounce(fn, delay) {
   let timer;
   return function(...args) {
@@ -467,7 +645,7 @@ module.exports={sumColumn};`,
     .reduce((s, row) => s + (+row.split(",")[i] || 0), 0) : 0;
 module.exports = { sumColumn };`,
     },
-    "fizzbuzz": {
+    fizzbuzz: {
       baseline: `function fizzBuzz(n) {
   const result = [];
   for (let i = 1; i <= n; i++) {
@@ -543,14 +721,17 @@ module.exports = { filterLogs };`,
     },
   };
 
-  return solutions[taskId]?.[armId] ?? `// No default solution for ${taskId}/${armId}\nmodule.exports = {};`;
+  return (
+    solutions[taskId]?.[armId] ??
+    `// No default solution for ${taskId}/${armId}\nmodule.exports = {};`
+  );
 }
 
 // ─── Main orchestrator ────────────────────────────────────────────────────
 
 async function runAgenticLive(options = {}) {
   const {
-    arms = ARMS.map(a => a.id),
+    arms = ARMS.map((a) => a.id),
     tasks = null,
     simulate = false,
     keep = false,
@@ -558,27 +739,39 @@ async function runAgenticLive(options = {}) {
     iterations = 1,
   } = options;
 
-  const selectedArms = ARMS.filter(a => arms.includes(a.id));
+  const armList = arms ?? ARMS.map((a) => a.id);
+  const selectedArms = ARMS.filter((a) => armList.includes(a.id));
   const allTasks = discoverTasks();
   const selectedTasks = tasks
-    ? allTasks.filter(t => tasks.includes(t.id))
+    ? allTasks.filter((t) => tasks.includes(t.id))
     : allTasks;
 
-  // Check Claude availability
   const claudeAvailable = simulate ? false : checkClaude();
 
   console.log(`🍵 matcha: Agentic Live Benchmark`);
-  console.log(`Mode: ${simulate ? "SIMULATED" : claudeAvailable ? "LIVE (Claude Code detected)" : "FALLBACK (no Claude, using simulate)"}`);
-  console.log(`${selectedTasks.length} tasks × ${selectedArms.length} arms × ${iterations} iterations\n`);
+  console.log(
+    `Mode: ${simulate ? "SIMULATED" : claudeAvailable ? "LIVE (Claude Code detected)" : "FALLBACK (no Claude, using simulate)"}`,
+  );
+  console.log(
+    `${selectedTasks.length} tasks × ${selectedArms.length} arms × ${iterations} iterations\n`,
+  );
 
   if (iterations > 1 && simulate) {
-    console.log(`  📊 n=${iterations} — simulated mode (deterministic, same result per run)`);
-    console.log(`  📊 For non-deterministic results, run live with Claude Code installed\n`);
+    console.log(
+      `  📊 n=${iterations} — simulated mode (deterministic, same result per run)`,
+    );
+    console.log(
+      `  📊 For non-deterministic results, run live with Claude Code installed\n`,
+    );
   }
 
   if (!simulate && !claudeAvailable) {
-    console.log("⚠️  Claude Code CLI not found. Falling back to simulated mode.\n");
-    console.log("   Install Claude Code: https://docs.anthropic.com/en/docs/claude-code/overview\n");
+    console.log(
+      "⚠️  Claude Code CLI not found. Falling back to simulated mode.\n",
+    );
+    console.log(
+      "   Install Claude Code: https://docs.anthropic.com/en/docs/claude-code/overview\n",
+    );
   }
 
   const results = [];
@@ -587,13 +780,17 @@ async function runAgenticLive(options = {}) {
     for (const arm of selectedArms) {
       const cells = [];
       for (let i = 0; i < iterations; i++) {
-        process.stdout.write(`  ▶ ${task.name} × ${arm.label} (iter ${i + 1}/${iterations})... `);
+        process.stdout.write(
+          `  ▶ ${task.name} × ${arm.label} (iter ${i + 1}/${iterations})... `,
+        );
 
         const result = await runTask(
-          task.id, task.name,
-          task.spec, task.testPath,
+          task.id,
+          task.name,
+          task.spec,
+          task.testPath,
           arm,
-          { simulate: simulate || !claudeAvailable, keep, timeout }
+          { simulate: simulate || !claudeAvailable, keep, timeout },
         );
 
         const icon = result.correct ? "✅" : "❌";
@@ -601,24 +798,37 @@ async function runAgenticLive(options = {}) {
         cells.push(result);
       }
 
-      // Median/majority across iterations if n > 1
       if (iterations > 1) {
-        const locs = cells.map(c => c.loc);
-        const toks = cells.map(c => c.tokens);
-        const medianLoc = locs.sort((a, b) => a - b)[Math.floor(locs.length / 2)];
-        const medianTok = toks.sort((a, b) => a - b)[Math.floor(toks.length / 2)];
-        const correct = cells.filter(c => c.correct).length > cells.length / 2;
-        const adversarial = cells.filter(c => c.adversarial).length > cells.length / 2;
+        const locs = cells.map((c) => c.loc);
+        const toks = cells.map((c) => c.tokens);
+        const medianLoc = locs.sort((a, b) => a - b)[
+          Math.floor(locs.length / 2)
+        ];
+        const medianTok = toks.sort((a, b) => a - b)[
+          Math.floor(toks.length / 2)
+        ];
+        const correct =
+          cells.filter((c) => c.correct).length > cells.length / 2;
+        const adversarial =
+          cells.filter((c) => c.adversarial).length > cells.length / 2;
 
         results.push({
-          task: task.id, taskName: task.name,
-          arm: arm.id, armLabel: arm.label,
-          loc: medianLoc, tokens: medianTok,
-          correct, adversarial,
-          error: cells.find(c => c.error)?.error || null,
+          task: task.id,
+          taskName: task.name,
+          arm: arm.id,
+          armLabel: arm.label,
+          loc: medianLoc,
+          tokens: medianTok,
+          correct,
+          adversarial,
+          error: cells.find((c) => c.error)?.error || null,
           code: cells[0]?.code || "",
           n: iterations,
-          runs: cells.map(c => ({ loc: c.loc, correct: c.correct, adversarial: c.adversarial })),
+          runs: cells.map((c) => ({
+            loc: c.loc,
+            correct: c.correct,
+            adversarial: c.adversarial,
+          })),
         });
       } else {
         results.push(cells[0]);
@@ -626,7 +836,6 @@ async function runAgenticLive(options = {}) {
     }
   }
 
-  // Format report
   console.log(formatLiveReport(results, selectedArms));
   return results;
 }
@@ -640,8 +849,8 @@ function formatLiveReport(results, arms) {
     groups[r.task][r.arm] = r;
   }
 
-  const armKeys = arms.map(a => a.id);
-  const taskIds = [...new Set(results.map(r => r.task))];
+  const armKeys = arms.map((a) => a.id);
+  const taskIds = [...new Set(results.map((r) => r.task))];
 
   let output = "\n═══ Results ═══\n";
 
@@ -671,29 +880,33 @@ function formatLiveReport(results, arms) {
   }
 
   output += "\n═══ Summary ═══\n";
-  const header = armKeys.map(a => a.padStart(10)).join("  ");
+  const header = armKeys.map((a) => a.padStart(10)).join("  ");
   output += `${"".padEnd(14)}${header}\n`;
 
-  const locRow = armKeys.map(a => String(totals[a].loc).padStart(10)).join("  ");
+  const locRow = armKeys
+    .map((a) => String(totals[a].loc).padStart(10))
+    .join("  ");
   output += `${"Total LOC:".padEnd(14)}${locRow}\n`;
 
-  const correctRow = armKeys.map(a => `${totals[a].correct}/${totals[a].total}`.padStart(10)).join("  ");
+  const correctRow = armKeys
+    .map((a) => `${totals[a].correct}/${totals[a].total}`.padStart(10))
+    .join("  ");
   output += `${"Correct:".padEnd(14)}${correctRow}\n`;
 
-  const advRow = armKeys.map(a => `${totals[a].adversarial}/${totals[a].total}`.padStart(10)).join("  ");
+  const advRow = armKeys
+    .map((a) => `${totals[a].adversarial}/${totals[a].total}`.padStart(10))
+    .join("  ");
   output += `${"Adversarial:".padEnd(14)}${advRow}\n`;
 
-  // Cross-arm comparisons (only if baseline exists)
   const b = totals["baseline"];
   if (b && b.loc > 0) {
     for (const a of armKeys) {
       if (a === "baseline") continue;
       const delta = b.loc - totals[a].loc;
-      const pct = Math.round(delta / b.loc * 100);
+      const pct = Math.round((delta / b.loc) * 100);
       output += `\n  📐 ${a} vs baseline: ${delta >= 0 ? "-" : "+"}${Math.abs(delta)} LOC (${delta >= 0 ? "-" : ""}${Math.abs(pct)}%)`;
     }
 
-    // Arm vs arm insight
     const m = totals["matcha"];
     const t = totals["terse"];
     if (m && t) {
@@ -713,21 +926,26 @@ function formatLiveReport(results, arms) {
 
 // ─── CLI entry ────────────────────────────────────────────────────────────
 
-const isDirectInvocation = process.argv[1] && (
-  process.argv[1].replace(/\\/g, "/").endsWith("agentic-runner.js") ||
-  process.argv[1].replace(/\\/g, "/").endsWith("agentic-runner")
-);
+const isDirectInvocation =
+  process.argv[1] &&
+  (process.argv[1].replace(/\\/g, "/").endsWith("agentic-runner.js") ||
+    process.argv[1].replace(/\\/g, "/").endsWith("agentic-runner"));
 
 if (isDirectInvocation) {
   (async () => {
     const args = process.argv.slice(2);
-    const armFilter = args.includes("--arm") ? args[args.indexOf("--arm") + 1]?.split(",") : null;
-    const taskFilter = args.includes("--task") ? args[args.indexOf("--task") + 1]?.split(",") : null;
+    const armFilter = args.includes("--arm")
+      ? args[args.indexOf("--arm") + 1]?.split(",")
+      : null;
+    const taskFilter = args.includes("--task")
+      ? args[args.indexOf("--task") + 1]?.split(",")
+      : null;
     const keep = args.includes("--keep");
     const simulate = args.includes("--simulate");
     const jsonFlag = args.includes("--json");
     const itersIndex = args.indexOf("--iters");
-    const iterations = itersIndex >= 0 ? parseInt(args[itersIndex + 1], 10) || 4 : 1;
+    const iterations =
+      itersIndex >= 0 ? parseInt(args[itersIndex + 1], 10) || 4 : 1;
 
     const results = await runAgenticLive({
       arms: armFilter,

@@ -417,16 +417,16 @@ matcha ships a **writing style guide** (`rules/common/writing-style.md`) with 10
 
 ### The 10 Rules
 
-| Rule | Prinsip | Domain | Deteksi Mekanis |
-|------|---------|--------|----------------|
-| RULE-01: Kalimat Langsung | Efficient | Commits, docs, comments | ✅ Filler phrases (`in order to`, `due to the fact that`) |
-| RULE-02: Komentar = Why, Bukan What | Deliberate | Code comments | — (via agent system prompt) |
-| RULE-03: Error Message Actionable | Actionable | Error messages | — (via agent system prompt) |
+| Rule | Principle | Domain | Mechanical Detection |
+|------|-----------|--------|----------------------|
+| RULE-01: Direct Sentences | Efficient | Commits, docs, comments | ✅ Filler phrases (`in order to`, `due to the fact that`) |
+| RULE-02: Comments = Why, Not What | Deliberate | Code comments | — (via agent system prompt) |
+| RULE-03: Actionable Error Messages | Actionable | Error messages | — (via agent system prompt) |
 | RULE-04: Conventional Commits | Clean | Commit messages | ✅ Vague commit (`WIP`, `fix bug`, `update`) |
-| RULE-05: Konkret, Bukan Abstrak | Never twice | All docs | — (via agent system prompt) |
-| RULE-06: Aktif Voice | Simple | All docs | ✅ Passive voice (`was done`, `has been implemented`) |
-| RULE-07: PR Pake 5W1H | 5W1H | PR descriptions | — (via agent system prompt) |
-| RULE-08: Gak Pake Kata Mati | Simple | All docs | ✅ Buzzwords (`leverage`, `cutting-edge`, `synergy`) |
+| RULE-05: Concrete, Not Abstract | Never twice | All docs | — (via agent system prompt) |
+| RULE-06: Active Voice | Simple | All docs | ✅ Passive voice (`was done`, `has been implemented`) |
+| RULE-07: PR with 5W1H | 5W1H | PR descriptions | — (via agent system prompt) |
+| RULE-08: No Dead Buzzwords | Simple | All docs | ✅ Buzzwords (`leverage`, `cutting-edge`, `synergy`) |
 | RULE-09: Single Source of Truth | Never twice | Documentation | — (via agent system prompt) |
 | RULE-10: Tone Casual-Direct | matcha tone | All communication | — (via agent system prompt) |
 
@@ -459,15 +459,15 @@ Tone: **casual-direct with light sarcasm**. Not stiff-formal (no "Dear Sir/Madam
 
 ### Scope
 
-| Domain | Berlaku | Enforcement |
-|--------|---------|-------------|
+| Domain | Applicable | Enforcement |
+|--------|------------|-------------|
 | Commit messages | ✅ | PostToolUse hook + system prompt |
 | Code comments | ✅ | System prompt |
 | PR descriptions | ✅ | System prompt |
 | Error messages | ✅ | System prompt |
 | README/docs | ✅ | PostToolUse hook + system prompt |
-| External documentation | ❌ (pake judgment) | — |
-| Regulatory/compliance | ❌ (pake judgment) | — |
+| External documentation | ❌ (use judgment) | — |
+| Regulatory/compliance | ❌ (use judgment) | — |
 
 ---
 

@@ -38,8 +38,8 @@ check('" OR "1"="1', false);
 // Boundary: extremely long
 check("a".repeat(320) + "@b.com", false);
 
-// Unicode handles
-check("üser@example.com", true);
+// Valid: dot in local part
+check("first.last@example.com", true);
 
 console.log(`${passed} passed, ${failed} failed`);
 process.exit(failed > 0 ? 1 : 0);

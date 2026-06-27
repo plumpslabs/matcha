@@ -15,45 +15,127 @@ import { execSync } from "child_process";
 import { readFileSync, writeFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { runAgenticLive } from "./agentic-runner.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
-const BENCH_SCRIPT = join(__dirname, "matcha-bench.js");
 const RESULT_PATH = join(ROOT, "docs", "benchmark.json");
+const REPORT_MD_PATH = join(ROOT, "docs", "BENCHMARK.md");
 
-// ─── 1. Run benchmark & parse JSON ────────────────────────────────────────
+// ─── 1. Run benchmark via agentic-runner ─────────────────────────────────
 
-function runBenchmark(options = {}) {
+async function runBenchmark(options = {}) {
   const iterations = options.iterations ?? 1;
-  const itersFlag = iterations > 1 ? ` --iters ${iterations}` : "";
-  console.log(`🍵 Running agentic benchmark (n=${iterations})...`);
-  const out = execSync(`node "${BENCH_SCRIPT}" --agentic --json${itersFlag}`, {
-    cwd: ROOT,
-    encoding: "utf-8",
-    timeout: 30_000,
-  });
-  return JSON.parse(out);
+  console.log(`🍵 Running agentic benchmark (n=${iterations}) via agentic-runner...`);
+  const raw = await runAgenticLive({ simulate: true, iterations });
+  return raw;
 }
 
-// ─── 2. Transform to BENCHMARK_DATA format ────────────────────────────────
+// ─── 2. Transform flat results → nested { id, name, baseline/matcha/terse } ─
 
-function transformData(raw) {
-  return raw.map(task => {
-    const arms = {};
-    for (const a of ["baseline", "matcha", "terse"]) {
-      const d = task[a] || {};
-      arms[a] = {
-        loc: d.loc ?? 0,
-        tokens: d.tokens ?? 0,
-        correct: d.correct ?? false,
-        adversarial: d.adversarial ?? false,
-      };
+function transformFlatData(raw) {
+  const byTask = {};
+  for (const r of raw) {
+    const id = r.task;
+    if (!byTask[id]) byTask[id] = { id, name: r.taskName || r.task };
+    byTask[id][r.arm] = {
+      loc: r.loc ?? 0,
+      tokens: r.tokens ?? 0,
+      correct: r.correct ?? false,
+      adversarial: r.adversarial ?? false,
+    };
+  }
+  return Object.values(byTask);
+}
+
+// ─── 3. Markdown report ─────────────────────────────────────────────────
+
+function formatMarkdownReport(data, totals, generated, repoData) {
+  const b = totals.baseline;
+  const m = totals.matcha;
+  const t = totals.terse;
+  const genDate = new Date(generated).toISOString().split("T")[0];
+
+  const arms = ["baseline", "terse", "matcha"];
+  const labels = { baseline: "Baseline", terse: "Terse", matcha: "Matcha" };
+
+  let md = `# 🍵 matcha Benchmark Report\n\n`;
+  md += `> Generated: ${genDate} &middot; 20 coding tasks &times; 3 arms &times; 1 iteration\n\n`;
+
+  // ── Summary table ──
+  md += `## Summary\n\n`;
+  md += `| Metric | Baseline | Terse | Matcha |\n`;
+  md += `|--------|----------|-------|--------|\n`;
+  md += `| Total LOC | ${b.loc} | ${t.loc} | ${m.loc} |\n`;
+  md += `| Correct | ${b.correct}/${b.total} | ${t.correct}/${t.total} | ${m.correct}/${m.total} |\n`;
+  md += `| Correct % | ${b.total > 0 ? Math.round(b.correct / b.total * 100) : 0}% | ${t.total > 0 ? Math.round(t.correct / t.total * 100) : 0}% | ${m.total > 0 ? Math.round(m.correct / m.total * 100) : 0}% |\n`;
+  md += `| Adversarial % | ${b.total > 0 ? Math.round(b.adversarial / b.total * 100) : 0}% | ${t.total > 0 ? Math.round(t.adversarial / t.total * 100) : 0}% | ${m.total > 0 ? Math.round(m.adversarial / m.total * 100) : 0}% |\n\n`;
+
+  // ── Comparisons ──
+  md += `## Arm Comparisons\n\n`;
+  if (b.loc > 0) {
+    const matchaLocDelta = b.loc - m.loc;
+    const matchaLocPct = Math.round(matchaLocDelta / b.loc * 100);
+    const terseLocDelta = b.loc - t.loc;
+    const terseLocPct = Math.round(terseLocDelta / b.loc * 100);
+
+    md += `- **Matcha vs Baseline**: -${matchaLocDelta} LOC (-${matchaLocPct}%) — `;
+    md += `${m.correct >= b.correct ? "same or better correctness ✅" : "slightly lower correctness"}\n`;
+    md += `- **Terse vs Baseline**: -${terseLocDelta} LOC (-${terseLocPct}%)\n`;
+    if (t.loc > m.loc) {
+      md += `- **Matcha vs Terse**: matcha is ${t.loc - m.loc} LOC more than terse — `;
+      md += `but with ${m.adversarial > t.adversarial ? "better" : "comparable"} adversarial robustness\n`;
+    } else {
+      md += `- **Matcha vs Terse**: matcha beats terse by ${m.loc - t.loc} LOC\n`;
     }
-    return { id: task.id, name: task.name, ...arms };
-  });
+  }
+  md += `\n`;
+
+  // ── Per-task table ──
+  md += `## Per-Task Breakdown\n\n`;
+  md += `| Task | Baseline LOC | Terse LOC | Matcha LOC | Baseline ✅ | Terse ✅ | Matcha ✅ | Baseline 🛡️ | Terse 🛡️ | Matcha 🛡️ |\n`;
+  md += `|------|-------------|-----------|------------|------------|----------|-----------|-------------|----------|-----------|\n`;
+
+  for (const task of data) {
+    const name = task.name;
+    const bLoc = task.baseline?.loc ?? "-";
+    const tLoc = task.terse?.loc ?? "-";
+    const mLoc = task.matcha?.loc ?? "-";
+    const bCor = task.baseline?.correct ? "✅" : "❌";
+    const tCor = task.terse?.correct ? "✅" : "❌";
+    const mCor = task.matcha?.correct ? "✅" : "❌";
+    const bAdv = task.baseline?.adversarial ? "✅" : "❌";
+    const tAdv = task.terse?.adversarial ? "✅" : "❌";
+    const mAdv = task.matcha?.adversarial ? "✅" : "❌";
+    md += `| ${name} | ${bLoc} | ${tLoc} | ${mLoc} | ${bCor} | ${tCor} | ${mCor} | ${bAdv} | ${tAdv} | ${mAdv} |\n`;
+  }
+  md += `\n`;
+
+  // ── Repo benchmark ──
+  if (repoData && repoData.length > 0) {
+    md += `## Live Repo Benchmark\n\n`;
+    md += `| Task | Arm | LOC Added | Tests Passed | Compliance Score |\n`;
+    md += `|------|-----|-----------|--------------|------------------|\n`;
+    for (const r of repoData) {
+      md += `| ${r.taskName} | ${r.armLabel} | ${r.addedLOC} | ${r.testPassedCount}/${r.testPassedCount + r.testFailed} | ${r.complianceScore} (${r.complianceGrade}) |\n`;
+    }
+    md += `\n`;
+  }
+
+  // ── Methodology ──
+  md += `## Methodology\n\n`;
+  md += `- **Tasks**: 20 diverse coding tasks (algorithms, data manipulation, async, security)\n`;
+  md += `- **Arms**: Baseline (no rules) vs Terse (brevity instruction only) vs Matcha (full conventions)\n`;
+  md += `- **Correctness Gate**: Each solution tested against a test suite with 10-20 test cases\n`;
+  md += `- **Adversarial Gate**: Edge case robustness — XSS, injection, boundary values, null/undefined\n`;
+  md += `- **Metric**: LOC count (excluding comments and blank lines)\n`;
+  md += `- **Backend**: Simulated (default solutions) — run live with Claude Code for AI-generated results\n\n`;
+  md += `---\n*Report auto-generated by \`node benchmark/generate-report.js\`*\n`;
+
+  return md;
 }
 
-// ─── 3. Write result JSON ────────────────────────────────────────────────
+// ─── 4. Write result JSON ────────────────────────────────────────────────
 
 function writeResults(data, totals, repoData) {
   const result = {
@@ -70,7 +152,13 @@ function writeResults(data, totals, repoData) {
   console.log(`  ✅ Results written to docs/benchmark.json`);
 }
 
-// ─── 4. Calculate summary ─────────────────────────────────────────────────
+function writeMarkdownReport(data, totals, generated, repoData) {
+  const md = formatMarkdownReport(data, totals, generated, repoData);
+  writeFileSync(REPORT_MD_PATH, md, "utf-8");
+  console.log(`  ✅ Markdown report written to docs/BENCHMARK.md`);
+}
+
+// ─── 5. Calculate summary ─────────────────────────────────────────────────
 
 function calcSummary(data) {
   const totals = {};
@@ -88,7 +176,7 @@ function calcSummary(data) {
   return totals;
 }
 
-// ─── 5. Run repo benchmark & inject ───────────────────────────────────────
+// ─── 6. Run repo benchmark & inject ───────────────────────────────────────
 
 function runRepoBenchmark() {
   console.log("📦 Running repo benchmark...");
@@ -113,7 +201,7 @@ function formatRepoData(raw) {
   }));
 }
 
-// ─── 6. Print report ──────────────────────────────────────────────────────
+// ─── 7. Print report ──────────────────────────────────────────────────────
 
 function printReport(totals) {
   const b = totals.baseline;
@@ -136,7 +224,7 @@ function printReport(totals) {
   console.log("");
 }
 
-// ─── 7. CLI entry ─────────────────────────────────────────────────────────
+// ─── 8. CLI entry ─────────────────────────────────────────────────────────
 
 const isDirectInvocation = process.argv[1] && (
   process.argv[1].replace(/\\/g, "/").endsWith("generate-report.js") ||
@@ -146,6 +234,7 @@ const isDirectInvocation = process.argv[1] && (
 if (isDirectInvocation) {
   const args = process.argv.slice(2);
   const jsonOnly = args.includes("--json");
+  const mdFlag = args.includes("--md") || args.includes("--markdown");
   const skipBench = args.includes("--skip-bench");
   const includeRepo = args.includes("--include-repo");
   const itersIndex = args.indexOf("--iters");
@@ -158,7 +247,12 @@ if (isDirectInvocation) {
     }
     const saved = JSON.parse(readFileSync(RESULT_PATH, "utf-8"));
     const totals = saved.summary;
-    if (jsonOnly) {
+
+    if (mdFlag) {
+      const md = formatMarkdownReport(saved.data, totals, saved.generated, saved.repo);
+      writeFileSync(REPORT_MD_PATH, md, "utf-8");
+      console.log(`  ✅ Markdown report written to docs/BENCHMARK.md\n`);
+    } else if (jsonOnly) {
       console.log(JSON.stringify(saved, null, 2));
     } else {
       printReport(totals);
@@ -167,34 +261,41 @@ if (isDirectInvocation) {
   }
 
   // Full run
-  try {
-    console.log(`  🔄 ${iterations} iteration(s) per cell\n`);
-    const raw = runBenchmark({ iterations });
-    const data = transformData(raw);
-    const totals = calcSummary(data);
-    let repoData = [];
+  (async () => {
+    try {
+      console.log(`  🔄 ${iterations} iteration(s) per cell\n`);
+      const raw = await runBenchmark({ iterations });
+      const data = transformFlatData(raw);
+      const totals = calcSummary(data);
+      const generated = new Date().toISOString();
+      let repoData = [];
 
-    if (includeRepo) {
-      try {
-        const repoRaw = runRepoBenchmark();
-        repoData = formatRepoData(repoRaw);
-        console.log(`  ✅ Repo benchmark collected (${repoRaw.length} runs)\n`);
-      } catch (e) {
-        console.log(`  ⚠️  Repo benchmark skipped: ${e.message}\n`);
+      if (includeRepo) {
+        try {
+          const repoRaw = runRepoBenchmark();
+          repoData = formatRepoData(repoRaw);
+          console.log(`  ✅ Repo benchmark collected (${repoRaw.length} runs)\n`);
+        } catch (e) {
+          console.log(`  ⚠️  Repo benchmark skipped: ${e.message}\n`);
+        }
       }
-    }
 
-    writeResults(data, totals, repoData);
+      writeResults(data, totals, repoData);
 
-    if (jsonOnly) {
-      console.log(JSON.stringify({ data, totals, generated: new Date().toISOString(), iterations }, null, 2));
-    } else {
-      printReport(totals);
+      if (mdFlag) {
+        writeMarkdownReport(data, totals, generated, repoData);
+      }
+
+      if (jsonOnly) {
+        console.log(JSON.stringify({ data, totals, generated, iterations }, null, 2));
+      } else {
+        printReport(totals);
+      }
+    } catch (e) {
+      console.error(`ERROR: ${e.message}`);
+      process.exit(1);
     }
-  } catch (e) {
-    console.error(`ERROR: ${e.message}`);
-    process.exit(1);
-  }
+  })();
 }
 
-export { runBenchmark, transformData, calcSummary, printReport };
+export { runBenchmark, transformFlatData, calcSummary, printReport, formatMarkdownReport };

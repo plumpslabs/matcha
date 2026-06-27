@@ -18,6 +18,7 @@ import { execSync, spawn } from "child_process";
 import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, mkdirSync, cpSync } from "fs";
 import { join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
+import { countLOC, estimateTokens, injectMatchaRules, checkTool } from "./bench-utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -86,60 +87,12 @@ const BACKENDS = {
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
-function countLOC(code) {
-  return code.split("\n").filter(l => l.trim() && !l.trim().startsWith("//") && !l.trim().startsWith("#")).length;
-}
-
-function estimateTokens(code) {
-  return Math.ceil(code.length / 4);
-}
-
 function cloneFixture(repoId, tmpDir) {
   const src = join(REPOS_DIR, repoId);
   if (!existsSync(src)) {
     throw new Error(`Repository fixture not found: ${repoId} (expected at ${src})`);
   }
   cpSync(src, tmpDir, { recursive: true });
-}
-
-function injectMatchaRules(dir) {
-  const claudeDir = join(dir, ".claude");
-  mkdirSync(claudeDir, { recursive: true });
-
-  const claudeMd = `# 🍵 matcha — Engineering Convention
-
-Simple. Efficient. Deliberate. Never twice.
-
-## Core Rules
-- One function = one thing. No monolithic functions.
-- No hardcoded values. Use named constants (APPNAME_VAR_NAME).
-- Explicit error messages. Don't silently swallow errors.
-- Prefer const over let, arrow functions, concise expressions.
-- Remove temp/debug code before finishing.
-- No unnecessary abstractions. Don't build what you don't need.
-
-## Before Writing
-1. **Purpose**: What am I solving? Why?
-2. **Simplicity**: Is there a simpler path? Fewer functions? Fewer lines?
-3. **Reuse**: Can I use an existing approach instead of inventing a new one?
-
-## Intensity: enforce
-`;
-
-  writeFileSync(join(claudeDir, "CLAUDE.md"), claudeMd, "utf-8");
-}
-
-function checkClaudeAvailable() {
-  try {
-    execSync("which claude 2>/dev/null || where claude 2>nul", {
-      stdio: "pipe",
-      timeout: 5000,
-      encoding: "utf-8",
-    });
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 // ─── Git diff measurements ────────────────────────────────────────────────
@@ -309,9 +262,8 @@ async function runRepoTasks(task, arm, options = {}) {
 
     if (simulate) {
       // Simulated mode: no Claude, just measure existing state
-      writeFileSync(join(tmpDir, ".simulated"), `# Simulated run for ${task.id} × ${arm.id}\nGenerated: ${new Date().toISOString()}\n`, "utf-8");
     } else {
-      const claudeAvailable = checkClaudeAvailable();
+      const claudeAvailable = checkTool("claude");
       if (!claudeAvailable) {
         throw new Error("Claude Code CLI not found. Install from: https://docs.anthropic.com/en/docs/claude-code/overview");
       }
@@ -472,7 +424,7 @@ async function runLiveRepoBenchmark(options = {}) {
     ? allTasks.filter(t => tasks.includes(t.id))
     : allTasks;
 
-  const claudeAvailable = simulate ? false : checkClaudeAvailable();
+  const claudeAvailable = simulate ? false : checkTool("claude");
 
   console.log(`🍵 matcha: Live Repo Benchmark`);
   console.log(`Mode: ${simulate ? "SIMULATED" : claudeAvailable ? "LIVE (Claude Code detected)" : "FALLBACK (no Claude, using simulate)"}`);

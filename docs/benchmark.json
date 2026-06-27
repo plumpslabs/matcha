@@ -1,0 +1,466 @@
+{
+  "generated": "2026-06-27T06:04:32.465Z",
+  "summary": {
+    "baseline": {
+      "loc": 75,
+      "correct": 5,
+      "adversarial": 7,
+      "total": 20
+    },
+    "terse": {
+      "loc": 29,
+      "correct": 4,
+      "adversarial": 7,
+      "total": 20
+    },
+    "matcha": {
+      "loc": 52,
+      "correct": 5,
+      "adversarial": 5,
+      "total": 20
+    }
+  },
+  "data": [
+    {
+      "id": "anagram-group",
+      "name": "Anagram Group",
+      "baseline": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "array-flatten",
+      "name": "Array Flatten",
+      "baseline": {
+        "loc": 6,
+        "tokens": 42,
+        "correct": false,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 2,
+        "tokens": 30,
+        "correct": false,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 5,
+        "tokens": 42,
+        "correct": true,
+        "adversarial": true
+      }
+    },
+    {
+      "id": "chunk-array",
+      "name": "Chunk Array",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "config-parser",
+      "name": "Config Parser",
+      "baseline": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "csv-sum",
+      "name": "Csv Sum",
+      "baseline": {
+        "loc": 11,
+        "tokens": 76,
+        "correct": true,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 2,
+        "tokens": 37,
+        "correct": true,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 4,
+        "tokens": 43,
+        "correct": true,
+        "adversarial": true
+      }
+    },
+    {
+      "id": "date-fmt",
+      "name": "Date Fmt",
+      "baseline": {
+        "loc": 10,
+        "tokens": 91,
+        "correct": true,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 2,
+        "tokens": 54,
+        "correct": false,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 7,
+        "tokens": 83,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "debounce",
+      "name": "Debounce",
+      "baseline": {
+        "loc": 8,
+        "tokens": 47,
+        "correct": true,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 2,
+        "tokens": 31,
+        "correct": true,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 8,
+        "tokens": 45,
+        "correct": true,
+        "adversarial": true
+      }
+    },
+    {
+      "id": "deep-clone",
+      "name": "Deep Clone",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "deep-get",
+      "name": "Deep Get",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "deep-merge",
+      "name": "Deep Merge",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "email-validator",
+      "name": "Email Validator",
+      "baseline": {
+        "loc": 8,
+        "tokens": 69,
+        "correct": true,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 3,
+        "tokens": 39,
+        "correct": true,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 5,
+        "tokens": 58,
+        "correct": true,
+        "adversarial": true
+      }
+    },
+    {
+      "id": "fizzbuzz",
+      "name": "Fizzbuzz",
+      "baseline": {
+        "loc": 11,
+        "tokens": 74,
+        "correct": true,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 2,
+        "tokens": 37,
+        "correct": true,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 6,
+        "tokens": 46,
+        "correct": true,
+        "adversarial": true
+      }
+    },
+    {
+      "id": "log-filter",
+      "name": "Log Filter",
+      "baseline": {
+        "loc": 8,
+        "tokens": 69,
+        "correct": false,
+        "adversarial": true
+      },
+      "terse": {
+        "loc": 3,
+        "tokens": 45,
+        "correct": false,
+        "adversarial": true
+      },
+      "matcha": {
+        "loc": 4,
+        "tokens": 49,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "memoize",
+      "name": "Memoize",
+      "baseline": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "palindrome-checker",
+      "name": "Palindrome Checker",
+      "baseline": {
+        "loc": 1,
+        "tokens": 19,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 19,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "pipe-compose",
+      "name": "Pipe Compose",
+      "baseline": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "retry-async",
+      "name": "Retry Async",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "semver-compare",
+      "name": "Semver Compare",
+      "baseline": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "throttle",
+      "name": "Throttle",
+      "baseline": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 16,
+        "correct": false,
+        "adversarial": false
+      }
+    },
+    {
+      "id": "unique-filter",
+      "name": "Unique Filter",
+      "baseline": {
+        "loc": 1,
+        "tokens": 18,
+        "correct": false,
+        "adversarial": false
+      },
+      "terse": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      },
+      "matcha": {
+        "loc": 1,
+        "tokens": 17,
+        "correct": false,
+        "adversarial": false
+      }
+    }
+  ],
+  "repo": []
+}

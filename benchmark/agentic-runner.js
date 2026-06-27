@@ -16,11 +16,11 @@
  * Matcha-style: deterministic, parallel where possible, clean output.
  */
 
-import { spawn } from "child_process";
-import { readFileSync, writeFileSync, existsSync, readdirSync, mkdtempSync, rmSync, mkdirSync } from "fs";
+import { spawn, execSync } from "child_process";
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdtempSync, rmSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
-import { countLOC, estimateTokens } from "./bench-utils.js";
+import { countLOC, estimateTokens, injectMatchaRules, checkTool } from "./bench-utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TASKS_DIR = join(__dirname, "tasks");
@@ -68,22 +68,28 @@ function discoverTasks() {
   });
 }
 
-// ─── Claude Code availability check ────────────────────────────────────────
-
-function checkClaude() {
-  try {
-    execSync("which claude 2>/dev/null || where claude 2>nul", {
-      stdio: "pipe",
-      timeout: 5000,
-      encoding: "utf-8",
-    });
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // ─── Tools ─────────────────────────────────────────────────────────────────
+
+/**
+ * Extracts meaningful failure info from execSync error.
+ * Returns "FAIL: ..." lines from test output, or short error summary.
+ */
+function extractTestFailures(e) {
+  const output = e.stdout || e.message || "";
+  const failLines = output
+    .split("\n")
+    .filter((l) => l.startsWith("FAIL"))
+    .join("; ");
+  if (failLines) return failLines;
+
+  // Fallback: extract first meaningful line of error
+  const msg = e.message || "";
+  const lines = msg.split("\n");
+  const meaningful = lines.filter(
+    (l) => !l.includes("Command failed") && !l.includes("node \""),
+  );
+  return meaningful[0] || msg.slice(0, 80);
+}
 
 // ─── Extract JS code from Claude stdout ───────────────────────────────────
 
@@ -132,38 +138,6 @@ function stripFences(text) {
 
 // ─── Matcha injection ──────────────────────────────────────────────────────
 
-/**
- * Injects matcha conventions into a project directory by creating
- * a .claude/CLAUDE.md with core matcha rules. This is how Claude Code
- * natively picks up conventions — no plugin or hook needed.
- */
-function injectMatcha(dir) {
-  const claudeDir = join(dir, ".claude");
-  mkdirSync(claudeDir, { recursive: true });
-
-  const claudeMd = `# 🍵 matcha — Engineering Convention
-
-Simple. Efficient. Deliberate. Never twice.
-
-## Core Rules
-- One function = one thing. No monolithic functions.
-- No hardcoded values. Use named constants (APPNAME_VAR_NAME).
-- Explicit error messages. Don't silently swallow errors.
-- Prefer const over let, arrow functions, concise expressions.
-- Remove temp/debug code before finishing.
-- No unnecessary abstractions. Don't build what you don't need.
-
-## Before Writing
-1. **Purpose**: What am I solving? Why?
-2. **Simplicity**: Is there a simpler path? Fewer functions? Fewer lines?
-3. **Reuse**: Can I use an existing approach instead of inventing a new one?
-
-## Intensity: enforce
-`;
-
-  writeFileSync(join(claudeDir, "CLAUDE.md"), claudeMd, "utf-8");
-}
-
 // ─── Per-task runner ───────────────────────────────────────────────────────
 
 /**
@@ -208,7 +182,7 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
     // Build prompt — terse arm gets brevity hint, all arms get code-only instruction
     let fullSpec =
       arm.id === "terse"
-        ? `${spec}\n\nIMPORTANT: Be brief. Write minimal working code. No comments. No explanations. Short variable names OK.`
+        ? `${spec}\n\nIMPORTANT: Be brief — short variable names, concise logic. Valid JavaScript syntax required (proper const/let/function keywords). No comments. No explanations.`
         : spec;
 
     // Critical: tell Claude to output raw JS only — no markdown, no narration
@@ -219,7 +193,7 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
 
     // Inject matcha rules for matcha arm
     if (arm.injectMatcha) {
-      injectMatcha(tmpDir);
+      injectMatchaRules(tmpDir);
     }
 
     // Spawn Claude Code or simulate
@@ -275,24 +249,76 @@ async function runTask(taskId, taskName, spec, testPath, arm, options = {}) {
     result.loc = countLOC(code);
     result.tokens = estimateTokens(code);
 
-    // Run test harness
+    // Run test harness (with retry on syntax error)
     if (existsSync(testPath)) {
-      try {
-        const testInTmp = join(tmpDir, "_test.cjs");
-        writeFileSync(testInTmp, readFileSync(testPath, "utf-8"), "utf-8");
+      let testAttempt = 0;
+      const maxAttempts = simulate ? 1 : 2; // retry once for live Claude
 
-        const testOutput = execSync(`node "${testInTmp}"`, {
-          cwd: tmpDir,
-          timeout: 15_000,
-          encoding: "utf-8",
-          stdio: "pipe",
-        });
-        result.correct = !testOutput.includes("FAIL");
-        result.testOutput = testOutput.trim();
-      } catch (e) {
-        result.correct = false;
-        result.error = e.message;
-        result.testOutput = e.stdout || "";
+      while (testAttempt < maxAttempts) {
+        testAttempt++;
+        try {
+          const testInTmp = join(tmpDir, "_test.cjs");
+          writeFileSync(testInTmp, readFileSync(testPath, "utf-8"), "utf-8");
+
+          const testOutput = execSync(`node "${testInTmp}"`, {
+            cwd: tmpDir,
+            timeout: 15_000,
+            encoding: "utf-8",
+            stdio: "pipe",
+          });
+          result.correct = !testOutput.includes("FAIL");
+          result.testOutput = testOutput.trim();
+          break; // success — exit retry loop
+        } catch (e) {
+          result.correct = false;
+          result.testOutput = e.stdout || "";
+
+          // Check if syntax error — retry Claude with stricter prompt
+          const isSyntaxError =
+            e.message.includes("SyntaxError") ||
+            (e.stdout && e.stdout.includes("SyntaxError"));
+
+          if (isSyntaxError && !simulate && testAttempt < maxAttempts) {
+            process.stdout.write("retry... ");
+            // Regenerate with stricter prompt
+            const fixSpec =
+              fullSpec +
+              "\n\nPREVIOUS ERROR: Your code had a JavaScript syntax error. Fix it: ensure valid syntax with proper const/let/function keywords (e.g. `const fn = (x) => ...` or `function fn(x) {...}`).";
+
+            const child = spawn("claude", ["--print", fixSpec], {
+              cwd: tmpDir,
+              stdio: ["pipe", "pipe", "pipe"],
+            });
+            let retryStdout = "";
+            child.stdout.on("data", (d) => {
+              retryStdout += d.toString();
+            });
+            await new Promise((resolve, reject) => {
+              const timer = setTimeout(() => {
+                child.kill("SIGTERM");
+                reject(new Error(`Retry timeout after ${timeout / 1000}s`));
+              }, timeout);
+              child.on("close", () => {
+                clearTimeout(timer);
+                resolve();
+              });
+              child.on("error", reject);
+            });
+
+            if (retryStdout.trim()) {
+              const retryCode = stripFences(retryStdout);
+              writeFileSync(solutionFile, retryCode, "utf-8");
+              result.code = retryCode;
+              result.loc = countLOC(retryCode);
+              result.tokens = estimateTokens(retryCode);
+            }
+          } else {
+            result.error = isSyntaxError
+              ? "SyntaxError — retry exhausted"
+              : extractTestFailures(e);
+            break; // non-syntax error or retries exhausted
+          }
+        }
       }
     } else {
       // No test file = assume correct
@@ -578,16 +604,20 @@ function getDefaultSolution(taskId, armId) {
   const solutions = {
     "email-validator": {
       baseline: `const EMAIL_RE = /^[\\w.%+-]+@[\\w.-]+\\.[a-z]{2,}$/i;
+const EMAIL_MAX_LEN = 254;
 function isValidEmail(email) {
   if (typeof email !== "string") return false;
+  if (email.length > EMAIL_MAX_LEN) return false;
   return EMAIL_RE.test(email);
 }
 module.exports = { isValidEmail };`,
       terse: `const R=/^[\\w.%+-]+@[\\w.-]+\\.[a-z]{2,}$/i;
-function isValidEmail(e){return typeof e=="string"?R.test(e):false}
+function isValidEmail(e){return typeof e=="string"&&e.length<255?R.test(e):false}
 module.exports={isValidEmail};`,
       matcha: `const EMAIL_RE = /^[\\w.%+-]+@[\\w.-]+\\.[a-z]{2,}$/i;
-const isValidEmail = (email) => typeof email === "string" && EMAIL_RE.test(email);
+const EMAIL_MAX_LEN = 254;
+const isValidEmail = (email) =>
+  typeof email === "string" && email.length <= EMAIL_MAX_LEN && EMAIL_RE.test(email);
 module.exports = { isValidEmail };`,
     },
     debounce: {
@@ -730,7 +760,7 @@ async function runAgenticLive(options = {}) {
     ? allTasks.filter((t) => tasks.includes(t.id))
     : allTasks;
 
-  const claudeAvailable = simulate ? false : checkClaude();
+  const claudeAvailable = simulate ? false : checkTool("claude");
 
   console.log(`🍵 matcha: Agentic Live Benchmark`);
   console.log(
@@ -852,7 +882,10 @@ function formatLiveReport(results, arms) {
 
       const icon = r.correct ? "✅" : r.error ? "⚠️" : "❌";
       output += `  ${icon} ${a.padEnd(10)} ${String(r.loc).padStart(3)} LOC, ~${String(r.tokens).padStart(3)} tok`;
-      if (r.error) output += `  ${r.error.slice(0, 60)}`;
+      if (r.error) {
+        const shortErr = r.error.length > 60 ? r.error.slice(0, 57) + "..." : r.error;
+        output += `  ${shortErr}`;
+      }
       output += "\n";
 
       totals[a].loc += r.loc;

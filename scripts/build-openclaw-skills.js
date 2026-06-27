@@ -40,7 +40,7 @@ write(".agents/rules/matcha.md", coreContent);
 // its own format (inclusion modes) which differs from Cursor's alwaysApply/globs.
 // Kiro steering files are maintained independently.
 
-// Agents — sync from .claude/ (canonical) to .agents/ (universal)
+// Agents — sync from .agents/ (canonical) to .opencode/ (format) + .claude/ (symlink)
 console.log("");
 for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer", "matcha-cleaner", "matcha-debugger"]) {
   write(`.agents/agents/${a}.md`, read(`.claude/agents/${a}.md`));

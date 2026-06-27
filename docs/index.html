@@ -43,20 +43,38 @@
   .principle p{font-size:0.8rem;color:#888;margin-bottom:0;line-height:1.4}
   .philosophy{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1rem;margin-bottom:2rem}
 
-  .bench-rows{display:flex;flex-direction:column;gap:0.75rem}
-  .bench-row{display:flex;gap:1rem;align-items:center;padding:0.75rem 1rem;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.08)}
-  .bench-row .task{flex:1;font-weight:600;font-size:0.85rem}
-  .bench-row .arm{font-size:0.75rem;padding:0.15rem 0.5rem;border-radius:4px;font-weight:500}
+  .bench-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.5rem}
+  .bench-stat{background:#fff;border-radius:8px;padding:0.75rem 1rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center}
+  .bench-stat .value{font-size:1.5rem;font-weight:700}
+  .bench-stat .label{font-size:0.75rem;color:#888;margin-top:0.15rem}
+  .bench-stat .sub{font-size:0.65rem;color:#aaa;margin-top:0.1rem}
+
+  .bench-rows{display:flex;flex-direction:column;gap:0.5rem}
+  .bench-row{display:flex;gap:0.5rem;align-items:center;padding:0.5rem 0.75rem;background:#fff;border-radius:6px;box-shadow:0 1px 3px rgba(0,0,0,0.06)}
+  .bench-row .task{flex:1;font-weight:600;font-size:0.8rem}
+  .bench-row .arm{font-size:0.7rem;padding:0.15rem 0.4rem;border-radius:4px;font-weight:500;white-space:nowrap}
   .arm-baseline{background:#e5e7eb;color:#666}
   .arm-terse{background:#fef3cd;color:#856404}
   .arm-matcha{background:#d4edda;color:#155724}
+  .arm-pass{opacity:1}
+  .arm-fail{opacity:0.5}
+
+  .bench-compare{display:flex;gap:1rem;justify-content:center;margin-top:1.5rem;flex-wrap:wrap}
+  .compare-card{background:#fff;border-radius:8px;padding:1rem;box-shadow:0 1px 3px rgba(0,0,0,0.08);text-align:center;flex:1;min-width:140px}
+  .compare-card .delta{font-size:1.75rem;font-weight:800}
+  .compare-card .delta.positive{color:#155724}
+  .compare-card .delta.negative{color:#856404}
+  .compare-card .desc{font-size:0.7rem;color:#888;margin-top:0.2rem}
+
+  .bench-loading{text-align:center;padding:1rem;color:#999;font-size:0.85rem}
+  .bench-error{text-align:center;padding:1rem;color:#c0392b;font-size:0.85rem}
 
   footer{background:#1a1a2e;color:rgba(255,255,255,0.7);padding:2rem 0;text-align:center;font-size:0.85rem}
   footer a{color:#D4A843}
 
   @media(max-width:768px){
     h1{font-size:1.35rem}.hero h1{font-size:1.75rem}.hero{padding:2rem 0 1.5rem}
-    section{padding:1.5rem 0}.card-grid{grid-template-columns:1fr}
+    section{padding:1.5rem 0}.card-grid{grid-template-columns:1fr}.bench-stats{grid-template-columns:1fr}
   }
   .text-center{text-align:center}.mb-1{margin-bottom:0.75rem}
 </style>
@@ -137,17 +155,9 @@
       Two gates per task: correctness + adversarial.
     </p>
 
-    <div class="bench-rows">
-      <div class="bench-row"><span class="task">7 Static Tasks</span><span class="arm arm-baseline">Baseline: 76 LOC</span><span class="arm arm-terse">Terse: 9 LOC</span><span class="arm arm-matcha">Matcha: 29 LOC</span></div>
-      <div class="bench-row"><span class="task">13 Full Tasks</span><span class="arm arm-baseline">Baseline: —</span><span class="arm arm-terse">Terse: —</span><span class="arm arm-matcha">Matcha: —</span></div>
-      <div class="bench-row"><span class="task">Correctness Rate</span><span class="arm arm-baseline">Baseline: 5/7</span><span class="arm arm-terse">Terse: 5/7</span><span class="arm arm-matcha">Matcha: 5/7</span></div>
-      <div class="bench-row"><span class="task">Adversarial Rate</span><span class="arm arm-baseline">Baseline: 2/7</span><span class="arm arm-terse">Terse: 2/7</span><span class="arm arm-matcha">Matcha: 2/7</span></div>
+    <div id="bench-container">
+      <div class="bench-loading">Loading benchmark data...</div>
     </div>
-
-    <p class="text-center" style="font-size:0.75rem;color:#999;margin-top:1rem">
-      Run <code>node benchmark/generate-report.js</code> with Claude Code CLI for live results.
-      <br>See <a href="https://github.com/plumpslabs/matcha">GitHub →</a> for full methodology.
-    </p>
   </div>
 </section>
 
@@ -162,6 +172,101 @@
     </div>
   </div>
 </footer>
+
+<script>
+(async function() {
+  const container = document.getElementById('bench-container');
+
+  try {
+    const resp = await fetch('./benchmark.json');
+    if (!resp.ok) throw new Error('Not found');
+    const json = await resp.json();
+
+    const s = json.summary;
+    const generated = new Date(json.generated).toLocaleString();
+
+    // ── Summary cards ──
+    const arms = ['baseline', 'terse', 'matcha'];
+    const labels = { baseline: 'No rules', terse: 'Terse', matcha: 'matcha' };
+    const colors = { baseline: '#e5e7eb', terse: '#fef3cd', matcha: '#d4edda' };
+    const textColors = { baseline: '#666', terse: '#856404', matcha: '#155724' };
+
+    let html = '<div class="bench-stats">';
+    for (const a of arms) {
+      const pct = s[a].total > 0 ? Math.round(s[a].correct / s[a].total * 100) : 0;
+      const advPct = s[a].total > 0 ? Math.round(s[a].adversarial / s[a].total * 100) : 0;
+      html += `<div class="bench-stat">
+        <div class="value" style="color:${textColors[a]}">${s[a].loc} LOC</div>
+        <div class="label" style="color:${textColors[a]}">${labels[a]}</div>
+        <div class="sub">✅ ${s[a].correct}/${s[a].total} correct · 🛡️ ${advPct}% adversarial</div>
+      </div>`;
+    }
+    html += '</div>';
+
+    // ── Comparison cards ──
+    const b = s.baseline;
+    const m = s.matcha;
+    const t = s.terse;
+    const matchaDelta = b.loc - m.loc;
+    const matchaPct = b.loc > 0 ? Math.round(matchaDelta / b.loc * 100) : 0;
+    const terseDelta = b.loc - t.loc;
+    const tersePct = b.loc > 0 ? Math.round(terseDelta / b.loc * 100) : 0;
+
+    html += '<div class="bench-compare">';
+    html += `<div class="compare-card">
+      <div class="delta positive">-${matchaPct}%</div>
+      <div class="value" style="font-size:1.1rem;font-weight:600">${matchaDelta} LOC</div>
+      <div class="desc">matcha vs baseline — fewer lines, same correctness</div>
+    </div>`;
+    html += `<div class="compare-card">
+      <div class="delta ${tersePct > matchaPct ? 'positive' : 'negative'}">-${tersePct}%</div>
+      <div class="value" style="font-size:1.1rem;font-weight:600">${terseDelta} LOC</div>
+      <div class="desc">terse vs baseline — brevity benchmark</div>
+    </div>`;
+    const beatsTerse = t.loc > m.loc;
+    html += `<div class="compare-card">
+      <div class="delta ${beatsTerse ? 'positive' : 'negative'}">${beatsTerse ? '-' + (t.loc - m.loc) : '+' + (m.loc - t.loc)} LOC</div>
+      <div class="value" style="font-size:1.1rem;font-weight:600">matcha vs terse</div>
+      <div class="desc">${beatsTerse ? 'matcha beats terse — rules > mere brevity' : 'terse beats matcha — may need tighter rules'}</div>
+    </div>`;
+    html += '</div>';
+
+    // ── Per-task rows ──
+    html += '<div class="bench-rows" style="margin-top:1.5rem">';
+    for (const task of json.data) {
+      const name = task.name;
+      html += `<div class="bench-row"><span class="task">${name}</span>`;
+      for (const a of arms) {
+        const d = task[a];
+        if (!d) continue;
+        const locStr = d.loc + ' LOC';
+        const passClass = d.correct ? 'arm-pass' : 'arm-fail';
+        const advIcon = d.adversarial ? '🛡️' : '⚠️';
+        html += `<span class="arm arm-${a} ${passClass}" style="background:${colors[a]};color:${textColors[a]}">${labels[a]}: ${locStr} ${d.correct ? '✅' : '❌'} ${advIcon}</span>`;
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // ── Timestamp ──
+    html += `<p class="text-center" style="font-size:0.7rem;color:#bbb;margin-top:1rem">
+      Generated: ${generated} &middot;
+      Run <code>node benchmark/generate-report.js</code> with Claude Code CLI for live results.
+      &middot; <a href="https://github.com/plumpslabs/matcha">Full methodology →</a>
+    </p>`;
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="bench-error">
+      ⚠️ No benchmark data available.
+      <br><br>
+      Run <code>node benchmark/generate-report.js</code> with Claude Code to generate live results.
+      <br><br>
+      <small style="color:#999">${e.message}</small>
+    </div>`;
+  }
+})();
+</script>
 
 </body>
 </html>

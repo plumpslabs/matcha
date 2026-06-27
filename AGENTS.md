@@ -11,6 +11,7 @@
 | `/matcha:audit` | Stack audit |
 | `/matcha:review` | Review implementation |
 | `/matcha:intensity` | Set level: observe / enforce / audit |
+| `/matcha:debt` | Show technical debt from decision logs |
 
 ## Agents
 

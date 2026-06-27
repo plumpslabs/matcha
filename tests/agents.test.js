@@ -26,13 +26,17 @@ describe("Agent YAML frontmatter validation", () => {
         expect(content).toMatch(/description: /);
       });
 
-      test("has tools as YAML array", () => {
-        expect(content).toContain("  - ");
-        expect(content).toMatch(/tools:/);
+      test("has permission schema", () => {
+        expect(content).toMatch(/permission:/);
+        expect(content).toMatch(/read: allow/);
       });
 
-      test("has model: inherit", () => {
-        expect(content).toMatch(/model: inherit/);
+      test("has no invalid model field", () => {
+        expect(content).not.toMatch(/model: inherit/);
+      });
+
+      test("has no deprecated tools field", () => {
+        expect(content).not.toMatch(/^tools:/m);
       });
 
       test("has name", () => {

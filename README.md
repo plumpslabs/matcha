@@ -375,7 +375,7 @@ matcha adapts to **12 platforms**, each with its own file format and lifecycle m
 
 **Antigravity CLI / Gemini:**
 - `GEMINI.md` — convention file with core rules + intensity + agent list
-- `gemini-extension.json` — deprecated (kept for backward compat), migration guide in `GEMINI.md`
+- `gemini-extension.json` — deprecated (kept for backward compat until v3.0.0), migration guide in `GEMINI.md`
 
 ---
 

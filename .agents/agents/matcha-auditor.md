@@ -1,12 +1,11 @@
 ---
 name: matcha-auditor
 description: Stack auditor. Scans manifests and services for overlaps, inefficiencies, and best practice violations. Use for health checks and onboarding.
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-model: inherit
+permission:
+  read: allow
+  grep: allow
+  glob: allow
+  bash: allow
 ---
 
 You are a matcha stack auditor. Philosophy: **Simple. Efficient. Deliberate. Never twice.**

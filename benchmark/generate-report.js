@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
  * 🍵 matcha — generate-report.js
- * Runs all benchmark modes and updates docs/index.html with fresh results.
+ * Runs all benchmark modes and writes results to docs/benchmark.json.
  *
  * Usage:
- *   node benchmark/generate-report.js              ← run + update HTML
- *   node benchmark/generate-report.js --json       ← JSON summary only
- *   node benchmark/generate-report.js --skip-bench  ← re-parse existing HTML data only
+ *   node benchmark/generate-report.js              ← run + write JSON
+ *   node benchmark/generate-report.js --json       ← JSON to stdout only
+ *   node benchmark/generate-report.js --skip-bench  ← re-read existing results
  *
  * Matcha-style: one function per concern, no over-engineering.
  */
@@ -19,7 +19,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
 const BENCH_SCRIPT = join(__dirname, "matcha-bench.js");
-const HTML_PATH = join(ROOT, "docs", "index.html");
+const RESULT_PATH = join(ROOT, "docs", "benchmark.json");
 
 // ─── 1. Run benchmark & parse JSON ────────────────────────────────────────
 
@@ -53,21 +53,21 @@ function transformData(raw) {
   });
 }
 
-// ─── 3. Replace BENCHMARK_DATA in HTML ────────────────────────────────────
+// ─── 3. Write result JSON ────────────────────────────────────────────────
 
-function injectData(html, data) {
-  const json = JSON.stringify(data, null, 2);
-  const marker = `const BENCHMARK_DATA = `;
-
-  if (!html.includes(marker)) {
-    console.error("ERROR: docs/index.html missing BENCHMARK_DATA marker");
-    process.exit(1);
-  }
-
-  return html.replace(
-    /const BENCHMARK_DATA = \[[\s\S]*?\];/,
-    `${marker}${json};`
-  );
+function writeResults(data, totals, repoData) {
+  const result = {
+    generated: new Date().toISOString(),
+    summary: {
+      baseline: totals.baseline,
+      terse: totals.terse,
+      matcha: totals.matcha,
+    },
+    data,
+    repo: repoData || [],
+  };
+  writeFileSync(RESULT_PATH, JSON.stringify(result, null, 2), "utf-8");
+  console.log(`  ✅ Results written to docs/benchmark.json`);
 }
 
 // ─── 4. Calculate summary ─────────────────────────────────────────────────
@@ -100,9 +100,8 @@ function runRepoBenchmark() {
   return JSON.parse(out);
 }
 
-function injectRepoData(html, raw) {
-  // Filter to relevant fields for dashboard display
-  const data = raw.map(r => ({
+function formatRepoData(raw) {
+  return raw.map(r => ({
     task: r.task, taskName: r.taskName,
     arm: r.arm, armLabel: r.armLabel,
     loc: r.loc ?? 0, addedLOC: r.addedLOC ?? 0,
@@ -112,11 +111,6 @@ function injectRepoData(html, raw) {
     complianceScore: r.complianceScore ?? 0,
     complianceGrade: r.complianceGrade ?? "N/A",
   }));
-  const json = JSON.stringify(data, null, 2);
-  return html.replace(
-    /const REPO_BENCHMARK_DATA = \[[\s\S]*?\];/,
-    `const REPO_BENCHMARK_DATA = ${json};`
-  );
 }
 
 // ─── 6. Print report ──────────────────────────────────────────────────────
@@ -158,14 +152,14 @@ if (isDirectInvocation) {
   const iterations = itersIndex >= 0 ? parseInt(args[itersIndex + 1], 10) || 4 : 1;
 
   if (skipBench) {
-    // Re-parse existing HTML data
-    const html = readFileSync(HTML_PATH, "utf-8");
-    const match = html.match(/const BENCHMARK_DATA = (\[[\s\S]*?\]);/);
-    if (!match) { console.error("ERROR: No BENCHMARK_DATA in HTML"); process.exit(1); }
-    const data = JSON.parse(match[1]);
-    const totals = calcSummary(data);
+    if (!existsSync(RESULT_PATH)) {
+      console.error("ERROR: docs/benchmark.json not found");
+      process.exit(1);
+    }
+    const saved = JSON.parse(readFileSync(RESULT_PATH, "utf-8"));
+    const totals = saved.summary;
     if (jsonOnly) {
-      console.log(JSON.stringify({ data, totals, generated: new Date().toISOString() }, null, 2));
+      console.log(JSON.stringify(saved, null, 2));
     } else {
       printReport(totals);
     }
@@ -173,31 +167,24 @@ if (isDirectInvocation) {
   }
 
   // Full run
-  if (!existsSync(HTML_PATH)) {
-    console.error("ERROR: docs/index.html not found");
-    process.exit(1);
-  }
-
   try {
     console.log(`  🔄 ${iterations} iteration(s) per cell\n`);
     const raw = runBenchmark({ iterations });
     const data = transformData(raw);
-    let html = readFileSync(HTML_PATH, "utf-8");
-    let updated = injectData(html, data);
+    const totals = calcSummary(data);
+    let repoData = [];
 
     if (includeRepo) {
       try {
         const repoRaw = runRepoBenchmark();
-        updated = injectRepoData(updated, repoRaw);
-        console.log(`  ✅ Repo benchmark injected (${repoRaw.length} runs)\n`);
+        repoData = formatRepoData(repoRaw);
+        console.log(`  ✅ Repo benchmark collected (${repoRaw.length} runs)\n`);
       } catch (e) {
         console.log(`  ⚠️  Repo benchmark skipped: ${e.message}\n`);
       }
     }
 
-    writeFileSync(HTML_PATH, updated, "utf-8");
-
-    const totals = calcSummary(data);
+    writeResults(data, totals, repoData);
 
     if (jsonOnly) {
       console.log(JSON.stringify({ data, totals, generated: new Date().toISOString(), iterations }, null, 2));
@@ -210,4 +197,4 @@ if (isDirectInvocation) {
   }
 }
 
-export { runBenchmark, transformData, injectData, calcSummary, printReport };
+export { runBenchmark, transformData, calcSummary, printReport };

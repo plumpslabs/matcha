@@ -16,18 +16,11 @@
  * Matcha-style: deterministic, parallel where possible, clean output.
  */
 
-import { execSync, spawn } from "child_process";
-import {
-  readFileSync,
-  writeFileSync,
-  existsSync,
-  mkdtempSync,
-  rmSync,
-  mkdirSync,
-  readdirSync,
-} from "fs";
+import { spawn } from "child_process";
+import { readFileSync, writeFileSync, existsSync, readdirSync, mkdtempSync, rmSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { countLOC, estimateTokens } from "./bench-utils.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const TASKS_DIR = join(__dirname, "tasks");
@@ -91,15 +84,6 @@ function checkClaude() {
 }
 
 // ─── Tools ─────────────────────────────────────────────────────────────────
-
-function countLOC(code) {
-  return code.split("\n").filter((l) => l.trim() && !l.trim().startsWith("//"))
-    .length;
-}
-
-function estimateTokens(code) {
-  return Math.ceil(code.length / 4);
-}
 
 // ─── Extract JS code from Claude stdout ───────────────────────────────────
 

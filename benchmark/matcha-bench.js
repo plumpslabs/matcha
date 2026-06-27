@@ -17,6 +17,7 @@
 import { readFileSync, existsSync, readdirSync } from "fs";
 import { join, relative } from "path";
 import { runAgenticLive } from "./agentic-runner.js";
+import { countLOC, estimateTokens } from "./bench-utils.js";
 
 // ─── Compliance checks ───────────────────────────────────────────────────────
 
@@ -868,14 +869,6 @@ function median(arr) {
 function majority(votes) {
   const trues = votes.filter(Boolean).length;
   return trues > votes.length / 2;
-}
-
-function countLOC(code) {
-  return code.split("\n").filter(l => l.trim() && !l.trim().startsWith("//")).length;
-}
-
-function estimateTokens(code) {
-  return Math.ceil(code.length / 4);
 }
 
 function loadSolution(task, arm) {

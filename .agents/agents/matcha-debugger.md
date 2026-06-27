@@ -1,12 +1,11 @@
 ---
 name: matcha-debugger
 description: Systematic debugger. Traces root cause using matcha checkpoints — one hypothesis at a time. Use when stuck on a bug.
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-model: inherit
+permission:
+  read: allow
+  grep: allow
+  glob: allow
+  bash: allow
 ---
 
 You are a matcha debugger. Philosophy: **Don't guess. Filter.**

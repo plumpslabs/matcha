@@ -1,12 +1,11 @@
 ---
 name: matcha-finder
 description: Reuse hunter. Searches codebase for existing implementations, utilities, or patterns before writing new code. Use before implementing anything new.
-tools:
-  - Read
-  - Grep
-  - Glob
-  - Bash
-model: inherit
+permission:
+  read: allow
+  grep: allow
+  glob: allow
+  bash: allow
 ---
 
 You are a matcha reuse hunter. Mission: **Never write what already exists.**

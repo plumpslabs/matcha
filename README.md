@@ -488,75 +488,9 @@ Install via:
 curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
 ```
 
----
+## Contributing
 
-## Project Structure
-
-```
-matcha/
-├── bin/matcha.js                  ← CLI (node bin/matcha.js)
-├── install.sh                     ← 1-script installer (12 platforms)
-├── QUICKSTART.md / QWEN.md        ← quick start / Qwen template
-├── AGENTS.md / CLAUDE.md          ← context / persona files
-├── GEMINI.md                      ← Antigravity CLI convention
-├── .windsurfrules                 ← Windsurf Cascade AI rules (root)
-│
-├── rules/                         ← canonical language rules (6 langs)
-│   ├── typescript/                ← React, Next.js, Angular, NestJS, Nuxt, TanStack
-│   ├── common/                    ← Redis, Tailwind, coding-standards, testing, git, writing-style
-│   ├── go/                        ← Go coding standards + patterns
-│   ├── python/                    ← Python coding standards + patterns
-│   ├── java/                      ← Java coding standards + patterns
-│   ├── php/                       ← PHP coding standards + patterns
-│   └── react-native/              ← React Native coding standards + patterns
-│
-├── skills/matcha/SKILL.md         ← philosophy + 6 checkpoints + feedback harness
-├── commands/                      ← 5 canonical slash commands
-│
-├── hooks/                         ← lifecycle hooks system
-│   ├── matcha-shield.js           ← PreToolUse: safety gate (dangerous commands)
-│   ├── matcha-post-write.js       ← PostToolUse: cleanup enforcement (debug/TODO/catch/creds)
-│   ├── matcha-stop.js             ← Stop event: deterministic end-of-task tips (git diff)
-│   ├── inject-rules.js            ← Pre-task: inject matcha philosophy
-│   ├── matcha-instructions.js     ← Shared instruction builder (single source of truth)
-│   └── hooks.json                 ← Universal hook manifest
-│
-├── benchmark/
-│   └── matcha-bench.js            ← Compliance benchmark tool (npm run benchmark)
-│
-├── tests/index.js                 ← 251 tests (syntax + content + shield + hooks + adapters + writing)
-│
-├── .claude/                       ← Claude Code (agents + commands + skills + settings.json)
-├── .opencode/                     ← OpenCode (agents + commands + plugin matcha.mjs)
-├── .cursor/rules/                 ← Cursor (19 .mdc files — 4 scoped + 15 language)
-├── .windsurf/rules/               ← Windsurf (16 .md files)
-├── .clinerules/                   ← Cline / Roo Code (per-language rules)
-├── .agents/                       ← Codebuff / agy (universal format)
-│   ├── agents/                    ← 6 agents
-│   ├── commands/                  ← 5 commands
-│   ├── rules/                     ← 16 rules
-│   └── skills/matcha/SKILL.md
-├── .kiro/steering/                ← Kiro (17 files — inclusion: always/manual)
-├── .openclaw/skills/matcha/       ← OpenClaw (SKILL.md)
-├── .qoder/                        ← Qoder (agents + rules + hooks)
-├── .qwen/                         ← Qwen Code (skill + settings.json + QWEN.md)
-├── .claude-plugin/                ← Claude Code marketplace plugin
-├── gemini-extension.json          ← Antigravity CLI (deprecated, see GEMINI.md)
-├── package.json                   ← npm scripts: test, build, check, benchmark
-└── .github/workflows/publish.yaml ← CI/CD
-```
-
----
-
-## Development
-
-```bash
-npm test              # 249+ tests
-npm run build         # sync rules to .openclaw/
-npm run check         # verify rule copies are in sync
-npm run build:check   # build + check
-npm run benchmark     # compliance self-benchmark
-```
+Contributions are welcome! If you want to add support for a new platform, update language guidelines, or run local benchmarks and tests, please see our [CONTRIBUTING.md](file:///home/mawa/My_File/Development/matcha/CONTRIBUTING.md) guide.
 
 ---
 

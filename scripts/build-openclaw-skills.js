@@ -28,6 +28,7 @@ console.log("🍵 matcha — building adapter copies...\n");
 
 // SKILL.md copies
 write(".openclaw/skills/matcha/SKILL.md", skillContent);
+write(".agents/skills/matcha/SKILL.md", skillContent);
 
 // matcha-core.mdc → platform adapter copies (core rules for Windsurf, Cline, .agents)
 const coreContent = read(".cursor/rules/matcha-core.mdc");

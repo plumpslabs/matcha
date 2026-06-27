@@ -31,6 +31,14 @@ describe("install.sh flags", () => {
   test("has resolve_langs function", () => {
     expect(installer).toContain("resolve_langs");
   });
+
+  test("normalizes commas to spaces in LANG_FILTER", () => {
+    expect(installer).toContain("LANG_FILTER=\"\${LANG_FILTER//,/ }\"");
+  });
+
+  test("does not overwrite LANG_FILTER in resolve_langs full profile if already set", () => {
+    expect(installer).toContain('-z "$LANG_FILTER"');
+  });
 });
 
 describe("install.sh — Qoder platform detection", () => {

@@ -5,7 +5,7 @@
  * Run: node scripts/check-rule-copies.js
  */
 
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, lstatSync, readlinkSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createHash } from "crypto";
@@ -29,6 +29,7 @@ const ADAPTER_COPIES = [
 const SKILL_SOURCE = join(ROOT, "skills/matcha/SKILL.md");
 const SKILL_COPIES = [
   ".openclaw/skills/matcha/SKILL.md",
+  ".agents/skills/matcha/SKILL.md",
 ];
 
 function hash(content) {
@@ -104,17 +105,33 @@ for (const cmd of COMMANDS) {
     commandsOk = false;
     continue;
   }
-  const canonicalContent = readFileSync(canonicalPath, "utf-8");
+  const canonicalContent = readFileSync(canonicalPath, "utf-8").trim();
   const canonicalHash = hash(canonicalContent);
 
   for (const platform of COMMAND_PLATFORMS) {
     const copyPath = join(ROOT, `${platform}/${cmd}.md`);
-    if (!existsSync(copyPath)) {
+    let copyContent;
+    let exists = false;
+    let isSymlink = false;
+
+    try {
+      const stat = lstatSync(copyPath);
+      exists = true;
+      isSymlink = stat.isSymbolicLink();
+    } catch {}
+
+    if (!exists) {
       console.warn(`  ⚠️  MISSING: ${platform}/${cmd}.md`);
       commandsOk = false;
       continue;
     }
-    const copyContent = readFileSync(copyPath, "utf-8");
+
+    if (isSymlink) {
+      copyContent = readlinkSync(copyPath).trim();
+    } else {
+      copyContent = readFileSync(copyPath, "utf-8").trim();
+    }
+
     if (hash(copyContent) !== canonicalHash) {
       console.warn(`  ⚠️  OUTDATED: ${platform}/${cmd}.md`);
       commandsOk = false;

@@ -11,7 +11,7 @@ triggers:
   - writing new code or files
   - refactoring or modifying existing code
   - infrastructure or config changes
-  - "how do I..." / "implement..." / "add..." / "create..."
+  - '"how do I..." / "implement..." / "add..." / "create..."'
 ---
 
 # 🍵 matcha — Engineering Philosophy

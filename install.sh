@@ -48,6 +48,8 @@ parse_args() {
   done
 }
 parse_args "$@"
+# Normalize commas to spaces in language filter
+LANG_FILTER="${LANG_FILTER//,/ }"
 
 # ─── Language detection ───────────────────────────────────────────────────────
 detect_languages() {
@@ -117,9 +119,16 @@ resolve_langs() {
       ;;
     full)
       # all languages (default)
-      LANG_FILTER="$ALL_LANGS"
+      if [ -z "$LANG_FILTER" ]; then
+        LANG_FILTER="$ALL_LANGS"
+      fi
       ;;
   esac
+
+  # Ensure 'common' is always included in LANG_FILTER
+  if [ -n "$LANG_FILTER" ] && [[ " $LANG_FILTER " != *" common "* ]]; then
+    LANG_FILTER="common $LANG_FILTER"
+  fi
 }
 
 resolve_langs "$PROFILE"

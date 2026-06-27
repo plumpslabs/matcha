@@ -1,0 +1,50 @@
+[
+  {
+    "id": "add-activity-endpoint",
+    "name": "Add Activity Tracking Endpoint",
+    "description": "Add a POST /api/users/:id/activity endpoint that logs an activity entry for a user. Each activity has: { action: string, timestamp: string, details?: object }. Store in-memory. Return the created activity with 201. Must validate that action is non-empty string.",
+    "repo": "express-api",
+    "expectedFiles": ["src/routes/activity.js"],
+    "verifyCommands": [
+      "npm test"
+    ],
+    "successCriteria": [
+      "POST /api/users/1/activity returns 201 with activity object",
+      "Invalid data returns 400",
+      "Non-existent user returns 404",
+      "Existing tests still pass"
+    ]
+  },
+  {
+    "id": "add-pagination",
+    "name": "Add Pagination to GET /api/users",
+    "description": "Add pagination support to the GET /api/users endpoint. Accept ?page=1&limit=10 query params. Return { data: [...], total: number, page: number, limit: number, totalPages: number }. Default page=1, limit=10. max limit=100.",
+    "repo": "express-api",
+    "expectedFiles": ["src/routes/users.js"],
+    "verifyCommands": [
+      "npm test"
+    ],
+    "successCriteria": [
+      "GET /api/users?page=1&limit=2 returns 2 users with pagination metadata",
+      "Default params work (page=1, limit=10)",
+      "Exceeding max limit returns 400",
+      "Existing tests still pass"
+    ]
+  },
+  {
+    "id": "add-rate-limiting",
+    "name": "Add Rate Limiting Middleware",
+    "description": "Add rate limiting middleware that limits requests to /api/* to 100 requests per minute per IP. Store counters in-memory. Return 429 with { error: 'Rate limit exceeded', retryAfter: number } when exceeded. Exclude /health endpoint. Make the limit configurable via RATE_LIMIT_MAX env var (default 100).",
+    "repo": "express-api",
+    "expectedFiles": ["src/middleware/rateLimit.js"],
+    "verifyCommands": [
+      "npm test"
+    ],
+    "successCriteria": [
+      "Rate limit middleware is applied to /api/* routes",
+      "/health is excluded from rate limiting",
+      "Exceeding limit returns 429 with retryAfter",
+      "Existing tests still pass"
+    ]
+  }
+]

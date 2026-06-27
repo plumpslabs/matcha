@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
   "type": "module",
   "main": "hooks/inject-rules.js",
@@ -11,7 +11,15 @@
     "check": "node scripts/check-rule-copies.js",
     "build": "node scripts/build-openclaw-skills.js",
     "build:check": "npm run build && npm run check",
-    "test": "node tests/index.js"
+    "test": "vitest run --reporter verbose",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "benchmark": "node benchmark/matcha-bench.js",
+    "benchmark:json": "node benchmark/matcha-bench.js --json",
+    "benchmark:agentic": "node benchmark/matcha-bench.js --agentic --iters 4",
+    "benchmark:eval": "promptfoo eval",
+    "benchmark:podman": "podman build -t matcha-bench -f Dockerfile.bench . && podman run --rm -v \"$PWD:/app\" matcha-bench node benchmark/matcha-bench.js --agentic --json"
+
   },
   "keywords": [
     "ai-agent",
@@ -56,5 +64,9 @@
   "bugs": {
     "url": "https://github.com/plumpslabs/matcha/issues"
   },
-  "homepage": "https://github.com/plumpslabs/matcha#readme"
+  "homepage": "https://github.com/plumpslabs/matcha#readme",
+  "devDependencies": {
+    "@vitest/coverage-v8": "^4.1.9",
+    "vitest": "^4.1.9"
+  }
 }

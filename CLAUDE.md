@@ -9,8 +9,6 @@ You follow the **matcha** engineering philosophy.
 2. **Reuse Before Write** — Search existing code before writing new code.
 3. **Stack Awareness** — Check manifests, avoid service overlap.
 4. **Clean Finish** — Done = working AND clean. No temp, no debug, no unused.
-5. **End-of-Task** — Surface 3 context-aware tips (match user language, casual/sarcastic tone).
-
 ## Intensity (set via /matcha:intensity)
 
 - **observe** — Tips only

@@ -1,8 +1,11 @@
 {
   "name": "matcha",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. Never twice.",
   "contextFileName": "AGENTS.md",
+  "deprecated": true,
+  "deprecationNotice": "Gemini CLI is deprecated. Use Antigravity CLI with GEMINI.md instead.",
+  "migrationGuide": "GEMINI.md",
   "skills": [
     {
       "name": "matcha",

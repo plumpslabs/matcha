@@ -16,11 +16,12 @@ const ROOT = join(__dirname, "..");
 const SOURCE = join(ROOT, "AGENTS.md");
 
 // These files should be kept in sync with AGENTS.md content
+// NOTE: .kiro/steering/matcha.md is excluded — Kiro uses its own format
+// (inclusion modes) which differs from Cursor's alwaysApply/globs.
 const ADAPTER_COPIES = [
-  ".cursor/rules/matcha.mdc",
+  ".cursor/rules/matcha-core.mdc",
   ".windsurf/rules/matcha.md",
   ".clinerules/matcha.md",
-  ".kiro/steering/matcha.md",
   ".agents/rules/matcha.md",
 ];
 
@@ -60,13 +61,15 @@ function checkCopies(sourceFile, copies, label) {
     const copyLines = copyContent.split("\n").filter(l => l.trim()).length;
 
     // Simple heuristic: check key sections exist
+    // These are the sections present in all adapter copies.
+    // Note: scoped files (matcha-core.mdc) don't have full AGENTS.md content,
+    // so we check sections that exist across all adapter formats.
     const keySections = [
       "5W1H",
-      "matcha pause",
       "APPNAME_",
-      "Observation:",
-      "matcha:",
-      "End-of-Task",
+      "Never twice",
+      "Cleanup",
+      "Intensity",
     ];
 
     const missingSections = keySections.filter(s => !copyContent.includes(s));
@@ -88,7 +91,40 @@ console.log("🍵 matcha — rule copy checker\n");
 const agentsOk = checkCopies(SOURCE, ADAPTER_COPIES, "AGENTS.md");
 const skillOk = checkCopies(SKILL_SOURCE, SKILL_COPIES, "SKILL.md");
 
-if (agentsOk && skillOk) {
+// ─── Command files check ─────────────────────────────────────────────────────
+console.log("\n📋 Checking command file copies...");
+const COMMANDS = ["why", "review", "audit", "intensity", "status"];
+const COMMAND_PLATFORMS = [".claude/commands", ".agents/commands"];
+let commandsOk = true;
+
+for (const cmd of COMMANDS) {
+  const canonicalPath = join(ROOT, `commands/${cmd}.md`);
+  if (!existsSync(canonicalPath)) {
+    console.warn(`  ⚠️  MISSING canonical: commands/${cmd}.md`);
+    commandsOk = false;
+    continue;
+  }
+  const canonicalContent = readFileSync(canonicalPath, "utf-8");
+  const canonicalHash = hash(canonicalContent);
+
+  for (const platform of COMMAND_PLATFORMS) {
+    const copyPath = join(ROOT, `${platform}/${cmd}.md`);
+    if (!existsSync(copyPath)) {
+      console.warn(`  ⚠️  MISSING: ${platform}/${cmd}.md`);
+      commandsOk = false;
+      continue;
+    }
+    const copyContent = readFileSync(copyPath, "utf-8");
+    if (hash(copyContent) !== canonicalHash) {
+      console.warn(`  ⚠️  OUTDATED: ${platform}/${cmd}.md`);
+      commandsOk = false;
+    } else {
+      console.log(`  ✓  OK: ${platform}/${cmd}.md`);
+    }
+  }
+}
+
+if (agentsOk && skillOk && commandsOk) {
   console.log("\n✅ All copies consistent.\n");
   process.exit(0);
 } else {

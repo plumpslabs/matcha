@@ -2,58 +2,42 @@
 
 > Simple. Efficient. Deliberate. Never twice.
 
-This project uses **matcha** — an engineering philosophy that enforces deliberate,
-efficient thinking before, during, and after every implementation.
-
----
-
-## Quick Start
+## Commands
 
 | Command | Purpose |
 |---------|---------|
-| `/matcha:status` | Show matcha session status |
-| `/matcha:why` | Run 5W1H check on current task |
-| `/matcha:audit` | Audit stack for overlaps |
+| `/matcha:status` | Session status |
+| `/matcha:why` | 5W1H check |
+| `/matcha:audit` | Stack audit |
 | `/matcha:review` | Review implementation |
-| `/matcha:intensity` | Set level: observe / enforce (default) / audit |
+| `/matcha:intensity` | Set level: observe / enforce / audit |
 
----
+## Agents
 
-## Available Agents
-
-| Agent | Tools | When to use |
-|-------|-------|-------------|
-| `@matcha-planner` | Read, Grep, Glob | Before starting features — creates plans through 4 checkpoints |
-| `@matcha-finder` | Read, Grep, Glob, Bash | Before writing code — hunts for existing implementations |
-| `@matcha-auditor` | Read, Grep, Glob, Bash | Stack audit — scans manifests and services for overlap |
-| `@matcha-reviewer` | Read, Grep, Glob | Code review — checks simplicity, bugs, matcha compliance |
-| `@matcha-cleaner` | Read, Grep, Glob, Bash | Cleanup — removes temp, debug, unused after implementation |
-| `@matcha-debugger` | Read, Grep, Glob, Bash | Systematic debugging — one hypothesis at a time |
-
----
+| Agent | Tools | Use case |
+|-------|-------|----------|
+| `@matcha-planner` | Read, Grep, Glob | Plan features through 4 checkpoints |
+| `@matcha-finder` | Read, Grep, Glob, Bash | Hunt existing code before writing new |
+| `@matcha-auditor` | Read, Grep, Glob, Bash | Stack audit for overlaps |
+| `@matcha-reviewer` | Read, Grep, Glob | Code review + verify |
+| `@matcha-cleaner` | Read, Grep, Glob, Bash | Remove temp/debug/unused |
+| `@matcha-debugger` | Read, Grep, Glob, Bash | Systematic debugging |
 
 ## The matcha Filter
 
-### 🎯 Purpose (5W1H Gate)
-**What** → **Why** → **Who** → **When** → **Where** → **How**
-Can't answer Why/How? → STOP.
+**🎯 Purpose (5W1H)** — What → Why → Who → When → Where → How. Can't answer Why/How? → STOP.
 
-### 🔎 Reuse (Hunter)
-Before new code: search codebase first. Same logic? Reuse, don't rewrite.
+**🔎 Reuse** — Before new code, search codebase first. Never write what exists.
 
-### 🔍 Stack (Audit)
-Before new services: scan manifests, check overlap. Overlap? → STOP.
+**🔍 Stack** — Scan manifests for service overlap. Overlap? → STOP.
 
-### 🛠️ Implementation
-No hardcoded values (`APPNAME_VAR_NAME`). Explicit errors. One function = one thing.
-After writing: *"Is there a simpler path?"* Mid-task better path? → **matcha pause**.
+**🛠️ Implementation** — No hardcoded values (`APPNAME_VAR_NAME`). Explicit errors. One function. *"Is there a simpler path?"* Mid-task better path? → **matcha pause**.
 
-### 🧹 Cleanup
-Done = working AND clean. Remove temp/debug/unused. Decision log: `// matcha: [reason]`
+**🧹 Cleanup** — Done = working AND clean. Decision log: `// matcha: [reason]`
 
----
+**✅ Verify** — Auto-detect test framework, run tests + typecheck + lint.
 
-## Intensity Levels
+## Intensity
 
 | Level | Behavior |
 |-------|----------|
@@ -61,31 +45,8 @@ Done = working AND clean. Remove temp/debug/unused. Decision log: `// matcha: [r
 | **enforce** | Full philosophy. **Default.** |
 | **audit** | Enforce + mandatory cleanup. |
 
----
-
-## Communication
-
-```
-🍵 matcha: [TITLE]
-Observation: ...
-Why it matters: ...
-Options: A) ... B) ...
-Recommendation: ...
-```
-
----
-
 ## Full Ruleset
 
-**See `skills/matcha/SKILL.md`** for the complete engineering philosophy including:
-- End-of-task suggestions (🔴 critical + 🟡 minor)
-- Boundaries (what matcha does / does not)
-- Detailed checkpoint protocols
-- Safety shield (matcha-shield)
+See `skills/matcha/SKILL.md` for complete philosophy including End-of-Task tips, boundaries, and safety shield.
 
----
-
-## Related
-
-- [Matcha on GitHub](https://github.com/plumpslabs/matcha)
-- [Kuma — MCP safety toolkit](https://github.com/plumpslabs/kuma)
+[GitHub](https://github.com/plumpslabs/matcha) · [Kuma](https://github.com/plumpslabs/kuma)

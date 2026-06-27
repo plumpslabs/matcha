@@ -1,1 +1,0 @@
-../../commands/why.md

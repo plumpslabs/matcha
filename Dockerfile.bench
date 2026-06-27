@@ -1,0 +1,23 @@
+# 🍵 matcha — Dockerfile.bench
+# Podman-compatible benchmark sandbox
+# Usage:
+#   podman build -t matcha-bench -f Dockerfile.bench .
+#   podman run --rm -v "$PWD:/app" matcha-bench node benchmark/matcha-bench.js --agentic --json
+
+FROM node:20-bookworm
+
+RUN apt-get update -qq && apt-get install -y -qq --no-install-recommends \
+    git \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Copy project files
+COPY package.json ./
+RUN npm install --no-audit --no-fund 2>&1 || true
+
+COPY . .
+
+# Default command: show help
+CMD ["node", "benchmark/matcha-bench.js", "--help"]

@@ -1,0 +1,22 @@
+# 🍵 matcha — Windsurf Rules
+
+## Core Philosophy
+Simple. Efficient. Deliberate. Never twice.
+
+## Always Apply
+1. **5W1H Gate** — Before any code, ask What/Why/Who/When/Where/How. STOP if Why/How unclear.
+2. **Reuse Before Write** — Search existing code first. NEVER write what exists.
+3. **No Hardcoded Values** — Env vars: `APPNAME_VAR_NAME`
+4. **Explicit Errors** — Never empty catch. Log and re-throw.
+5. **Clean Finish** — Done = working AND clean. No temp, no debug, no unused.
+
+## On-Demand
+- `/matcha:audit` — Stack audit when adding services
+- `/matcha:review` — Post-implementation checklist
+
+## Intensity
+- **observe**: tips only
+- **enforce**: full (default)
+- **audit**: mandatory cleanup
+
+Full ruleset: skills/matcha/SKILL.md

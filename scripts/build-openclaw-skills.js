@@ -22,7 +22,6 @@ function write(relPath, content) {
   console.log(`  ✓ Written: ${relPath}`);
 }
 
-const agentsContent = read("AGENTS.md");
 const skillContent = read("skills/matcha/SKILL.md");
 
 console.log("🍵 matcha — building adapter copies...\n");
@@ -30,25 +29,56 @@ console.log("🍵 matcha — building adapter copies...\n");
 // SKILL.md copies
 write(".openclaw/skills/matcha/SKILL.md", skillContent);
 
-// AGENTS.md → adapter copies (with cursor frontmatter stripped/adapted)
-const cursorContent = read(".cursor/rules/matcha.mdc");
+// matcha-core.mdc → platform adapter copies (core rules for Windsurf, Cline, .agents)
+const coreContent = read(".cursor/rules/matcha-core.mdc");
 
-write(".windsurf/rules/matcha.md", cursorContent);
-write(".clinerules/matcha.md", cursorContent);
-write(".kiro/steering/matcha.md", cursorContent);
-write(".agents/rules/matcha.md", cursorContent);
+write(".windsurf/rules/matcha.md", coreContent);
+write(".clinerules/matcha.md", coreContent);
+write(".agents/rules/matcha.md", coreContent);
 
-// Agents & commands — sync from .claude/ (canonical) to .agents/ (universal)
+// NOTE: .kiro/steering/matcha.md is NOT synced from cursor — Kiro uses
+// its own format (inclusion modes) which differs from Cursor's alwaysApply/globs.
+// Kiro steering files are maintained independently.
+
+// Agents — sync from .claude/ (canonical) to .agents/ (universal)
 console.log("");
 for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer", "matcha-cleaner", "matcha-debugger"]) {
   write(`.agents/agents/${a}.md`, read(`.claude/agents/${a}.md`));
 }
+
+// Commands — sync from canonical commands/ to Claude Code + .agents
+// NOTE: .opencode/commands/ excluded — OpenCode plugin registers commands
+// via file: field directly to canonical commands/, so directory files are dead.
 for (const c of ["why", "review", "audit", "intensity", "status"]) {
-  write(`.agents/commands/${c}.md`, read(`.claude/commands/${c}.md`));
+  const content = read(`commands/${c}.md`);
+  write(`.claude/commands/${c}.md`, content);
+  write(`.agents/commands/${c}.md`, content);
 }
 
-// Sync CLAUDE.md from AGENTS.md (Claude Code fallback)
-write("CLAUDE.md", agentsContent);
+console.log("  → Synced commands: why, review, audit, intensity, status × 2 platforms (Claude + .agents)");
+
+// Note: CLAUDE.md is intentionally kept separate from AGENTS.md
+// CLAUDE.md = short Claude persona (~29 lines)
+// AGENTS.md = full agent registry (~45 lines)
+// Do NOT overwrite CLAUDE.md with AGENTS.md — different purposes.
+
+// Sync Cursor scoped .mdc files to .agents/rules/ for universal access
+// NOTE: matcha-core is already synced above as matcha.md — skip to avoid duplicate
+console.log("");
+for (const f of ["matcha-cleanup", "matcha-audit", "matcha-review"]) {
+  try {
+    const content = read(`.cursor/rules/${f}.mdc`);
+    write(`.agents/rules/${f}.md`, content);
+  } catch (e) {
+    console.warn(`  ⚠️  Failed to sync ${f}: ${e.message}`);
+  }
+}
+
+// Sync GEMINI.md as adapter copy
+console.log("");
+try {
+  write(".qwen/skills/matcha/GEMINI.md", read("GEMINI.md"));
+} catch {}
 
 console.log("\n✅ All adapter copies rebuilt.\n");
 console.log("Run `node scripts/check-rule-copies.js` to verify.\n");

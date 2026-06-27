@@ -1,0 +1,108 @@
+# 🍵 matcha — promptfooconfig.yaml
+# Multi-model benchmark evaluation config
+# 
+# Usage:
+#   npx promptfoo eval
+#   npx promptfoo view
+#
+# To add API keys, create promptfoo config or set env vars:
+#   ANTHROPIC_API_KEY, OPENAI_API_KEY, etc.
+
+description: "🍵 matcha — Engineering Convention Benchmark"
+
+prompts:
+  - "Write a function isValidEmail(email) that returns true for valid emails and false for invalid ones.\n\n{{instructions}}"
+  - "Write a debounce(fn, delay) function that delays invoking fn until delay ms after the last call.\n\n{{instructions}}"
+  - "Write a function sumColumn(csv, colIndex) that parses CSV text and sums a numeric column.\n\n{{instructions}}"
+  - "Write a function fizzBuzz(n) that returns FizzBuzz array.\n\n{{instructions}}"
+  - "Write a function flatten(arr) that recursively flattens nested arrays.\n\n{{instructions}}"
+
+providers:
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: claude-sonnet (no rules)
+    config:
+      max_tokens: 1000
+  
+  - id: anthropic:messages:claude-sonnet-4-20250514
+    label: claude-sonnet (matcha)
+    config:
+      prompt_chain:
+        - role: system
+          content: |
+            # 🍵 matcha — Engineering Convention
+            
+            Simple. Efficient. Deliberate. Never twice.
+            
+            ## Core Rules
+            - One function = one thing. No monolithic functions.
+            - No hardcoded values. Use named constants (APPNAME_VAR_NAME).
+            - Explicit error messages. Don't silently swallow errors.
+            - Prefer const over let, arrow functions, concise expressions.
+            - Remove temp/debug code before finishing.
+            - No unnecessary abstractions. Don't build what you don't need.
+      max_tokens: 1000
+
+  - id: openai:gpt-4o
+    label: gpt-4o (no rules)
+    config:
+      max_tokens: 1000
+
+  - id: openai:gpt-4o
+    label: gpt-4o (matcha)
+    config:
+      prompt_chain:
+        - role: system
+          content: |
+            # 🍵 matcha — Engineering Convention
+            
+            Simple. Efficient. Deliberate. Never twice.
+            
+            ## Core Rules
+            - One function = one thing. No monolithic functions.
+            - No hardcoded values. Use named constants (APPNAME_VAR_NAME).
+            - Explicit error messages. Don't silently swallow errors.
+            - Prefer const over let, arrow functions, concise expressions.
+            - Remove temp/debug code before finishing.
+            - No unnecessary abstractions. Don't build what you don't need.
+      max_tokens: 1000
+
+tests:
+  - description: "Email Validator — basic check"
+    vars:
+      instructions: ""
+    assert:
+      - type: contains-all
+        value: ["function", "email", "return"]
+      - type: not-contains
+        value: "console.log"
+
+  - description: "Email Validator — with matcha"
+    vars:
+      instructions: "IMPORTANT: Be brief. Write minimal code. Use const. Arrow functions OK."
+    assert:
+      - type: contains-all
+        value: ["const", "email"]
+      - type: javascript
+        value: "output.split('\\\\n').filter(l => l.trim() && !l.trim().startsWith('//')).length < 10"
+
+  - description: "Debounce — basic"
+    vars:
+      instructions: ""
+    assert:
+      - type: contains-all
+        value: ["function", "setTimeout", "clearTimeout"]
+
+  - description: "FizzBuzz — matcha style"
+    vars:
+      instructions: "IMPORTANT: Be brief. Use const and arrow functions. Minimal LOC."
+    assert:
+      - type: javascript
+        value: "output.split('\\\\n').filter(l => l.trim() && !l.trim().startsWith('//')).length < 8"
+
+defaultTest:
+  options:
+    provider:
+      text:
+        # Count LOC
+        id: javascript
+        value: "output.split('\\\\n').filter(l => l.trim() && !l.trim().startsWith('//')).length"

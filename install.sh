@@ -243,7 +243,13 @@ for p in $PLATFORMS; do
       install_commands "$TARGET/.opencode/commands"
       install_skill "$TARGET/.opencode/skills/matcha/SKILL.md"
       install_rules "$TARGET/.opencode/rules" "md" "standard_md" ;;
-    cursor)    install_rules "$TARGET/.cursor/rules" "mdc" "cursor_mdc" ;;
+    cursor)
+      install_file "$TARGET/.cursor/rules/matcha-core.mdc" ".cursor/rules/matcha-core.mdc"
+      install_file "$TARGET/.cursor/rules/matcha-cleanup.mdc" ".cursor/rules/matcha-cleanup.mdc"
+      install_file "$TARGET/.cursor/rules/matcha-audit.mdc" ".cursor/rules/matcha-audit.mdc"
+      install_file "$TARGET/.cursor/rules/matcha-review.mdc" ".cursor/rules/matcha-review.mdc"
+      install_rules "$TARGET/.cursor/rules" "mdc" "cursor_mdc" ;;
+
     agents)
       install_agents "$TARGET/.agents/agents"
       install_commands "$TARGET/.agents/commands"
@@ -251,7 +257,10 @@ for p in $PLATFORMS; do
       install_skill "$TARGET/.agents/skills/matcha/SKILL.md"
       install_context "$TARGET" ;;
     clinerules) install_rules "$TARGET/.clinerules" "md" "standard_md" ;;
-    windsurf)  install_rules "$TARGET/.windsurf/rules" "md" "standard_md" ;;
+    windsurf)
+      install_file "$TARGET/.windsurfrules" ".windsurfrules"
+      install_rules "$TARGET/.windsurf/rules" "md" "standard_md" ;;
+
     kiro)
       install_rules "$TARGET/.kiro/steering" "md" "kiro_steering"
       install_file "$TARGET/.kiro/steering/dev-mode.md" ".kiro/steering/dev-mode.md"
@@ -305,6 +314,7 @@ done
 
 if $AGY_GLOBAL; then
   echo "── agy (global) ──"
+  install_file "$HOME/.gemini/antigravity-cli/GEMINI.md" "GEMINI.md"
   install_skill "$HOME/.gemini/antigravity-cli/skills/matcha/SKILL.md"
   echo ""
 fi

@@ -164,7 +164,24 @@ if [ "$PROFILE" != "full" ]; then
 fi
 echo ""
 
-install_file() { local dst="$1" src="$2"; mkdir -p "$(dirname "$dst")"; fetch "$src" > "$dst"; echo "  ✅ $dst"; }
+install_file() {
+  local dst="$1" src="$2"
+  if $CLONED && [ "$(realpath "$TARGET" 2>/dev/null)" = "$(realpath "$HERE" 2>/dev/null)" ]; then
+    local abs_dst abs_target
+    abs_dst="$(realpath "$dst" 2>/dev/null || echo "$dst")"
+    abs_target="$(realpath "$TARGET" 2>/dev/null || echo "$TARGET")"
+    case "$abs_dst" in
+      "$abs_target"/*)
+        echo "  ⏭ $dst (repository source file — skipped)"
+        return 0
+        ;;
+    esac
+  fi
+  mkdir -p "$(dirname "$dst")"
+  [ -L "$dst" ] && rm -f "$dst"
+  fetch "$src" > "$dst"
+  echo "  ✅ $dst"
+}
 
 install_context() { install_file "$1/AGENTS.md" "AGENTS.md"; }
 

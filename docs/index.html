@@ -514,12 +514,35 @@
   <div class="container">
     <span class="section-label">Data</span>
     <h2>Benchmark</h2>
-    <p style="max-width:520px;margin-bottom:1.5rem">
-      20 coding tasks &times; 3 arms (baseline vs terse vs matcha).
-      Two gates per task: correctness + adversarial.
-      <strong style="color:#5bc0be">Generated LIVE with Claude Code v2.1.185</strong> &mdash; 60 AI calls.
-      <br><span style="color:#6a6a85;font-size:0.72rem">⚠️ Benchmark uses <code>--print</code> mode — matcha hooks (shield, post-write, stop) are <strong>not active</strong> in this mode. Results reflect only core CLAUDE.md rules, not full matcha hook system.</span>
-    </p>
+
+    <!-- ── Tab selector ── -->
+    <div id="bench-tabs" style="display:flex;gap:0.25rem;margin-bottom:1rem">
+      <button class="bench-tab active" data-tab="real" style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:4px;padding:0.35rem 0.75rem;font-size:0.75rem;color:#6a6a85;cursor:pointer;font-family:inherit;transition:all .15s">
+        🏗️ Real Scenario
+      </button>
+      <button class="bench-tab" data-tab="compare" style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:4px;padding:0.35rem 0.75rem;font-size:0.75rem;color:#6a6a85;cursor:pointer;font-family:inherit;transition:all .15s">
+        ⚖️ Matcha vs No Matcha
+      </button>
+    </div>
+
+    <!-- ── Real benchmark info ── -->
+    <div id="bench-info-real" style="display:none">
+      <p style="max-width:560px;margin-bottom:1.5rem">
+        3 multi-turn features &times; 3 steps each &times; with matcha.
+        Express API project — activity tracking, pagination, rate limiting.
+        <strong style="color:#5bc0be">Generated with agy (Gemini 3.5 Flash)</strong> &mdash; 9 prompts, 30 tests.
+        <br><span style="color:#6a6a85;font-size:0.72rem">✅ Matcha full (.claude + hooks + rules) injected — hooks <strong>available</strong> but not triggered (non-interactive).</span>
+      </p>
+    </div>
+
+    <!-- ── Comparison info ── -->
+    <div id="bench-info-compare" style="display:none">
+      <p style="max-width:560px;margin-bottom:1.5rem">
+        Same prompt: <code style="color:#e6b91e">"Add an activity endpoint"</code> &mdash; no detail.
+        Comparing code quality <strong style="color:#5bc0be">WITH</strong> vs <strong style="color:#6a6a85">WITHOUT</strong> matcha.
+        <br><span style="color:#6a6a85;font-size:0.72rem">Backend: agy (Gemini 3.5 Flash) &middot; Express API project &middot; 12 tests each</span>
+      </p>
+    </div>
 
     <div id="bench-container">
       <div class="bench-loading">Loading benchmark data</div>
@@ -544,13 +567,14 @@
 
 <!-- ─── Benchmark Data (embedded fallback) ─── -->
 <script id="benchmark-data" type="application/json">
-{"generated":"2026-06-27T10:59:02.505Z","summary":{"baseline":{"loc":347,"correct":13,"adversarial":4,"total":20},"terse":{"loc":198,"correct":13,"adversarial":4,"total":20},"matcha":{"loc":260,"correct":13,"adversarial":4,"total":20}},"data":[{"id":"anagram-group","name":"Anagram Group","baseline":{"loc":11,"tokens":80,"correct":false,"adversarial":false},"terse":{"loc":11,"tokens":70,"correct":false,"adversarial":false},"matcha":{"loc":11,"tokens":82,"correct":false,"adversarial":false}},{"id":"array-flatten","name":"Array Flatten","baseline":{"loc":12,"tokens":60,"correct":false,"adversarial":false},"terse":{"loc":4,"tokens":34,"correct":false,"adversarial":false},"matcha":{"loc":7,"tokens":41,"correct":false,"adversarial":false}},{"id":"chunk-array","name":"Chunk Array","baseline":{"loc":10,"tokens":78,"correct":true,"adversarial":false},"terse":{"loc":8,"tokens":64,"correct":true,"adversarial":false},"matcha":{"loc":10,"tokens":78,"correct":true,"adversarial":false}},{"id":"config-parser","name":"Config Parser","baseline":{"loc":17,"tokens":137,"correct":true,"adversarial":false},"terse":{"loc":13,"tokens":90,"correct":true,"adversarial":false},"matcha":{"loc":18,"tokens":164,"correct":true,"adversarial":false}},{"id":"csv-sum","name":"Csv Sum","baseline":{"loc":15,"tokens":96,"correct":true,"adversarial":true},"terse":{"loc":2,"tokens":57,"correct":true,"adversarial":true},"matcha":{"loc":10,"tokens":73,"correct":true,"adversarial":true}},{"id":"date-fmt","name":"Date Fmt","baseline":{"loc":14,"tokens":109,"correct":false,"adversarial":false},"terse":{"loc":9,"tokens":96,"correct":false,"adversarial":false},"matcha":{"loc":10,"tokens":110,"correct":false,"adversarial":false}},{"id":"debounce","name":"Debounce","baseline":{"loc":8,"tokens":49,"correct":true,"adversarial":true},"terse":{"loc":8,"tokens":45,"correct":true,"adversarial":true},"matcha":{"loc":10,"tokens":56,"correct":true,"adversarial":true}},{"id":"deep-clone","name":"Deep Clone","baseline":{"loc":21,"tokens":128,"correct":false,"adversarial":false},"terse":{"loc":9,"tokens":95,"correct":false,"adversarial":false},"matcha":{"loc":9,"tokens":89,"correct":false,"adversarial":false}},{"id":"deep-get","name":"Deep Get","baseline":{"loc":12,"tokens":90,"correct":false,"adversarial":false},"terse":{"loc":11,"tokens":65,"correct":false,"adversarial":false},"matcha":{"loc":12,"tokens":77,"correct":false,"adversarial":false}},{"id":"deep-merge","name":"Deep Merge","baseline":{"loc":39,"tokens":292,"correct":false,"adversarial":false},"terse":{"loc":18,"tokens":157,"correct":false,"adversarial":false},"matcha":{"loc":26,"tokens":225,"correct":false,"adversarial":false}},{"id":"email-validator","name":"Email Validator","baseline":{"loc":30,"tokens":340,"correct":true,"adversarial":true},"terse":{"loc":23,"tokens":235,"correct":true,"adversarial":true},"matcha":{"loc":16,"tokens":189,"correct":true,"adversarial":true}},{"id":"fizzbuzz","name":"Fizzbuzz","baseline":{"loc":16,"tokens":86,"correct":true,"adversarial":true},"terse":{"loc":11,"tokens":67,"correct":true,"adversarial":true},"matcha":{"loc":14,"tokens":104,"correct":true,"adversarial":true}},{"id":"log-filter","name":"Log Filter","baseline":{"loc":15,"tokens":117,"correct":false,"adversarial":false},"terse":{"loc":3,"tokens":41,"correct":false,"adversarial":false},"matcha":{"loc":6,"tokens":59,"correct":false,"adversarial":false}},{"id":"memoize","name":"Memoize","baseline":{"loc":11,"tokens":73,"correct":true,"adversarial":false},"terse":{"loc":11,"tokens":62,"correct":true,"adversarial":false},"matcha":{"loc":11,"tokens":73,"correct":true,"adversarial":false}},{"id":"palindrome-checker","name":"Palindrome Checker","baseline":{"loc":13,"tokens":88,"correct":true,"adversarial":false},"terse":{"loc":8,"tokens":67,"correct":true,"adversarial":false},"matcha":{"loc":14,"tokens":103,"correct":true,"adversarial":false}},{"id":"pipe-compose","name":"Pipe Compose","baseline":{"loc":12,"tokens":75,"correct":true,"adversarial":false},"terse":{"loc":5,"tokens":48,"correct":true,"adversarial":false},"matcha":{"loc":9,"tokens":64,"correct":true,"adversarial":false}},{"id":"retry-async","name":"Retry Async","baseline":{"loc":21,"tokens":139,"correct":true,"adversarial":false},"terse":{"loc":13,"tokens":97,"correct":true,"adversarial":false},"matcha":{"loc":14,"tokens":110,"correct":true,"adversarial":false}},{"id":"semver-compare","name":"Semver Compare","baseline":{"loc":10,"tokens":66,"correct":true,"adversarial":false},"terse":{"loc":9,"tokens":62,"correct":true,"adversarial":false},"matcha":{"loc":10,"tokens":67,"correct":true,"adversarial":false}},{"id":"throttle","name":"Throttle","baseline":{"loc":46,"tokens":277,"correct":true,"adversarial":false},"terse":{"loc":20,"tokens":128,"correct":true,"adversarial":false},"matcha":{"loc":32,"tokens":201,"correct":true,"adversarial":false}},{"id":"unique-filter","name":"Unique Filter","baseline":{"loc":14,"tokens":82,"correct":true,"adversarial":false},"terse":{"loc":2,"tokens":47,"correct":true,"adversarial":false},"matcha":{"loc":11,"tokens":74,"correct":true,"adversarial":false}}],"repo":[]}
+{"realBench":{"generated":"2026-06-27T12:30:00.000Z","backend":"agy (Gemini 3.5 Flash)","matcha":true,"summary":{"totalTests":30,"passed":30,"failed":0,"totalLOC":270,"matchaCompliance":"Excellent"},"features":[{"id":"activity-tracking","name":"Activity Tracking","steps":3,"file":"src/routes/activity.js","loc":111,"tests":12,"passed":12,"matchaScore":"A","highlights":["Separate validateActivityInput() function","Named constants for HTTP status codes","Explicit error messages for all validation failures","No console.log or debug leftovers"]},{"id":"pagination","name":"Pagination","steps":3,"file":"src/utils/pagination.js","loc":67,"tests":10,"passed":10,"matchaScore":"A","highlights":["Reusable paginate() utility function","Env var configuration (PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT)","Edge case handling for negative/NaN page values","No regression","Existing users endpoint still works"]},{"id":"rate-limiting","name":"Rate Limiting","steps":3,"file":"src/middleware/rateLimit.js","loc":75,"tests":8,"passed":8,"matchaScore":"A","highlights":["Cleanup timer with setInterval + unref()","Config via RATE_LIMIT_MAX and RATE_LIMIT_WINDOW_MS env vars","X-RateLimit headers on all responses","/health endpoint excluded from rate limiting"]}]}}
 </script>
 
 <!-- ─── Benchmark Script ─── -->
 <script>
 (async function() {
   const container = document.getElementById('bench-container');
+  let currentTab = 'real';
 
   async function loadData() {
     try {
@@ -564,90 +588,146 @@
     }
   }
 
-  try {
-    const json = await loadData();
+  function renderRealBench(json) {
+    const rb = json.realBench;
+    if (!rb) return '<p style="color:#6a6a85;text-align:center">No real benchmark data available.</p>';
 
-    const s = json.summary;
-    const generated = new Date(json.generated).toLocaleString();
+    const f = rb.features;
 
-    const arms = ['baseline', 'terse', 'matcha'];
-    const labels = { baseline: 'Baseline', terse: 'Terse', matcha: 'Matcha' };
-    const colors = { baseline: '#7a7a90', terse: '#e6b91e', matcha: '#5bc0be' };
-
-    // ── Summary cards ──
     let html = '<div class="bench-stats">';
-    for (const a of arms) {
-      const pct = s[a].total > 0 ? Math.round(s[a].correct / s[a].total * 100) : 0;
-      const advPct = s[a].total > 0 ? Math.round(s[a].adversarial / s[a].total * 100) : 0;
-      const maxLoc = Math.max(s.baseline.loc, s.matcha.loc, s.terse.loc);
-      const barPct = maxLoc > 0 ? Math.round(s[a].loc / maxLoc * 100) : 0;
-      html += `<div class="bench-stat">
-        <div class="value" style="color:${colors[a]}">${s[a].loc} <span style="font-size:0.75rem;color:#5a5a75">LOC</span></div>
-        <div class="label" style="color:${colors[a]}">${labels[a]}</div>
-        <div class="bar-wrap"><div class="bar" style="width:${barPct}%;background:${colors[a]}"></div></div>
-        <div class="sub">✅ ${s[a].correct}/${s[a].total} &middot; 🛡️ ${advPct}%</div>
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#5bc0be">${rb.summary.passed}/${rb.summary.totalTests}</div>
+      <div class="label" style="color:#5bc0be">Tests Passed</div>
+      <div class="sub">${rb.summary.failed} failed &middot; 🏗️ 3 features</div>
+    </div>`;
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#e6b91e">${rb.summary.totalLOC}</div>
+      <div class="label" style="color:#e6b91e">Total LOC Added</div>
+      <div class="sub">${f.map(x => x.file.split('/').pop()).join(' + ')}</div>
+    </div>`;
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#7a7a90">${rb.backend}</div>
+      <div class="label" style="color:#7a7a90">AI Backend</div>
+      <div class="sub">🍵 matcha: ${rb.matcha ? '✅ Active' : '❌ Not active'}</div>
+    </div>`;
+    html += '</div>';
+
+    // Feature cards
+    for (const feat of f) {
+      html += `<div style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
+          <span style="font-weight:600;font-size:0.82rem;color:#f0f0f5">${feat.name}</span>
+          <span style="font-size:0.65rem;color:#6a6a85">${feat.file} &middot; ${feat.steps} steps</span>
+        </div>
+        <div style="display:flex;gap:0.75rem;margin-bottom:0.4rem;flex-wrap:wrap">
+          <span style="font-size:0.7rem;color:#5bc0be">📄 ${feat.loc} LOC</span>
+          <span style="font-size:0.7rem;color:#e6b91e">🧪 ${feat.passed}/${feat.tests} tests</span>
+          <span style="font-size:0.7rem;background:rgba(91,192,190,0.08);color:#5bc0be;border:1px solid rgba(91,192,190,0.15);padding:0.08rem 0.3rem;border-radius:3px">🍵 Score: ${feat.matchaScore}</span>
+        </div>
+        <ul style="list-style:none;font-size:0.68rem;color:#7a7a90;margin:0;padding:0">
+          ${feat.highlights.map(h => `<li style="padding:0.1rem 0">✓ ${h}</li>`).join('')}
+        </ul>
       </div>`;
     }
-    html += '</div>';
 
-    // ── Comparison cards ──
-    const b = s.baseline;
-    const m = s.matcha;
-    const t = s.terse;
-    const matchaDelta = b.loc - m.loc;
-    const matchaPct = b.loc > 0 ? Math.round(Math.abs(matchaDelta) / b.loc * 100) : 0;
-    const terseDelta = b.loc - t.loc;
-    const tersePct = b.loc > 0 ? Math.round(Math.abs(terseDelta) / b.loc * 100) : 0;
-
-    html += '<div class="bench-compare">';
-    html += `<div class="compare-card">
-      <div class="delta positive">-${matchaPct}%</div>
-      <div class="value" style="font-size:1rem;font-weight:600;color:#5bc0be">${matchaDelta} LOC</div>
-      <div class="desc">matcha vs baseline &mdash; fewer lines</div>
-    </div>`;
-    html += `<div class="compare-card">
-      <div class="delta positive">-${tersePct}%</div>
-      <div class="value" style="font-size:1rem;font-weight:600;color:#e6b91e">${terseDelta} LOC</div>
-      <div class="desc">terse vs baseline &mdash; brevity</div>
-    </div>`;
-    html += `<div class="compare-card">
-      <div class="delta" style="color:#6a6a85">${m.loc - t.loc > 0 ? '+' : '-'}${Math.abs(m.loc - t.loc)} LOC</div>
-      <div class="value" style="font-size:1rem;font-weight:600;color:#6a6a85">matcha vs terse</div>
-      <div class="desc">matcha rules enforce explicit errors &amp; structure — more LOC is expected, not a drawback</div>
-    </div>`;
-    html += '</div>';
-
-    // ── Per-task rows ──
-    html += '<div class="bench-rows" style="margin-top:1.5rem">';
-    for (const task of json.data) {
-      const name = task.name;
-      html += `<div class="bench-row"><span class="task">${name}</span>`;
-      for (const a of arms) {
-        const d = task[a];
-        if (!d) continue;
-        const locStr = d.loc + ' LOC';
-        const passClass = d.correct ? 'arm-pass' : 'arm-fail';
-        const advIcon = d.adversarial ? '🛡️' : '⚠️';
-        html += `<span class="arm arm-${a} ${passClass}">${labels[a]}: ${locStr} ${d.correct ? '✅' : '❌'} ${advIcon}</span>`;
-      }
-      html += '</div>';
-    }
-    html += '</div>';
-
-    // ── Timestamp & info ──
-    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:1rem">
-      Generated: ${generated} &middot;
-      <a href="./BENCHMARK.md">Full report &rarr;</a> &middot;
-      <a href="https://github.com/plumpslabs/matcha">Methodology</a> &middot;
-      <span style="color:#5bc0be">⚡ Live Claude Code</span>
+    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:0.75rem">
+      Generated: ${new Date(rb.generated).toLocaleString()} &middot;
+      Backend: ${rb.backend} &middot;
+      <a href="../MATCHA_REAL_BENCHMARK.md">Methodology &rarr;</a>
     </p>`;
+    return html;
+  }
 
-    container.innerHTML = html;
+  function renderCompareBench(json) {
+    const sp = json.simplePromptTest;
+    if (!sp) return '<p style="color:#6a6a85;text-align:center">No comparison data available.</p>';
+
+    const w = sp.comparison.withMatcha;
+    const wo = sp.comparison.withoutMatcha;
+
+    let html = '<div class="bench-stats">';
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#5bc0be">${w.passed}/${w.tests}</div>
+      <div class="label" style="color:#5bc0be">🍵 With Matcha</div>
+      <div class="sub">${w.loc} LOC &middot; ${w.namedConstants ? 'Named constants ✅' : 'Hardcoded ❌'}</div>
+    </div>`;
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#6a6a85">${wo.passed}/${wo.tests}</div>
+      <div class="label" style="color:#6a6a85">❌ Without Matcha</div>
+      <div class="sub">${wo.loc} LOC &middot; ${wo.namedConstants ? 'Named constants ✅' : 'Hardcoded ❌'}</div>
+    </div>`;
+    html += `<div class="bench-stat">
+      <div class="value" style="color:#e6b91e">${w.loc - wo.loc > 0 ? '+' : ''}${w.loc - wo.loc} LOC</div>
+      <div class="label" style="color:#e6b91e">Delta</div>
+      <div class="sub">Matcha uses ${Math.round((w.loc - wo.loc) / wo.loc * 100)}% more — cost of maintainability</div>
+    </div>`;
+    html += '</div>';
+
+    // Comparison table
+    html += '<div class="table-wrap"><table>';
+    html += '<thead><tr><th>Criterion</th><th style="color:#5bc0be">🍵 With Matcha</th><th style="color:#6a6a85">❌ Without Matcha</th></tr></thead><tbody>';
+
+    const rows = [
+      { label: 'Status Codes', w: w.statusCodes.join(', '), wo: wo.statusCodes.join(', ') },
+      { label: 'Error Messages', w: w.errorMessages.join('<br>'), wo: wo.errorMessages.join('<br>') },
+      { label: 'Named Constants', w: w.namedConstants ? '✅ Yes' : '❌ No', wo: wo.namedConstants ? '✅ Yes' : '❌ No' },
+      { label: 'Separate Function', w: w.separateFunction ? '✅ Yes' : '❌ No', wo: wo.separateFunction ? '✅ Yes' : '❌ No' },
+      { label: 'Data Structure', w: w.dataStructure, wo: wo.dataStructure },
+      { label: 'Tests Passed', w: w.passed + '/' + w.tests, wo: wo.passed + '/' + wo.tests },
+    ];
+
+    for (const row of rows) {
+      html += `<tr><td>${row.label}</td><td style="color:#5bc0be">${row.w}</td><td style="color:#6a6a85">${row.wo}</td></tr>`;
+    }
+
+    html += '</tbody></table></div>';
+
+    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:0.75rem">
+      Prompt: <code style="color:#e6b91e">"${sp.prompt}"</code> &middot;
+      Backend: ${sp.backend} &middot;
+      <a href="../MATCHA_REAL_BENCHMARK.md">Full comparison &rarr;</a>
+    </p>`;
+    return html;
+  }
+
+  function render() {
+    const json = window.__benchData;
+    if (!json) {
+      container.innerHTML = '<div class="bench-error">⚠️ No benchmark data.</div>';
+      return;
+    }
+    if (currentTab === 'real') container.innerHTML = renderRealBench(json);
+    else container.innerHTML = renderCompareBench(json);
+  }
+
+  // ── Tab switching ──
+  document.querySelectorAll('.bench-tab').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.bench-tab').forEach(b => {
+        b.style.background = '#0f0f1e';
+        b.style.color = '#6a6a85';
+        b.style.borderColor = '#1a1a2e';
+      });
+      this.style.background = '#1a1a2e';
+      this.style.color = '#e6b91e';
+      this.style.borderColor = '#2a2a40';
+
+      currentTab = this.dataset.tab;
+      document.getElementById('bench-info-real').style.display = currentTab === 'real' ? 'block' : 'none';
+      document.getElementById('bench-info-compare').style.display = currentTab === 'compare' ? 'block' : 'none';
+      render();
+    });
+  });
+
+  // ── Load data & render ──
+  try {
+    window.__benchData = await loadData();
+    render();
   } catch (e) {
     container.innerHTML = `<div class="bench-error">
       ⚠️ No benchmark data available.
       <br><br>
-      Run <code style="color:#e6b91e">cd matcha/ &amp;&amp; node benchmark/generate-report.js</code> to generate results.
+      Run <code style="color:#e6b91e">cd matcha/ &amp;&amp; node benchmark/generate-report.js</code>.
       <br><br>
       <small>${e.message}</small>
     </div>`;

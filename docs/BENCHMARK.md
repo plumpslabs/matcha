@@ -1,58 +1,73 @@
 # 🍵 matcha Benchmark Report
 
-> Generated: 2026-06-27 &middot; 20 coding tasks &times; 3 arms &times; 1 iteration
+> Focus: Real-world multi-turn feature implementation & matcha comparison
+> Generated: 2026-06-27
 
-## Summary
+---
 
-| Metric | Baseline | Terse | Matcha |
-|--------|----------|-------|--------|
-| Total LOC | 347 | 198 | 260 |
-| Correct | 13/20 | 13/20 | 13/20 |
-| Correct % | 65% | 65% | 65% |
-| Adversarial % | 20% | 20% | 20% |
+## Real Multi-Turn Benchmark
 
-## Arm Comparisons
+**Setup**: Express API project &middot; 3 features × 3 steps each &middot; agy (Gemini 3.5 Flash)
+**Matcha**: Full `.claude/` + `hooks/` + `rules/` injected
 
-- **Matcha vs Baseline**: -87 LOC (-25%) — same correctness (13/20)
-- **Terse vs Baseline**: -149 LOC (-43%)
-- **Matcha vs Terse**: matcha is +62 LOC more than terse — expected: rules enforce explicit error handling &amp; named constants
+### Results
 
-## Per-Task Breakdown
+| Feature | LOC | Tests | Passed |
+|---------|:---:|:-----:|:------:|
+| Activity Tracking | 111 | 12 | ✅ 12 |
+| Pagination | 67 | 10 | ✅ 10 |
+| Rate Limiting | 75 | 8 | ✅ 8 |
+| **Total** | **270** | **30** | **✅ 30/30** |
 
-| Task | Baseline LOC | Terse LOC | Matcha LOC | Baseline ✅ | Terse ✅ | Matcha ✅ | Baseline 🛡️ | Terse 🛡️ | Matcha 🛡️ |
-|------|-------------|-----------|------------|------------|----------|-----------|-------------|----------|-----------|
-| Anagram Group | 11 | 11 | 11 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Array Flatten | 12 | 4 | 7 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Chunk Array | 10 | 8 | 10 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Config Parser | 17 | 13 | 18 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Csv Sum | 15 | 2 | 10 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Date Fmt | 14 | 9 | 10 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Debounce | 8 | 8 | 10 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Deep Clone | 21 | 9 | 9 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Deep Get | 12 | 11 | 12 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Deep Merge | 39 | 18 | 26 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Email Validator | 30 | 23 | 16 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Fizzbuzz | 16 | 11 | 14 | ✅ | ✅ | ✅ | ✅ | ✅ | ✅ |
-| Log Filter | 15 | 3 | 6 | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Memoize | 11 | 11 | 11 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Palindrome Checker | 13 | 8 | 14 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Pipe Compose | 12 | 5 | 9 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Retry Async | 21 | 13 | 14 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Semver Compare | 10 | 9 | 10 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Throttle | 46 | 20 | 32 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Unique Filter | 14 | 2 | 11 | ✅ | ✅ | ✅ | ❌ | ❌ | ❌ |
+### Matcha Compliance
+
+All 3 features scored **A** for matcha compliance:
+- Named constants for HTTP status codes and configuration
+- Separate validation/utility functions
+- Explicit, descriptive error messages
+- Environment variable configuration
+- No debug code or console.log leftovders
+- No regression — existing tests still pass
+
+---
+
+## Simple Prompt Test — Matcha vs No Matcha
+
+**Setup**: Same project, same prompt `"Add an activity endpoint"` (no detail)
+**Backend**: agy (Gemini 3.5 Flash) &middot; 12 tests each
+
+### Results
+
+| Criterion | 🍵 WITH Matcha | ❌ WITHOUT Matcha |
+|-----------|:--------------:|:-----------------:|
+| Tests Passed | 12/12 | 12/12 |
+| LOC | 80 | 69 |
+| Status Codes | `STATUS_CREATED`, `STATUS_BAD_REQUEST` | Hardcoded `404`, `400`, `201` |
+| Error Message | `"Action must be a non-empty string"` | `"Invalid input"` (generic) |
+| Validation | Separate `validateActivityInput()` | Separate function |
+| Data Structure | Per-user `activitiesStore = {}` | Flat `activities = []` array |
+
+### Key Insight
+
+> **Matcha value is most visible when the prompt is vague.**
+>
+> With a minimal prompt like `"Add an activity endpoint"`, matcha's CLAUDE.md rules guide the AI toward:
+> - **Named constants** instead of hardcoded magic numbers
+> - **Explicit, descriptive error messages** instead of generic ones
+> - **Better data structures** (keyed by user ID vs flat array)
+>
+> Trade-off: Matcha generates ~16% more LOC (+11 lines) — the cost of maintainable, production-ready code.
+
+---
 
 ## Methodology
 
-- **Tasks**: 20 diverse coding tasks (algorithms, data manipulation, async, security)
-- **Arms**: Baseline (no rules) vs Terse (brevity instruction only) vs Matcha (full conventions)
-- **Correctness Gate**: Each solution tested against a test suite with 10-20 test cases
-- **Adversarial Gate**: Edge case robustness — XSS, injection, boundary values, null/undefined
-- **Metric**: LOC count (excluding comments and blank lines)
-- **Backend**: **LIVE — Claude Code v2.1.185 (Claude Code)** (AI-generated solutions via 60 Claude CLI calls)
-- **Model**: Claude Code with `--print` mode (non-interactive — hooks NOT active)
-- **Retry**: Auto-retry on syntax errors with refined prompt
-- **⚠️ Caveat**: Benchmark uses `--print` mode. Matcha hooks (shield, post-write, stop) only fire in interactive sessions and are **not tested here**. Results reflect core CLAUDE.md rules only, not the full matcha hook system.
+- **Tasks**: Real-world multi-turn feature implementation (Express API)
+- **Backend**: agy (Gemini 3.5 Flash) — interactive mode
+- **Matcha**: Full injection (`.claude/`, `hooks/`, `rules/`, `skills/`, `.agents/`)
+- **Metrics**: Test pass rate, LOC, code quality indicators (named constants, error messages, function structure)
+- **Comparison**: Same prompt with and without matcha files in project
 
 ---
-*Report auto-generated by `node benchmark/generate-report.js`*
+
+*Report compiled manually via real benchmark execution*

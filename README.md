@@ -115,7 +115,9 @@ matcha ships **3 lifecycle hooks** that enforce philosophy deterministically —
 
 ### 1. PreToolUse — `matcha-shield.js`
 
-A deterministic safety gate that blocks dangerous commands **before** they reach the OS.
+A deterministic safety gate that:
+1. **Blocks codebase modifications/commands before planning**: In `enforce` (default) and `audit` modes, it blocks all write/edit tools and terminal execution commands until you create/update the 5W1H plan in `.agents/matcha-plan.md` (using a valid `<matcha_gate>` XML block with at least 15 characters per section).
+2. **Blocks dangerous commands before they reach the OS**:
 
 | Blocked | Example |
 |---------|---------|

@@ -284,4 +284,8 @@ After every task, surface context-aware suggestions:
 - Touch formatting, naming conventions, or style preferences
 - Stall progress with endless deliberation
 
+### ⚠️ Subagent Limitations
+- **Subagent Hook Bypass**: Life-cycle hooks (like `matcha-shield.js`) are only guaranteed to enforce constraints (like the 5W1H planning gate) in the main agent session. Subagents spawned via `invoke_subagent` may bypass the hook or fail to inherit state.
+- **Guideline**: Delegate only read-only or research tasks to subagents. Main agent must perform code modifications and verify planning.
+
 Simple and clear → do it right, clean up. That's it.

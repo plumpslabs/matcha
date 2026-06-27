@@ -239,9 +239,10 @@ Please enclose your plan in:
   const whyText = (whyMatch ? whyMatch[1] : "").trim();
   const howText = (howMatch ? howMatch[1] : "").trim();
 
-  // Basic check to ensure the agent didn't leave placeholder text
-  const hasPlaceholders = [whatText, whyText, howText].some(text => 
-    text.length === 0 || 
+  // Ensure each tag has a minimum length (e.g. 15 characters) to prevent lazy/empty answers
+  const isTooShort = whatText.length < 15 || whyText.length < 15 || howText.length < 15;
+
+  const hasPlaceholders = isTooShort || [whatText, whyText, howText].some(text => 
     text.includes("Describe what") || 
     text.includes("Why is this") || 
     text.includes("simplest and most") ||
@@ -253,7 +254,7 @@ Please enclose your plan in:
       block: true,
       message: `🍵 matcha: Planning Gate Blocked
 
-Your 5W1H plan in .agents/matcha-plan.md is incomplete or contains placeholder text.
+Your 5W1H plan in .agents/matcha-plan.md is incomplete, too short (must be at least 15 characters per section), or contains placeholder text.
 Please fill in the <what>, <why>, and <how> sections with actual project details.
 `
     };

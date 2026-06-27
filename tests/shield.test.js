@@ -156,7 +156,25 @@ describe("Shield — Planning Gate", () => {
     };
     const result = checkPlanningGate(event);
     expect(result).not.toBeNull();
-    expect(result.message).toContain("incomplete or contains placeholder text");
+    expect(result.message).toContain("incomplete");
+  });
+
+  test("blocks if plan is too short", () => {
+    const plan = `
+<matcha_gate>
+  <what>Short what</what>
+  <why>Short why</why>
+  <how>Short how</how>
+</matcha_gate>
+`;
+    writeFileSync(planPath, plan, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.message).toContain("too short");
   });
 
   test("allows if plan is valid", () => {

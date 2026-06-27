@@ -4,46 +4,46 @@
 
 10 writing rules for commit messages, code comments, documentation, PR descriptions, error messages, and READMEs. Not for prose (docs, papers) — matcha is an engineering convention, not a writing guide.
 
-## RULE-01: Kalimat Langsung, Gak Pake Basa-Basi
+## RULE-01: Direct Sentences, No Fluff
 
-**Directive:** Jangan pake "in order to", "due to the fact that", "it is important to note that". Langsung aja.
+**Directive:** Do not use "in order to", "due to the fact that", "it is important to note that". Be direct.
 
 ```
 # ❌ Bad — filler
 It is important to note that the API rate limit was increased in order to prevent timeout issues.
 
-# ✅ Good — langsung
+# ✅ Good — direct
 Increased API rate limit from 100 to 500 req/min to prevent timeout on batch endpoints.
 ```
 
-**Alasan:** Filler phrases bikin pembaca nunggu-nunggu substance yang gak dateng. Matcha itu efficient — kalimat juga harus efficient.
+**Rationale:** Filler phrases make readers wait for substance that never arrives. Matcha is efficient — language must be efficient too.
 
 ---
 
-## RULE-02: Komentar = Kenapa, Bukan Apa
+## RULE-02: Comments = Why, Not What
 
-**Directive:** Code udah jelasin *what*. Komentar harus jelasin *why* — konteks, keputusan, trade-off. Kalo komentar cuma ngulangin code, dihapus aja.
+**Directive:** Code explains the *what*. Comments must explain the *why* — context, decisions, trade-offs. If a comment only repeats the code, remove it.
 
 ```
-# ❌ Bad — ngulangin code
+# ❌ Bad — repeating code
 // Set the user's name
 user.name = name;
 
-# ✅ Good — jelasin konteks
+# ✅ Good — explaining context
 // Skip setting name for OAuth users — profile sync happens via webhook
 if (!user.isOAuth) user.name = name;
 ```
 
-**Alasan:** Komentar yang ngulangin code adalah noise. Pembaca code bisa liat sendiri `user.name = name`. Yang mereka gak tau adalah *kenapa* ada kondisi `!user.isOAuth`.
+**Rationale:** Comments that repeat the code are noise. Code readers can see `user.name = name`. What they don't know is *why* the condition `!user.isOAuth` exists.
 
 ---
 
-## RULE-03: Error Message Harus Actionable
+## RULE-03: Error Messages Must Be Actionable
 
-**Directive:** Jangan cuma "Something went wrong". Error message harus ngasih tau: (1) apa yang salah, (2) di mana, (3) gimana fixnya.
+**Directive:** Don't just say "Something went wrong". Error messages must tell: (1) what went wrong, (2) where, and (3) how to fix it.
 
 ```
-# ❌ Bad — gak nullang apa-apa
+# ❌ Bad — uninformative
 Error: Something went wrong
 
 # ✅ Good — actionable
@@ -51,13 +51,13 @@ Error: Can't connect to database at DB_HOST:5432
   → Check: 1) DB credentials in .env  2) Network access  3) DB service status
 ```
 
-**Alasan:** Error message yang gak actionable cuma bikin frustrasi. Matcha itu deliberate — kalo error, harus ada jalan keluarnya.
+**Rationale:** Unactionable error messages only cause frustration. Matcha is deliberate — if there is an error, there must be a way out.
 
 ---
 
 ## RULE-04: Commit Message = `type(scope): subject`
 
-**Directive:** Pake conventional commits format. Subject ≤72 chars, imperative mood. Body jelasin *why*, bukan *what*.
+**Directive:** Use the conventional commits format. Subject ≤72 chars, imperative mood. The body explains *why*, not *what*.
 
 ```
 # ❌ Bad — vague
@@ -66,108 +66,108 @@ fixed bug
 # ❌ Bad — WIP
 wip commit
 
-# ✅ Good — jelas
+# ✅ Good — clear
 fix(auth): handle expired token during refresh
 
 Token refresh was throwing unhandled 401 when the refresh token itself
 was expired. Now returns a clear 400 with "REFRESH_EXPIRED" so the
 client can redirect to login.
 
-# ✅ Good — kecil, 1 baris
+# ✅ Good — small, single line
 chore(deps): upgrade express to v5
 ```
 
-**Alasan:** Commit message yang jelas = git log yang berguna 6 bulan kemudian. Matcha itu "never twice" — kalo commit message gak jelas, orang bakal nanya ulang.
+**Rationale:** Clear commit messages make the git log useful 6 months down the road. Matcha is "never twice" — if a commit message is unclear, someone will have to ask again.
 
 ---
 
-## RULE-05: Jangan Pake Kata Abstrak Kalo Ada Yang Konkret
+## RULE-05: Avoid Abstract Words When Concrete Ones Exist
 
-**Directive:** "improvements", "various issues", "performance optimization" — ini gak nullang apa-apa. Sebutin angka, nama, atau penyebab spesifik.
+**Directive:** "improvements", "various issues", "performance optimization" — these say nothing. State specific numbers, names, or causes.
 
 ```
-# ❌ Bad — abstrak
+# ❌ Bad — abstract
 Improved application performance and fixed various issues.
 
-# ✅ Good — konkret
-POST /checkout p95 latency turun 320ms → 120ms (cache Redis hit rate 94%)
-Fixed null pointer di UserService.getProfile() ketika user deleted.
+# ✅ Good — concrete
+POST /checkout p95 latency decreased from 320ms to 120ms (Redis cache hit rate 94%)
+Fixed null pointer in UserService.getProfile() when user is deleted.
 ```
 
-**Alasan:** Kata abstrak adalah AI-tell. Model LLM suka nullang "improvements across various metrics" padahal gak ada data. Matcha itu deliberate — kalo nullang sesuatu, harus bisa diukur.
+**Rationale:** Abstract words are an AI-tell. LLMs love to say "improvements across various metrics" when there is no data. Matcha is deliberate — if you claim something, it must be measurable.
 
 ---
 
-## RULE-06: Aktif Voice, Jangan Pasif
+## RULE-06: Active Voice, Not Passive Voice
 
-**Directive:** "X was done by Y" → "Y did X". Pasif disembunyikan agent-nya. Kecuali kalo agent-nya beneran gak dikenal atau gak relevan.
+**Directive:** "X was done by Y" → "Y did X". Passive voice hides the agent, unless the agent is truly unknown or irrelevant.
 
 ```
-# ❌ Bad — pasif
+# ❌ Bad — passive
 The database migration was run by the deployment script.
 
-# ✅ Good — aktif
+# ✅ Good — active
 The deployment script ran the database migration.
 
-# ❌ Bad — pasif
+# ❌ Bad — passive
 Errors are logged to /var/log/app.log when the service crashes.
 
-# ✅ Good — aktif
+# ✅ Good — active
 The service logs errors to /var/log/app.log on crash.
 ```
 
-**Alasan:** Pasif bikin kalimat lebih panjang dan kurang jelas. Matcha itu simple — active voice lebih pendek, lebih jelas, lebih langsung.
+**Rationale:** Passive voice makes sentences longer and less clear. Matcha is simple — active voice is shorter, clearer, and more direct.
 
 ---
 
-## RULE-07: PR Description Pake 5W1H
+## RULE-07: PR Description Uses 5W1H
 
-**Directive:** Setiap PR harus jawab: What, Why, How, Testing, Notes. Format:
+**Directive:** Every PR must answer: What, Why, How, Testing, and Notes. Format:
 
 ```
 ## What
-[1 line — apa yang berubah]
+[1 line — what changed]
 
 ## Why
-[kenapa ini perlu — apa yang broken atau missing]
+[why this is necessary — what was broken or missing]
 
 ## How
-[gimana implementasinya — high level]
+[how it is implemented — high level]
 
 ## Testing
 - [ ] Unit tests added/passed
 - [ ] Manual test scenario
 
 ## Notes
-[anything reviewer should know — trade-offs, follow-up tasks]
+[anything the reviewer should know — trade-offs, follow-up tasks]
 ```
 
-**Alasan:** 5W1H adalah DNA matcha. PR tanpa konteks bikin reviewer bingung. PR yang jelas = review lebih cepet = merge lebih cepet.
+**Rationale:** 5W1H is in Matcha's DNA. PRs without context confuse reviewers. Clear PRs mean faster reviews and faster merges.
 
 ---
 
-## RULE-08: Jangan Pake "Leverage", "Cutting-Edge", "Game-Changing"
+## RULE-08: Do Not Use "Leverage", "Cutting-Edge", "Game-Changing"
 
-**Directive:** Kata-kata ini udah mati. Dipake sama太多 orang sampai gak berarti lagi. Kalo ada fitur baru, jelasin apa yang dilakukan, bukan sebutin labelnya.
+**Directive:** These words are dead. They are overused to the point of meaninglessness. If there is a new feature, explain what it does, do not just label it.
 
 ```
 # ❌ Bad — meaningless
 Leverage our cutting-edge AI platform to optimize your workflow.
 
-# ✅ Good — jelas
+# ✅ Good — clear
 Our API returns personalized recommendations based on user behavior history.
 ```
 
-**Alasan:** Kata-kata ini adalah AI-tell kelas berat. Model LLM suka nullang "leverage" dan "cutting-edge" karena banyak di corpus marketing. Matcha itu simple — nullang apa adanya.
+**Rationale:** These words are heavy AI-tells. LLM models love to say "leverage" and "cutting-edge" because they are prevalent in marketing corpora. Matcha is simple — state it as it is.
 
 ---
 
-## RULE-09: Dokumentasi = Single Source of Truth
+## RULE-09: Documentation = Single Source of Truth
 
-**Directive:** Jangan nullang ulang informasi yang udah ada di tempat lain. Link aja. Kalo informasi berubah, cuma perlu update 1 tempat.
+**Directive:** Do not repeat information that already exists elsewhere. Link it instead. If the information changes, you only need to update it in one place.
 
 ```
-# ❌ Bad — duplikasi
+# ❌ Bad — duplication
 For configuration, see the .env file. The .env file has:
 DB_HOST=localhost
 DB_PORT=5432
@@ -176,51 +176,51 @@ DB_PORT=5432
 Configuration: see .env.example in project root.
 Full API docs: see docs/api.md
 
-# ❌ Bad — nyebar
+# ❌ Bad — scattered
 Timeout settings are in both config.ts and docker-compose.yml
 
-# ✅ Good — 1 source
-Timeout: defined in config.ts (used by both app and docker-compose)
+# ✅ Good — single source
+Timeout: defined in config.ts (used by both the app and docker-compose)
 ```
 
-**Alasan:** Never twice — termasuk informasi. Kalo ada yang berubah, lo harus edit N tempat. Matcha itu efficient — 1 sumber, 1 edit.
+**Rationale:** Never twice — including information. If something changes, you shouldn't have to edit N places. Matcha is efficient — 1 source, 1 edit.
 
 ---
 
-## RULE-10: Tone Casual-Direct, Bukan Formal Kaku
+## RULE-10: Casual-Direct Tone, Not Stiff-Formal
 
-**Directive:** Nullang kaya lo lagi ngomong sama senior engineer lain. Gak perlu "Dear Sir/Madam". Gak perlu "Please find attached". Langsung, jelas, sarkas dikit kalo perlu.
+**Directive:** Write as if you are talking to another senior engineer. No need for "Dear Sir/Madam". No need for "Please find attached". Be direct, clear, and slightly sarcastic if needed.
 
 ```
-# ❌ Bad — kaku
+# ❌ Bad — stiff
 Please find attached the deployment plan for your kind review.
 
 # ✅ Good — casual
 Deployment plan attached. Review when you can — mostly config changes.
 
-# ❌ Bad — terlalu informal
+# ❌ Bad — too informal
 yo dude check out my code lol
 
-# ✅ Good — casual tapi profesional
-PR ready: adds Redis caching untuk GET /products. ~50 lines.
-Main concern: TTL strategy — 5 menit cukup?
+# ✅ Good — casual but professional
+PR ready: adds Redis caching for GET /products. ~50 lines.
+Main concern: TTL strategy — is 5 minutes enough?
 ```
 
-**Alasan:** Matcha itu casual direct dengan sarkas ringan. Formal kaku bikin jarak. Terlalu informal gak profesional. Target: "ngobrol sama senior engineer yang lo hormati".
+**Rationale:** Matcha is casual-direct with light sarcasm. Stiff-formal creates distance. Too informal is unprofessional. The target is: "chatting with a senior engineer you respect".
 
 ---
 
 ## Escape Hatch
 
-> Langgar aturan di atas kalo ngikutin aturan bikin tulisan lo makin gak jelas.
+> Break any rule above if following it makes your writing less clear.
 
-Ini writing guidelines, bukan hukum. Kalo RULE-01 (langsung) bikin konteks hilang, pake filler dikit gapapa. Kalo RULE-10 (casual) gak cocok buat regulatory document, pake formal. Pake judgment.
+These are writing guidelines, not laws. If RULE-01 (directness) makes you lose context, use a little filler. If RULE-10 (casualness) is not suitable for a regulatory document, use formal language. Use judgment.
 
 ---
 
-## Implementasi
+## Implementation
 
-File ini auto-loaded sebagai common rule di semua project yang pake matcha. Berlaku untuk:
+This file is auto-loaded as a common rule in all projects using matcha. It applies to:
 - Commit messages
 - Code comments
 - PR descriptions
@@ -228,10 +228,10 @@ File ini auto-loaded sebagai common rule di semua project yang pake matcha. Berl
 - README updates
 - Documentation changes
 
-Tidak berlaku untuk (masih pake judgment agent):
-- External documentation yang butuh tone formal
+It does not apply to (relying on agent judgment):
+- External documentation requiring a formal tone
 - Regulatory/compliance writing
-- User-facing copy yang udah punya style guide sendiri
+- User-facing copy that already has its own style guide
 
 ## Checklist
 

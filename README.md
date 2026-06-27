@@ -445,17 +445,17 @@ Writing quality is enforced through **two layers**:
 | 🔵 Dead buzzwords | `leverage`, `cutting-edge`, `synergy`, `paradigm shift` | 🟢 Writing style |
 | 🔵 Vague commit | `fix bug`, `WIP`, `update`, `changes` (on COMMIT_EDITMSG only) | 🟢 Writing style |
 
-### Filosofi
+### Philosophy
 
-Writing rules ini bukan copy-paste dari project lain. Setiap rule lahir dari DNA matcha:
+These writing rules are not copy-pasted from other projects. Every rule is born from the matcha DNA:
 
-- **RULE-01** (Kalimat Langsung) ← Efficient: filler = bloat, sama kayak code bloat
-- **RULE-02** (Komentar = Why) ← Deliberate: code = what, comment = why
-- **RULE-06** (Aktif Voice) ← Simple: lebih pendek, lebih jelas
-- **RULE-09** (Single Source of Truth) ← Never twice: informasi juga gak boleh duplikat
-- **RULE-07** (PR Pake 5W1H) ← 5W1H: sama kayak checkpoint Purpose
+- **RULE-01** (Direct Sentences) ← Efficient: filler = bloat, just like code bloat
+- **RULE-02** (Comment = Why) ← Deliberate: code = what, comment = why
+- **RULE-06** (Active Voice) ← Simple: shorter, clearer
+- **RULE-09** (Single Source of Truth) ← Never twice: information must not be duplicated
+- **RULE-07** (PR with 5W1H) ← 5W1H: aligned with the Purpose checkpoint
 
-Tone: **casual-direct dengan sarkas ringan**. Bukan formal kaku (bukan "Dear Sir/Madam"), bukan terlalu informal (bukan "yo dude"). Target: ngobrol sama senior engineer yang lo hormati.
+Tone: **casual-direct with light sarcasm**. Not stiff-formal (no "Dear Sir/Madam"), not too informal (no "yo dude"). Target: chatting with a senior engineer you respect.
 
 ### Scope
 

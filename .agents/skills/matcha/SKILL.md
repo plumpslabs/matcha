@@ -26,11 +26,22 @@ Always take the **easiest AND most efficient path** — not just one. Easy witho
 
 | Level | Behavior at each checkpoint |
 |-------|----------------------------|
-| **observe** | Note issues, let user decide. No blocking, no forced audit. |
-| **enforce** | Report + wait for user. Block on critical. **Default.** |
-| **audit** | Mandatory fix. No exceptions. All issues flagged. |
+| **observe** | Note issues, let user decide. No blocking, no planning gate. |
+| **enforce** | Report + wait for user. Block on critical. Hard planning gate. **Default.** |
+| **audit** | Mandatory fix. No exceptions. All issues flagged. Hard planning gate. |
 
-Set with `/matcha observe|enforce|audit`. Default: **enforce**. Persists until changed.
+Set with `/matcha observe|enforce|audit`. Default: **enforce**.
+To persist intensity, write `{"intensity": "observe|enforce|audit"}` to `.agents/matcha-state.json`.
+
+### 🔴 PLANNING GATE (ENFORCED BY HOOK)
+In **enforce** and **audit** levels, you are programmatically blocked from modifying code or executing commands until you create/update the 5W1H plan in `.agents/matcha-plan.md` using the following tag format:
+```xml
+<matcha_gate>
+  <what>Describe what you are building/fixing</what>
+  <why>Why is this necessary? What is the impact?</why>
+  <how>What is the simplest and most efficient implementation path?</how>
+</matcha_gate>
+```
 
 ---
 

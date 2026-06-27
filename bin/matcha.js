@@ -129,8 +129,15 @@ function cmdStatus() {
     existsSync(join(CWD, ".qoder", "hooks", "matcha-shield.js"));
   console.log(`  Shield:     ${hasShield ? "✅ active" : "⏭ not installed"}`);
 
-  // Intensity (from env or default)
-  const intensity = process.env.MATCHA_INTENSITY || "enforce (default)";
+  // Intensity (from state file, env, or default)
+  let intensity = process.env.MATCHA_INTENSITY || "enforce (default)";
+  try {
+    const statePath = join(CWD, ".agents/matcha-state.json");
+    if (existsSync(statePath)) {
+      const state = JSON.parse(readFileSync(statePath, "utf-8"));
+      if (state.intensity) intensity = state.intensity;
+    }
+  } catch {}
   console.log(`  Intensity:  ${intensity}`);
 
   console.log(`\n  All systems ${found.length > 0 ? "✅ nominal" : "⏭ pending install"}`);

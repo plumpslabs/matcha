@@ -20,13 +20,28 @@ export async function preTask(event, context) {
 
 You are operating under the matcha engineering philosophy.
 Full ruleset injected below — follow it for every action in this session.
-Intensity level: enforce (default). Use /matcha observe|enforce|audit to change.
+
+### 🔴 CRITICAL PLANNING GATE (ENFORCED BY HOOK)
+You are BLOCKED from modifying files or running commands until you create/update the 5W1H plan in \`.agents/matcha-plan.md\`.
+The hook will automatically allow execution once this file contains a valid XML block:
+\`\`\`xml
+<matcha_gate>
+  <what>Describe what you are building/fixing</what>
+  <why>Why is this necessary? What is the impact?</why>
+  <how>What is the simplest and most efficient implementation path?</how>
+</matcha_gate>
+\`\`\`
+For every new task or major request, you MUST overwrite/update this plan with the current task's details.
+
+### Persistence of Intensity
+If the user runs \`/matcha observe|enforce|audit\`, persist the change by writing \`{"intensity": "observe|enforce|audit"}\` to \`.agents/matcha-state.json\`.
+
 At the END of every task response, include 3 matcha suggestions (match the user's conversation language, casual, direct, slightly sarcastic tone).
 
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.0.0", event: event.type },
+    metadata: { convention: "matcha", version: "2.0.3", event: event.type },
   };
 }
 

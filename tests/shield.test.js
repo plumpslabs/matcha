@@ -51,3 +51,138 @@ describe("Shield — ALLOW safe commands", () => {
     expect(result).toBeNull();
   });
 });
+
+import { writeFileSync, readFileSync, unlinkSync, existsSync } from "fs";
+import { join } from "path";
+import { beforeAll, afterAll, beforeEach } from "vitest";
+import { checkPlanningGate } from "../hooks/matcha-shield.js";
+
+describe("Shield — Planning Gate", () => {
+  const planPath = join(process.cwd(), ".agents/matcha-plan.md");
+  const statePath = join(process.cwd(), ".agents/matcha-state.json");
+
+  let backupPlan = null;
+  let backupState = null;
+
+  beforeAll(() => {
+    if (existsSync(planPath)) {
+      backupPlan = readFileSync(planPath, "utf-8");
+      try { unlinkSync(planPath); } catch {}
+    }
+    if (existsSync(statePath)) {
+      backupState = readFileSync(statePath, "utf-8");
+      try { unlinkSync(statePath); } catch {}
+    }
+  });
+
+  afterAll(() => {
+    try { unlinkSync(planPath); } catch {}
+    try { unlinkSync(statePath); } catch {}
+    if (backupPlan !== null) {
+      writeFileSync(planPath, backupPlan, "utf-8");
+    }
+    if (backupState !== null) {
+      writeFileSync(statePath, backupState, "utf-8");
+    }
+  });
+
+  beforeEach(() => {
+    try { unlinkSync(planPath); } catch {}
+    try { unlinkSync(statePath); } catch {}
+  });
+
+  test("blocks write tool if plan does not exist", () => {
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.block).toBe(true);
+    expect(result.message).toContain("Planning Gate Blocked");
+  });
+
+  test("blocks command tool if plan does not exist", () => {
+    const event = {
+      tool: "Bash",
+      input: { command: "node src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.block).toBe(true);
+  });
+
+  test("allows diagnostic command even if plan does not exist", () => {
+    const event = {
+      tool: "Bash",
+      input: { command: "git status" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+
+  test("allows writing to plan file even if plan does not exist", () => {
+    const event = {
+      tool: "WriteFile",
+      input: { path: "path/to/.agents/matcha-plan.md" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+
+  test("blocks if plan is missing matcha_gate tags", () => {
+    writeFileSync(planPath, "some other content", "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.message).toContain("does not contain a valid <matcha_gate> block");
+  });
+
+  test("blocks if plan has placeholders", () => {
+    const plan = `
+<matcha_gate>
+  <what>Describe what you are building/fixing</what>
+  <why>Why is this necessary?</why>
+  <how>...</how>
+</matcha_gate>
+`;
+    writeFileSync(planPath, plan, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.message).toContain("incomplete or contains placeholder text");
+  });
+
+  test("allows if plan is valid", () => {
+    const plan = `
+<matcha_gate>
+  <what>Implement dynamic gate checking</what>
+  <why>To enforce 5W1H before code changes</why>
+  <how>Add hook in matcha-shield.js</how>
+</matcha_gate>
+`;
+    writeFileSync(planPath, plan, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+
+  test("allows everything in observe mode", () => {
+    writeFileSync(statePath, JSON.stringify({ intensity: "observe" }), "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+});

@@ -12,6 +12,11 @@
  * Override with env: MATCHA_SHIELD_OFF=true
  */
 
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+
+const ROOT = process.cwd();
+
 const DANGER_PATTERNS = [
   // ─── Destructive filesystem ──────────────────────────────────────────────
   {
@@ -118,12 +123,166 @@ function parseEvent(event) {
   return (event.input?.command || event.input?.code || "").trim() || null;
 }
 
+export function checkPlanningGate(event) {
+  if (!event) return null;
+
+  // 1. Check if intensity is observe (non-blocking)
+  let intensity = "enforce";
+  try {
+    const statePath = join(ROOT, ".agents/matcha-state.json");
+    if (existsSync(statePath)) {
+      const state = JSON.parse(readFileSync(statePath, "utf-8"));
+      if (state.intensity) intensity = state.intensity;
+    }
+  } catch {}
+
+  if (intensity === "observe") {
+    return null; // non-blocking
+  }
+
+  // 2. Check if the tool is a modification/execution tool
+  const toolName = event.tool || event.toolName || "";
+  const input = event.input || {};
+
+  const isWriteTool = [
+    "WriteFile", "EditFile", "write_to_file", "replace_file_content",
+    "multi_replace_file_content", "precise_diff_editor", "batch_file_writer",
+    "edit_symbol", "edit_symbol_surgical", "patch"
+  ].includes(toolName);
+
+  const isCommandTool = [
+    "Bash", "ExecuteCommand", "bash", "execute_command"
+  ].includes(toolName);
+
+  if (!isWriteTool && !isCommandTool) {
+    return null; // Allow other tools (Read, Grep, etc.)
+  }
+
+  // 3. For write tools, check if writing to the plan/state files
+  if (isWriteTool) {
+    const targetFile = input.path || input.TargetFile || input.filePath || "";
+    const files = input.files || [];
+    const isWritingPlan = targetFile.endsWith("matcha-plan.md") || 
+                          targetFile.endsWith("matcha-state.json") ||
+                          files.some(f => f.path?.endsWith("matcha-plan.md") || f.path?.endsWith("matcha-state.json"));
+    if (isWritingPlan) {
+      return null; // Always allow writing to the plan/state files
+    }
+  }
+
+  // 4. For command tools, check if it's a safe diagnostic command
+  if (isCommandTool) {
+    const cmd = (input.command || input.code || "").trim();
+    // Allow safe diagnostic or local testing commands
+    const isSafe = /^(git status|git diff|npm test|vitest|find |ls |cat |grep |agy status)/i.test(cmd);
+    if (isSafe) {
+      return null; // Allow diagnostic commands
+    }
+  }
+
+  // 5. Verify if the 5W1H plan exists and is valid
+  const planPath = join(ROOT, ".agents/matcha-plan.md");
+  if (!existsSync(planPath)) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked
+
+You are trying to execute a codebase modification or command before planning.
+Under the matcha philosophy (enforce mode), you MUST create a plan first.
+
+Action required:
+Create and write your 5W1H plan to .agents/matcha-plan.md using the following format:
+
+<matcha_gate>
+  <what>Describe what you are building/fixing</what>
+  <why>Why is this necessary? What is the impact?</why>
+  <how>What is the simplest and most efficient implementation path?</how>
+</matcha_gate>
+`
+    };
+  }
+
+  let planContent = "";
+  try {
+    planContent = readFileSync(planPath, "utf-8");
+  } catch {
+    return null; // fail open if read error
+  }
+
+  // Parse XML tags using regex
+  const matchaGateRegex = /<matcha_gate>([\s\S]*?)<\/matcha_gate>/;
+  const match = planContent.match(matchaGateRegex);
+
+  if (!match) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked
+
+The file .agents/matcha-plan.md exists, but it does not contain a valid <matcha_gate> block.
+Please enclose your plan in:
+
+<matcha_gate>
+  <what>...</what>
+  <why>...</why>
+  <how>...</how>
+</matcha_gate>
+`
+    };
+  }
+
+  const innerContent = match[1];
+  const whatMatch = innerContent.match(/<what>([\s\S]*?)<\/what>/);
+  const whyMatch = innerContent.match(/<why>([\s\S]*?)<\/why>/);
+  const howMatch = innerContent.match(/<how>([\s\S]*?)<\/how>/);
+
+  const whatText = (whatMatch ? whatMatch[1] : "").trim();
+  const whyText = (whyMatch ? whyMatch[1] : "").trim();
+  const howText = (howMatch ? howMatch[1] : "").trim();
+
+  // Basic check to ensure the agent didn't leave placeholder text
+  const hasPlaceholders = [whatText, whyText, howText].some(text => 
+    text.length === 0 || 
+    text.includes("Describe what") || 
+    text.includes("Why is this") || 
+    text.includes("simplest and most") ||
+    text === "..."
+  );
+
+  if (hasPlaceholders) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked
+
+Your 5W1H plan in .agents/matcha-plan.md is incomplete or contains placeholder text.
+Please fill in the <what>, <why>, and <how> sections with actual project details.
+`
+    };
+  }
+
+  return null; // Gate passed successfully!
+}
+
 /**
  * Programmatic API — for ESM import usage.
  * Returns { block: true, message } or null.
  */
 export async function beforeToolUse(event, context) {
   if (process.env.MATCHA_SHIELD_OFF === "true") return null;
+
+  // 1. Check Planning Gate
+  const gateResult = checkPlanningGate(event);
+  if (gateResult) {
+    return {
+      block: true,
+      message: gateResult.message,
+      metadata: {
+        gate: true,
+        convention: "matcha"
+      }
+    };
+  }
+
+  // 2. Check dangerous commands (original shield logic)
   const command = parseEvent(event);
   if (!command) return null;
 
@@ -167,6 +326,20 @@ if (isDirectInvocation) {
 
     try {
       const event = JSON.parse(input);
+
+      // 1. Check Planning Gate
+      const gateResult = checkPlanningGate(event);
+      if (gateResult) {
+        process.stdout.write(JSON.stringify({
+          decision: "deny",
+          message: gateResult.message,
+          metadata: { gate: true, convention: "matcha" },
+        }) + "\n");
+        process.stderr.write(gateResult.message + "\n");
+        process.exit(2);
+      }
+
+      // 2. Check dangerous commands
       const command = parseEvent(event);
       if (!command) {
         // Not a Bash tool — allow

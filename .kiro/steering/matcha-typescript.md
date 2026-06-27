@@ -29,5 +29,9 @@ node → externals → internal → relative
 - Typed fetch wrapper, error boundaries
 - Testing: Vitest + Testing Library, MSW
 
-# 🔎 Reuse check
-Before npm package: search package.json + src/utils/
+## Checklist
+- [ ] Types explicit on public APIs — no `any`
+- [ ] Runtime validation at boundaries (Zod)
+- [ ] Async errors handled — no floating promises
+- [ ] Imports: node → external → internal → relative
+- [ ] Before adding dep: search `package.json` + `src/utils/` first

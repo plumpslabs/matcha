@@ -11,6 +11,7 @@ alwaysApply: false
 // ❌ Bad
 String name = null;
 if (user != null) { name = user.getName(); }
+
 // ✅ Good — Optional
 String name = Optional.ofNullable(user)
     .map(User::getName)
@@ -20,7 +21,10 @@ String name = Optional.ofNullable(user)
 ## Records over Classes (Java 16+)
 ```java
 // ❌ Bad — boilerplate
-public class User { private String id; ... }
+public class User {
+    private String id; private String name;
+    // getters, setters...
+
 // ✅ Good — record
 public record User(String id, String name) {}
 ```
@@ -29,6 +33,7 @@ public record User(String id, String name) {}
 ```java
 // ❌ Bad — swallowed
 try { risky(); } catch (Exception e) {}
+
 // ✅ Good
 try { risky(); }
 catch (IOException e) {
@@ -42,5 +47,11 @@ catch (IOException e) {
 - Stream API over loops with mutation
 - Testing: JUnit 5, Mockito
 
-# 🔎 Reuse check
-Before adding Maven dep: search `pom.xml` + existing `src/main/java/`
+## Checklist
+- [ ] No null — `Optional`, `Objects.requireNonNull`, or `@NotNull`
+- [ ] Records over classes for data carriers (Java 16+)
+- [ ] Modern Java features used (sealed classes, pattern matching)
+- [ ] Specific error handling — no empty catch
+- [ ] Constructor injection with `final` fields
+- [ ] DTOs at API boundaries, entities kept internal
+- [ ] Before adding Maven dep: search `pom.xml` + existing `src/main/java/` first

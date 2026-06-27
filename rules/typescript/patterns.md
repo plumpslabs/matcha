@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.ts"
+- "**/*.tsx"
+---
+
 # TypeScript Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with TypeScript architecture and design patterns.
 
 ## Architecture
 - **Layered**: `controller → service → repository` separation
@@ -42,3 +50,12 @@ Before adding an npm package:
 1. Search `package.json` + existing `utils/`, `lib/` for existing implementation
 2. Search bundlephobia for size impact
 3. Can stdlib do it? 3 use cases before abstracting
+
+## Checklist
+
+- [ ] Architecture follows layered pattern (controller → service → repository)
+- [ ] DTOs/validation at API boundaries, not scattered in services
+- [ ] Error handling consistent — custom errors, never silent catch
+- [ ] State management: Zustand for client, TanStack Query for server
+- [ ] API mocking via MSW for integration tests
+- [ ] New dependency justified — checked bundlephobia, existing alternatives

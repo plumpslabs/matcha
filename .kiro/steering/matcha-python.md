@@ -34,5 +34,9 @@ stdlib → third-party → internal
 - Async for I/O-bound, sync for CPU-bound
 - Testing: pytest, pytest-asyncio
 
-# 🔎 Reuse check
-Before adding pip dep: search requirements.txt + existing utils/
+## Checklist
+- [ ] Type hints on all function signatures
+- [ ] Pydantic v2 for validation at boundaries
+- [ ] Specific exceptions — no bare `except:`
+- [ ] Imports: stdlib → third-party → internal
+- [ ] Before adding dep: search `requirements.txt` + `utils/` first

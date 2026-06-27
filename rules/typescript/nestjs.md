@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.ts"
+---
+
 # NestJS Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with NestJS-specific rules.
 
 ## Modules
 ```typescript
@@ -98,3 +105,14 @@ export function Auth(role: Role) {
 - Use caching (`@nestjs/cache-manager` + Redis)
 - Serialization: `@SerializeOptions` / `ClassSerializerInterceptor`
 - Queue heavy tasks with `@nestjs/bull` + Redis
+
+## Checklist
+
+- [ ] Feature modules per domain, not per file type
+- [ ] Controllers: HTTP concerns only — no business logic
+- [ ] Services: business logic — no HTTP awareness
+- [ ] DTOs at controller boundary, entities in service layer
+- [ ] Global ValidationPipe with class-validator
+- [ ] `@ControllerAdvice` for global exception handling
+- [ ] Constructor injection with `final` fields (no field injection)
+- [ ] `forwardRef` only as last resort — prefer shared module

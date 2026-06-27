@@ -47,3 +47,11 @@ git push --force-with-lease
 - [ ] No commented-out code
 - [ ] Matcha review passed
 - [ ] Conventional commit format
+
+## Checklist
+
+- [ ] Branch is short-lived — rebased to main daily
+- [ ] Commit message follows `type(scope): subject` format
+- [ ] One commit = one logical change
+- [ ] PR description includes What + Why + How to test
+- [ ] No WIP or "fix fix fix" commits in history

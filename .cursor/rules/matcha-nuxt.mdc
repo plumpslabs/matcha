@@ -26,5 +26,10 @@ const { data } = await useFetch('/api/data');
 - Components in components/ → auto-imported
 - No manual imports needed (tree-shaken at build)
 
-# 🔎 Reuse check
-Check `nuxt.config.ts` plugins before adding Nuxt modules
+## Checklist
+- [ ] `useAsyncData` / `useFetch` over raw `fetch` (SSR hydration)
+- [ ] Auto-imported composables in `composables/`
+- [ ] Server routes in `server/api/` — server-only code
+- [ ] Route rules in `nuxt.config.ts` (SSR, SPA, prerender)
+- [ ] SEO via `useSeoMeta` per page
+- [ ] Check `nuxt.config.ts` plugins before adding Nuxt modules

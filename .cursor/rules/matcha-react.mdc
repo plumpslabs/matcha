@@ -28,5 +28,10 @@ import { use, useSignal } from "react";
 const count = useSignal(0);
 ```
 
-# 🔎 Reuse check
-Before adding React dep: search `package.json` + existing `components/`
+## Checklist
+- [ ] Server Components by default — `"use client"` only when needed
+- [ ] Props typed with explicit interface/type
+- [ ] Hooks for logic reuse, not HOCs
+- [ ] Zustand for global state, TanStack Query for server state
+- [ ] `React.memo` on expensive renders only
+- [ ] Before adding React dep: search `package.json` + existing `components/` first

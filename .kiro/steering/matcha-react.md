@@ -23,5 +23,10 @@ fileMatchPattern: "*.tsx|*.jsx"
 - useSignal() for reactive state
 - use() for promise resolution
 
-# 🔎 Reuse check
-Search existing components before creating new ones
+## Checklist
+- [ ] Server Components by default — `"use client"` only when needed
+- [ ] Props typed with interface/type
+- [ ] Hooks for logic reuse, not HOCs
+- [ ] Zustand for global, TanStack Query for server
+- [ ] `React.memo` on expensive renders only
+- [ ] Search existing components before creating new ones

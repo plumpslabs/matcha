@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.py"
+---
+
 # Python Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Python architecture and design patterns.
 
 ## Architecture
 - **FastAPI**: dependency injection via `Depends`, Pydantic v2 for validation, async handlers
@@ -72,3 +79,13 @@ Before adding a pip package:
 1. Search `requirements.txt` / `pyproject.toml` + existing `lib/`, `utils/`
 2. Check PyPI for maintenance status (last release, Python version support)
 3. Prefer stdlib + Pydantic over dedicated packages for simple needs
+
+## Checklist
+
+- [ ] Architecture: routes/api → services → repositories (FastAPI) or fat models → thin views (Django)
+- [ ] Pydantic v2 for validation at API boundaries
+- [ ] `asyncio.TaskGroup` (3.11+) over `asyncio.gather`
+- [ ] `pytest` + `coverage` for testing
+- [ ] `conftest.py` shared fixtures in test packages
+- [ ] Testcontainers or httpx AsyncClient for integration tests
+- [ ] `factory_boy` for test fixtures (Django/ORM)

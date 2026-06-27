@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.tsx"
+- "**/*.jsx"
+---
+
 # React Native Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with React Native-specific rules.
 
 ## Hooks over Classes
 ```tsx
@@ -103,3 +111,13 @@ import Button from './Button';  // auto-resolves per platform
 - **AsyncStorage** / **MMKV** for persistence
 - Avoid prop drilling → use context or zustand store
 - Consider **useMMKV** from react-native-mmkv for high-frequency writes
+
+## Checklist
+
+- [ ] Hooks over class components
+- [ ] `FlashList` over `FlatList` for lists > 20 items
+- [ ] `React.memo` on expensive list items
+- [ ] `StyleSheet.create()` over inline styles
+- [ ] Platform-specific files (`.ios.tsx` / `.android.tsx`) for complex diffs
+- [ ] Image dimensions specified for layout performance
+- [ ] Zustand for global state, consistent with web patterns

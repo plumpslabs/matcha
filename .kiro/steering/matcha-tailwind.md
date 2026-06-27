@@ -18,5 +18,9 @@ fileMatchPattern: "*.css|*.tsx|*.jsx|*.html|*.vue"
 - Utility-first: inline over @apply
 - CSS variables for dynamic values
 
-# 🔎 Reuse check
-Check existing tailwind.config before adding custom theme values
+## Checklist
+- [ ] v4: `@import "tailwindcss"` not `@tailwind` directives
+- [ ] Theme via `@theme` block in CSS, not JS config
+- [ ] Utility-first — minimal `@apply`
+- [ ] CSS variables for dynamic values
+- [ ] Check existing tailwind.config before adding custom values

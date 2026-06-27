@@ -30,5 +30,11 @@ function useUser(id: string) {
 - Server functions with "use server"
 - SSR + streaming by default
 
-# 🔎 Reuse check
-Search existing query hooks before adding new ones
+## Checklist
+- [ ] Query keys typed — factory pattern for consistency
+- [ ] `staleTime` configured per query (not all default)
+- [ ] Mutations with optimistic updates for UX-critical paths
+- [ ] Error handling in mutations — rollback on failure
+- [ ] Infinite queries paginated with `getNextPageParam`
+- [ ] Router: type-safe routes with `validateSearch`
+- [ ] Search existing query hooks before adding new ones

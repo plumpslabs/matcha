@@ -8,9 +8,9 @@ alwaysApply: false
 
 ## Strict Mode, No `any`
 ```typescript
-// ❌ Bad — any
+// ❌ Bad
 const data: any = fetchData();
-// ✅ Good — unknown + narrow
+// ✅ Good
 const data: unknown = fetchData();
 ```
 
@@ -23,7 +23,7 @@ kebab-case for utils/hooks, PascalCase for components
 // ❌ singleton import
 import { db } from "./db";
 // ✅ constructor injection
-class Service { constructor(private db: Database) {} }
+class UserService { constructor(private db: Database) {} }
 ```
 
 ## Interface vs Type
@@ -32,14 +32,27 @@ interface User { id: string; name: string; }
 type Status = "active" | "inactive";
 ```
 
-## Async Safety — no floating promises
+## Async Safety
+```typescript
+// ❌ Bad — floating promise
+fireAndForget();
+// ✅ Good
+await fireAndForget();
+```
 
-## Imports — node → externals → internal → relative
+## Imports
+node → externals → internal → relative
 
 # TypeScript Patterns
-- Zustand + TanStack Query for state
-- Typed fetch wrapper, error boundaries
-- Testing: Vitest + Testing Library
+- React: hooks over HOCs, composition over inheritance
+- Zustand for state management, TanStack Query for server state
+- API: typed fetch wrapper, error boundaries
+- Testing: Vitest + Testing Library, MSW
 
-# 🔎 Reuse check
-Before npm package: search `package.json` + `src/utils/`
+## Checklist
+- [ ] Types explicit on public APIs — no `any`, use `unknown` + narrow
+- [ ] Runtime validation at API boundaries (Zod)
+- [ ] Async errors handled — no floating promises
+- [ ] Imports: built-in → external → internal → type files
+- [ ] No `console.log` committed — proper logger only
+- [ ] Before adding dep: search `package.json` + existing `src/utils/` first

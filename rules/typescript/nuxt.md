@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.vue"
+- "**/*.ts"
+---
+
 # Nuxt Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Nuxt-specific rules.
 
 ## Directory Structure
 ```
@@ -97,3 +105,13 @@ export default defineNuxtConfig({
 - `keepalive: true` for cached pages
 - Lazy hydrate components with `lazy` prefix: `<LazyFooter />`
 - `definePageMeta({ keepalive: true })` for page-level caching
+
+## Checklist
+
+- [ ] `useAsyncData` / `useFetch` over raw `fetch` (SSR hydration)
+- [ ] Auto-imported composables in `composables/` directory
+- [ ] Server routes in `server/api/` — server-only code
+- [ ] Route rules configured in `nuxt.config.ts` (SSR, SPA, prerender)
+- [ ] SEO via `useSeoMeta` per page
+- [ ] Images optimized with `NuxtImg`
+- [ ] Lazy hydrate components with `lazy` prefix where appropriate

@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.php"
+---
+
 # PHP Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with PHP architecture and design patterns.
 
 ## Architecture
 - **Laravel**: skinny controllers, Form Requests for validation, Eloquent for CRUD
@@ -72,3 +79,13 @@ Before adding a Composer package:
 1. Search `composer.json` + existing `app/`, `src/` Services
 2. Check Packagist for maintenance and PHP version support
 3. Evaluate: does Laravel/Symfony already ship this functionality?
+
+## Checklist
+
+- [ ] Slim controllers — Form Request classes for validation (Laravel) or attributes (Symfony)
+- [ ] Eager load relationships, avoid N+1
+- [ ] Cache query results for read-heavy endpoints
+- [ ] Queue heavy operations (Jobs / Messenger)
+- [ ] Pest/PHPUnit for testing — HTTP tests for API endpoints
+- [ ] Paginate all list endpoints — never `Model::all()`
+- [ ] Action classes (`__invoke`) for complex single operations

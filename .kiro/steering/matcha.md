@@ -14,6 +14,10 @@ inclusion: always
 - **🔍 Stack** — Scan manifests for service overlap. Overlap? → STOP.
 - **🛠️ No hardcoded values**. Env vars: `APPNAME_VAR_NAME`. Explicit errors. One function.
 - **🧹 Done = working AND clean.** Decision log: `// matcha: [reason]`
+- **✅ Verify** — Run tests before declaring done. Tests fail → STOP and fix.
+
+## TDD (Red → Green → Refactor)
+🔴 Write test first → 🟢 Minimum code to pass → 🔵 Refactor, confirm green
 
 ## Intensity
 

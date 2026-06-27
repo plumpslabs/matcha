@@ -27,5 +27,11 @@ export class CreateUserDto {
 - Global ValidationPipe with class-validator
 - Guards for auth, Interceptors for logging
 
-# 🔎 Reuse check
-Check existing providers in module before adding new ones
+## Checklist
+- [ ] Feature modules per domain, not per file type
+- [ ] Controllers: HTTP only — no business logic
+- [ ] Services: business logic — no HTTP awareness
+- [ ] DTOs at controller boundary, entities in service layer
+- [ ] Global ValidationPipe with class-validator
+- [ ] `@ControllerAdvice` for global exception handling
+- [ ] Check existing providers in module before adding new ones

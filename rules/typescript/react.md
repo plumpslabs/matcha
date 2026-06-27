@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.tsx"
+- "**/*.jsx"
+---
+
 # React (Web) Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with React-specific rules.
 
 ## Components
 ```tsx
@@ -86,3 +94,13 @@ lib/
 ├── validations/ ← Zod schemas
 └── api/         ← API client / fetch wrappers
 ```
+
+## Checklist
+
+- [ ] Server Components by default — `"use client"` only when needed
+- [ ] Props typed with explicit `interface` or `type`
+- [ ] No `React.FC` without a specific reason
+- [ ] Hooks for logic reuse, not HOCs
+- [ ] Zustand for global state, TanStack Query for server state
+- [ ] `React.memo` on expensive renders only
+- [ ] Components colocated by feature, not by type

@@ -1,4 +1,14 @@
+---
+paths:
+- "**/*.ts"
+- "**/*.tsx"
+- "**/*.js"
+- "**/*.jsx"
+---
+
 # TypeScript Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with TypeScript-specific rules.
 
 ## Strict Mode, No `any`
 ```typescript
@@ -99,3 +109,13 @@ type DeepPartial<T> = { [K in keyof T]?: DeepPartial<T[K]> };
 type WithRequired<T, K extends keyof T> = T & { [P in K]-?: T[P] };
 type PickByValue<T, V> = { [K in keyof T as T[K] extends V ? K : never]: T[K] };
 ```
+
+## Checklist
+
+- [ ] Types explicit on all public APIs
+- [ ] No `any` — use `unknown` and narrow, or generics
+- [ ] Runtime validation at API boundaries (Zod/class-validator)
+- [ ] Async errors handled — no floating promises
+- [ ] Imports order: built-in → external → internal → type files
+- [ ] No `console.log` committed — use proper logger
+- [ ] `interface` for object shapes, `type` for unions/utilities

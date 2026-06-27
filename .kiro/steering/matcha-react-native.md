@@ -36,5 +36,11 @@ const padding = Platform.OS === "ios" ? 16 : 8;
 - Navigation: React Navigation
 - Testing: Jest + React Native Testing Library
 
-# 🔎 Reuse check
-Before adding npm dep: search package.json + existing components/
+## Checklist
+- [ ] Hooks over class components
+- [ ] `FlashList` for lists > 20 items
+- [ ] `React.memo` on expensive items
+- [ ] `StyleSheet.create()` over inline styles
+- [ ] Platform-specific files (`.ios.tsx` / `.android.tsx`)
+- [ ] Hermes enabled for production builds
+- [ ] Before adding dep: search `package.json` + `components/` first

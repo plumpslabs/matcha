@@ -31,5 +31,11 @@ kebab-case with type suffix: `.component.ts`, `.service.ts`, `.pipe.ts`
 - `trackBy` in @for loops
 - `async` pipe in templates, never subscribe in component
 
-# 🔎 Reuse check
-Check existing services and modules before adding new ones
+## Checklist
+- [ ] Signals over RxJS for UI state — RxJS only for event streams
+- [ ] `inject()` over constructor DI
+- [ ] `ChangeDetectionStrategy.OnPush` on all components
+- [ ] `trackBy` in `@for` loops
+- [ ] Lazy load feature modules / standalone components
+- [ ] `async` pipe in templates, never `subscribe` in component
+- [ ] Check existing services and modules before adding new ones

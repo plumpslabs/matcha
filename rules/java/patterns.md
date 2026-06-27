@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.java"
+---
+
 # Java Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Java architecture and design patterns.
 
 ## Architecture (Spring Boot)
 - **3-layer**: `Controller → Service → Repository`
@@ -67,3 +74,13 @@ Before adding a Maven/Gradle dependency:
 1. Search `pom.xml` or `build.gradle` + existing `util/`, `helper/` packages
 2. Check Maven Central for maintenance (last update, vulnerabilities)
 3. Does Spring Boot starter already include this?
+
+## Checklist
+
+- [ ] 3-layer architecture: Controller → Service → Repository
+- [ ] `@EntityGraph` for N+1 prevention
+- [ ] `@Transactional` at service layer, never controller
+- [ ] Global exception handler via `@ControllerAdvice`
+- [ ] JUnit 5 + Mockito + AssertJ for tests
+- [ ] Testcontainers for integration tests (DB, Redis)
+- [ ] Pagination via `Pageable` — never manual limit/offset

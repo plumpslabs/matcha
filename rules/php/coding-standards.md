@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.php"
+---
+
 # PHP Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with PHP-specific rules.
 
 ## Strict Types
 ```php
@@ -105,3 +112,13 @@ class UserRepository {
     ) {}
 }
 ```
+
+## Checklist
+
+- [ ] `declare(strict_types=1)` on every PHP file
+- [ ] Types on all parameters and return values
+- [ ] Modern PHP 8.x features used (enums, match, named arguments, attributes)
+- [ ] Constructor property promotion where applicable
+- [ ] Specific exceptions caught — no empty catch blocks
+- [ ] PSR-4 autoloading, PSR-12 code style
+- [ ] DI over globals and static methods

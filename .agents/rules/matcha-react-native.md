@@ -10,6 +10,7 @@ alwaysApply: false
 ```tsx
 // ❌ Bad — class component
 class Profile extends React.Component { ... }
+
 // ✅ Good — function + hooks
 function Profile() {
   const [user, setUser] = useState<User | null>(null);
@@ -20,7 +21,9 @@ function Profile() {
 ## Performance
 ```tsx
 // ✅ Memoize
-const Item = React.memo(function Item({ data }: { data: Item }) { ... });
+const Item = React.memo(function Item({ data }: { data: Item }) {
+  return <View>{data.name}</View>;
+});
 // ✅ FlatList over .map()
 <FlatList data={items} renderItem={renderItem} />
 ```
@@ -36,5 +39,11 @@ const padding = Platform.OS === "ios" ? 16 : 8;
 - Navigation: React Navigation
 - Testing: Jest + React Native Testing Library
 
-# 🔎 Reuse check
-Before adding npm dep: search package.json + existing components/
+## Checklist
+- [ ] Hooks over class components
+- [ ] `FlashList` over `FlatList` for lists > 20 items
+- [ ] `React.memo` on expensive list items
+- [ ] `StyleSheet.create()` over inline styles
+- [ ] Platform-specific files (`.ios.tsx` / `.android.tsx`)
+- [ ] Hermes enabled for production builds
+- [ ] Before adding npm dep: search package.json + existing components/ first

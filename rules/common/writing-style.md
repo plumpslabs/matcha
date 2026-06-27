@@ -232,3 +232,12 @@ Tidak berlaku untuk (masih pake judgment agent):
 - External documentation yang butuh tone formal
 - Regulatory/compliance writing
 - User-facing copy yang udah punya style guide sendiri
+
+## Checklist
+
+- [ ] Commit message: `type(scope): subject` — ≤72 chars, imperative
+- [ ] Comments explain *why*, not *what*
+- [ ] Error messages actionable — what + where + fix
+- [ ] Active voice — subject does the action
+- [ ] No filler phrases, no dead buzzwords
+- [ ] Single source of truth — link, don't duplicate

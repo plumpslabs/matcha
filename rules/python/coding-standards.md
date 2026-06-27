@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.py"
+---
+
 # Python Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Python-specific rules.
 
 ## Type Hints
 ```python
@@ -82,3 +89,13 @@ def create_user(data: dict) -> User:
     user = validate(data)
     return save_to_db(user)
 ```
+
+## Checklist
+
+- [ ] Type hints on all function signatures (parameters + return)
+- [ ] `pathlib.Path` over `os.path` for file operations
+- [ ] Pydantic v2 for data validation at boundaries
+- [ ] Specific exceptions in `except` blocks — no bare `except:`
+- [ ] Imports grouped: stdlib → third-party → internal
+- [ ] `dataclasses` for internal data containers
+- [ ] No `import *` — explicit imports only

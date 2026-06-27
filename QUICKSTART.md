@@ -36,8 +36,19 @@ The script auto-detects **12 platforms** (`.claude/`, `.cursor/`, `.kiro/`, `.qo
 ### C) Antigravity CLI / agy
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+# Install via agy plugin manager (auto-detects .agents/)
+agy plugin install https://github.com/plumpslabs/matcha
+
+# Or if you already cloned the repo:
+agy plugin install /path/to/matcha
+
+# Verify installation
+agy plugin list
 ```
+
+Antigravity auto-discovers `.agents/agents/*.md` definitions, `commands/`, `rules/`, and `skills/` from the plugin. No additional config needed.
+
+> **Note:** Requires `plugin.json` at repo root (included since v1.1.0).
 
 ---
 

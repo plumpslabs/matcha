@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.tsx"
+- "**/*.jsx"
+---
+
 # React Native Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with React Native architecture and patterns.
 
 ## Navigation
 - **React Navigation** with typed route params (`NativeStackScreenProps`)
@@ -63,3 +71,12 @@ Before adding an RN package:
 1. Search `package.json` + existing native modules
 2. Check if it supports New Architecture (Fabric/TurboModules)
 3. Prefer libraries with native C++ implementation over JS-only bridges
+
+## Checklist
+
+- [ ] Navigation typed (NativeStackScreenProps)
+- [ ] Hermes enabled for production builds
+- [ ] New Architecture (Fabric + TurboModules) considered for new projects
+- [ ] RNTL for component tests, Detox for e2e
+- [ ] Deep linking configured at root navigator
+- [ ] MMKV considered for high-frequency writes over AsyncStorage

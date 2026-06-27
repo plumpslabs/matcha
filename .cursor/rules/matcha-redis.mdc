@@ -29,5 +29,10 @@ return data;
 - Write-through for critical data
 - Avoid cache stampede: SET NX or locks
 
-# 🔎 Reuse check
-Check existing cache layer before adding new redis calls
+## Checklist
+- [ ] Key namespaced with `app:entity:id:field` convention
+- [ ] TTL set on every key — no memory leaks
+- [ ] `SCAN` over `KEYS` in production
+- [ ] Right data type chosen (Hash vs String vs SortedSet)
+- [ ] Cache stampede protection (`SET NX` / locks)
+- [ ] Check existing cache layer before adding new redis calls

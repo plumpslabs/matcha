@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.ts"
+- "**/*.tsx"
+---
+
 # TanStack Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with TanStack-specific rules.
 
 ## TanStack Query (React Query)
 ```typescript
@@ -99,3 +107,13 @@ const productRoute = new Route({
 - Server functions: `"use server"` with type-safe client calls
 - SSR + streaming by default
 - Deploy: Vercel, Netlify, Cloudflare
+
+## Checklist
+
+- [ ] Query keys typed — factory pattern for consistency
+- [ ] `staleTime` configured per query (not all default)
+- [ ] Mutations with optimistic updates for UX-critical paths
+- [ ] Error handling in mutations — rollback on failure
+- [ ] Infinite queries paginated with `getNextPageParam`
+- [ ] Router: type-safe routes with `validateSearch` for search params
+- [ ] Query cancellation via `signal` for cleanup on unmount

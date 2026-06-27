@@ -51,3 +51,11 @@ async function getProduct(id: string) {
 - Distributed locks: `SET key uuid NX EX 10`
 - Session store: `SETEX session:token 3600 userData`
 - Message queue: `LPUSH` + `BRPOP` (worker pattern)
+
+## Checklist
+
+- [ ] Key namespaced with `app:entity:id:field` convention
+- [ ] TTL set on every key — no memory leaks
+- [ ] `SCAN` over `KEYS` in production
+- [ ] Right data type chosen (Hash vs String vs SortedSet)
+- [ ] Cache stampede protection considered (`SET NX` / locks)

@@ -42,5 +42,10 @@ catch (IOException e) {
 - Stream API over loops with mutation
 - Testing: JUnit 5, Mockito
 
-# 🔎 Reuse check
-Before adding Maven dep: search pom.xml + existing src/main/java/
+## Checklist
+- [ ] No null — `Optional`, `Objects.requireNonNull`
+- [ ] Records over classes (Java 16+)
+- [ ] Modern features: sealed classes, pattern matching
+- [ ] Constructor injection with `final` fields
+- [ ] DTOs at API boundaries, entities internal
+- [ ] Before adding dep: search `pom.xml` + `src/main/java/` first

@@ -43,3 +43,11 @@ module.exports = {
 - Use `@layer` for custom component styles
 - Use CSS variables (`--color-*`) for dynamic values
 - Check v4 migration before copy-pasting old v3 snippets
+
+## Checklist
+
+- [ ] Using `@import "tailwindcss"` (v4) not `@tailwind` directives (v3)
+- [ ] Custom theme via `@theme` block in CSS, not `tailwind.config.js`
+- [ ] Utility-first — minimal custom CSS for common patterns
+- [ ] CSS variables for dynamic/runtime values
+- [ ] `@apply` only for genuinely repeated complex patterns

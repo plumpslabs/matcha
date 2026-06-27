@@ -1,4 +1,12 @@
+---
+paths:
+- "**/*.tsx"
+- "**/*.ts"
+---
+
 # Next.js Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Next.js-specific rules.
 
 ## App Router
 ```tsx
@@ -97,3 +105,13 @@ export const config = { matcher: ['/dashboard/:path*'] };
 - Edge runtime by default (fast, limited APIs)
 - Use for: auth checks, redirects, i18n, geolocation
 - NOT for: heavy computation, DB queries
+
+## Checklist
+
+- [ ] Server Components by default — `"use client"` only for interactivity
+- [ ] Data fetching in Server Components, mutations in Server Actions
+- [ ] Loading states via `loading.tsx` or `<Suspense>` boundaries
+- [ ] Error boundaries via `error.tsx` (client component)
+- [ ] Images optimized with `next/image`
+- [ ] Fonts optimized with `next/font`
+- [ ] Middleware for auth/redirects, not for heavy computation

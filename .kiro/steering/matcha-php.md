@@ -36,5 +36,10 @@ PSR-4 autoloading, PSR-12 code style, constructor promotion
 - Testing: PHPUnit, Pest
 - DI over service location
 
-# 🔎 Reuse check
-Before adding composer dep: search composer.json + existing src/
+## Checklist
+- [ ] `declare(strict_types=1)` on every file
+- [ ] Types on all params and returns
+- [ ] PHP 8.x features: enums, match, named args
+- [ ] Specific exceptions — no empty catch
+- [ ] PSR-4 + PSR-12
+- [ ] Before adding dep: search `composer.json` + `src/` first

@@ -7,17 +7,17 @@ alwaysApply: false
 # Redis Standards
 
 ## Key Naming
-`app:entity:id:field` — colons for hierarchy
-TTL on every key, consistent prefix per domain
+`app:entity:id:field` — colons for hierarchy, TTL on every key
+Consistent prefix per domain, max key length 1024 bytes
 
 ## Data Type Selection
-- String → cache, counters
-- Hash → objects with partial updates
+- String → cache, counters, sessions
+- Hash → objects (partial updates with HSET)
 - List → queues (LPUSH + BRPOP)
 - SortedSet → leaderboards, rate limiting
-- Stream → event logs (over Pub/Sub)
+- Stream → event logs (over Pub/Sub for reliability)
 
-## Caching Pattern
+## Caching Pattern (Cache-Aside)
 ```typescript
 const cached = await redis.get(key);
 if (cached) return JSON.parse(cached);
@@ -25,9 +25,14 @@ const data = await db.find(...);
 await redis.setex(key, 300, JSON.stringify(data));
 return data;
 ```
-- Cache-aside with TTL
+- TTL based on data staleness
 - Write-through for critical data
-- Avoid stampede: SET NX
+- Avoid cache stampede: SET NX or locks
 
-# 🔎 Reuse check
-Check existing cache layer before adding new redis calls
+## Checklist
+- [ ] Key namespaced with `app:entity:id:field` convention
+- [ ] TTL set on every key — no memory leaks
+- [ ] `SCAN` over `KEYS` in production
+- [ ] Right data type chosen (Hash vs String vs SortedSet)
+- [ ] Cache stampede protection (`SET NX` / locks)
+- [ ] Check existing cache layer before adding new redis calls

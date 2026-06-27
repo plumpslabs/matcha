@@ -25,5 +25,10 @@ async function action(formData: FormData) { 'use server'; ... }
 - Streaming via loading.tsx + Suspense
 - ISR with fetch revalidate
 
-# 🔎 Reuse check
-Check `next.config.ts` capabilities before adding plugins
+## Checklist
+- [ ] Server Components by default — interactivity via Server Actions
+- [ ] Loading states via `loading.tsx` or `<Suspense>`
+- [ ] Error boundaries via `error.tsx` (client component)
+- [ ] Images via `next/image`, fonts via `next/font`
+- [ ] Middleware for auth/redirects, not heavy computation
+- [ ] Check `next.config.ts` capabilities before adding plugins

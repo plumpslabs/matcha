@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.go"
+---
+
 # Go Patterns
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Go architecture and design patterns.
 
 ## Architecture
 - **Handler → Service → Repository** (3-layer)
@@ -51,3 +58,14 @@ Before adding a Go dependency:
 1. Search `go.mod` + existing `pkg/`, `internal/` for existing implementation
 2. Prefer stdlib: net/http over gin for simple APIs
 3. Check module size and dependency tree with `go mod why`
+
+## Checklist
+
+- [ ] 3-layer: Handler → Service → Repository
+- [ ] Handlers: HTTP/transport only — no business logic
+- [ ] `errgroup` for goroutine lifecycle with error propagation
+- [ ] Graceful shutdown via `signal.NotifyContext`
+- [ ] `httptest` for HTTP handler tests
+- [ ] `testify/assert` or `testify/require` for test assertions
+- [ ] `golangci-lint` enabled (errcheck, govet, staticcheck)
+- [ ] `//go:build` tags for platform-specific code

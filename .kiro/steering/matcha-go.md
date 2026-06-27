@@ -32,5 +32,11 @@ Use dependency injection
 - Graceful shutdown with signal.NotifyContext
 - Testing: table-driven tests, testify/assert, httptest
 
-# 🔎 Reuse check
-Before adding Go dep: search go.mod and existing pkg/
+## Checklist
+- [ ] Errors always checked — no `_` assignments
+- [ ] Context passed for cancellable operations
+- [ ] Defer for cleanup — paired with acquisition
+- [ ] Interfaces where consumed (small, 1-3 methods)
+- [ ] No global mutable state — DI
+- [ ] Table-driven tests with case names
+- [ ] Before adding dep: search `go.mod` + `pkg/` first

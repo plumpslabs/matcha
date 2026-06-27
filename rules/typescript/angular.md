@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.ts"
+---
+
 # Angular Best Practices
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Angular-specific rules.
 
 ## Signals (Angular 17+)
 ```typescript
@@ -46,3 +53,13 @@ kebab-case:
 - `trackBy` in `@for` loops (Angular 17+)
 - Lazy load feature modules / standalone components
 - `async` pipe in templates, never `subscribe` in component
+
+## Checklist
+
+- [ ] Signals over RxJS for UI state
+- [ ] `inject()` over constructor DI
+- [ ] `ChangeDetectionStrategy.OnPush` on all components
+- [ ] `trackBy` in `@for` loops
+- [ ] Lazy load feature modules / standalone components
+- [ ] One class = one file
+- [ ] `.service.ts`, `.component.ts`, `.pipe.ts` suffixes consistently used

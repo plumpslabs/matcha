@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.java"
+---
+
 # Java Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Java-specific rules.
 
 ## No Null
 ```java
@@ -79,7 +86,6 @@ public class NotFoundException extends AppException {
     @Override public HttpStatus getStatus() { return HttpStatus.NOT_FOUND; }
 }
 ```
-
 ## Streams & Optional
 ```java
 // ✅ Prefer Stream API over loops with mutation
@@ -93,6 +99,15 @@ public Optional<User> findByEmail(String email) {
     return Optional.ofNullable(userCache.get(email));
 }
 ```
+
+## Checklist
+
+- [ ] No null — `Optional`, `Objects.requireNonNull`, or `@NotNull`
+- [ ] Records over classes for data carriers (Java 16+)
+- [ ] Modern Java features used (sealed classes, pattern matching, text blocks)
+- [ ] Error handling specific — no empty catch blocks
+- [ ] Constructor injection with `final` fields
+- [ ] DTOs at API boundaries, entities kept internal
 
 ## Modern Java Features (17/21+)
 ```java

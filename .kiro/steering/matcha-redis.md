@@ -18,5 +18,10 @@ app:entity:id:field — colons for hierarchy, TTL on every key
 Cache-aside with TTL, write-through for critical data
 Avoid stampede: SET NX or distributed locks
 
-# 🔎 Reuse check
-Check existing cache layer before adding new redis calls
+## Checklist
+- [ ] Key: `app:entity:id:field` convention
+- [ ] TTL on every key
+- [ ] `SCAN` over `KEYS` in production
+- [ ] Right data type chosen
+- [ ] Stampede protection considered
+- [ ] Check existing cache layer before adding new redis calls

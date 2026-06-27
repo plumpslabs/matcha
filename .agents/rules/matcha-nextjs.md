@@ -9,13 +9,14 @@ alwaysApply: false
 ## App Router Only
 - Server Components by default, "use client" only for interactivity
 - `loading.tsx`, `error.tsx`, `not-found.tsx` per route segment
+- Route groups `(marketing)` for organization without URL nesting
 
 ## Data Fetching
 ```tsx
 // ✅ Server Component — fetch directly
 async function Page() { const data = await fetch(url).then(r => r.json()); return ...; }
 // ✅ Server Actions for mutations
-async function action(data: FormData) { 'use server'; ... }
+async function action(formData: FormData) { 'use server'; ... }
 ```
 
 ## Performance
@@ -24,5 +25,10 @@ async function action(data: FormData) { 'use server'; ... }
 - Streaming via loading.tsx + Suspense
 - ISR with fetch revalidate
 
-# 🔎 Reuse check
-Check next.config.ts capabilities before adding plugins
+## Checklist
+- [ ] Server Components by default — interactivity via Server Actions
+- [ ] Loading states via `loading.tsx` or `<Suspense>`
+- [ ] Error boundaries via `error.tsx` (client component)
+- [ ] Images via `next/image`, fonts via `next/font`
+- [ ] Middleware for auth/redirects, not heavy computation
+- [ ] Check `next.config.ts` capabilities before adding plugins

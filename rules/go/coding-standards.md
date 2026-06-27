@@ -1,4 +1,11 @@
+---
+paths:
+- "**/*.go"
+---
+
 # Go Coding Standards
+
+> This file extends [common/coding-standards.md](../common/coding-standards.md) with Go-specific rules.
 
 ## Error Handling
 ```go
@@ -109,3 +116,14 @@ var db *sql.DB
 type Handler struct { db *sql.DB }
 func NewHandler(db *sql.DB) *Handler { return &Handler{db: db} }
 ```
+
+## Checklist
+
+- [ ] Errors always checked — no `_` assignments for errors
+- [ ] Error wrapping with `%w` at boundaries
+- [ ] Context passed as first parameter for cancellable operations
+- [ ] Defer for cleanup — paired with resource acquisition
+- [ ] Interfaces defined where consumed (small, 1-3 methods)
+- [ ] No global mutable state — dependency injection
+- [ ] `gofmt` formatting — enforce in CI
+- [ ] Table-driven tests with descriptive case names

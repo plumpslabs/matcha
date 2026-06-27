@@ -5,7 +5,7 @@
  * Run: node scripts/build-openclaw-skills.js
  */
 
-import { readFileSync, writeFileSync, mkdirSync } from "fs";
+import { readFileSync, writeFileSync, mkdirSync, symlinkSync, rmSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -47,15 +47,26 @@ for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-re
 }
 
 // Commands — sync from canonical commands/ to Claude Code + .agents
-// NOTE: .opencode/commands/ excluded — OpenCode plugin registers commands
+// NOTE: Claude Code uses symlinks (target = command definition).
+// .agents uses regular files (universal format).
+// .opencode/commands/ excluded — OpenCode plugin registers commands
 // via file: field directly to canonical commands/, so directory files are dead.
-for (const c of ["why", "review", "audit", "intensity", "status"]) {
+
+for (const c of ["why", "review", "audit", "intensity", "status", "debt"]) {
   const content = read(`commands/${c}.md`);
-  write(`.claude/commands/${c}.md`, content);
+  const claudePath = join(ROOT, `.claude/commands/${c}.md`);
+  const agentsPath = join(ROOT, `.agents/commands/${c}.md`);
+
+  // Claude: symlink with command definition as target
+  try { rmSync(claudePath); } catch {}
+  symlinkSync(content.trim(), claudePath);
+  console.log(`  ✓ Symlink: .claude/commands/${c}.md`);
+
+  // .agents: regular file
   write(`.agents/commands/${c}.md`, content);
 }
 
-console.log("  → Synced commands: why, review, audit, intensity, status × 2 platforms (Claude + .agents)");
+console.log("  → Synced commands: why, review, audit, intensity, status, debt × Claude (symlink) + .agents (file)");
 
 // Note: CLAUDE.md is intentionally kept separate from AGENTS.md
 // CLAUDE.md = short Claude persona (~29 lines)

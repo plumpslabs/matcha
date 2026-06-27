@@ -41,7 +41,7 @@ At the END of every task response, include 3 matcha suggestions (match the user'
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.0.3", event: event.type },
+    metadata: { convention: "matcha", version: "2.2.0", event: event.type },
   };
 }
 

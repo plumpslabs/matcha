@@ -26,8 +26,10 @@ const REPORT_MD_PATH = join(ROOT, "docs", "BENCHMARK.md");
 
 async function runBenchmark(options = {}) {
   const iterations = options.iterations ?? 1;
+  const live = options.live ?? false;
   console.log(`🍵 Running agentic benchmark (n=${iterations}) via agentic-runner...`);
-  const raw = await runAgenticLive({ simulate: true, iterations });
+  console.log(`   Mode: ${live ? "LIVE (Claude Code)" : "SIMULATED (default solutions)"}`);
+  const raw = await runAgenticLive({ simulate: !live, iterations });
   return raw;
 }
 
@@ -234,6 +236,7 @@ const isDirectInvocation = process.argv[1] && (
 if (isDirectInvocation) {
   const args = process.argv.slice(2);
   const jsonOnly = args.includes("--json");
+  const liveFlag = args.includes("--live");
   const mdFlag = args.includes("--md") || args.includes("--markdown");
   const skipBench = args.includes("--skip-bench");
   const includeRepo = args.includes("--include-repo");
@@ -264,7 +267,7 @@ if (isDirectInvocation) {
   (async () => {
     try {
       console.log(`  🔄 ${iterations} iteration(s) per cell\n`);
-      const raw = await runBenchmark({ iterations });
+      const raw = await runBenchmark({ live: liveFlag, iterations });
       const data = transformFlatData(raw);
       const totals = calcSummary(data);
       const generated = new Date().toISOString();

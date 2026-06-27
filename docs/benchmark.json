@@ -1,22 +1,22 @@
 {
-  "generated": "2026-06-27T06:04:32.465Z",
+  "generated": "2026-06-27T10:59:02.505Z",
   "summary": {
     "baseline": {
-      "loc": 75,
-      "correct": 5,
-      "adversarial": 7,
+      "loc": 347,
+      "correct": 13,
+      "adversarial": 4,
       "total": 20
     },
     "terse": {
-      "loc": 29,
-      "correct": 4,
-      "adversarial": 7,
+      "loc": 198,
+      "correct": 13,
+      "adversarial": 4,
       "total": 20
     },
     "matcha": {
-      "loc": 52,
-      "correct": 5,
-      "adversarial": 5,
+      "loc": 260,
+      "correct": 13,
+      "adversarial": 4,
       "total": 20
     }
   },
@@ -25,20 +25,20 @@
       "id": "anagram-group",
       "name": "Anagram Group",
       "baseline": {
-        "loc": 1,
-        "tokens": 18,
+        "loc": 11,
+        "tokens": 80,
         "correct": false,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 11,
+        "tokens": 70,
         "correct": false,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 11,
+        "tokens": 82,
         "correct": false,
         "adversarial": false
       }
@@ -47,43 +47,43 @@
       "id": "array-flatten",
       "name": "Array Flatten",
       "baseline": {
-        "loc": 6,
-        "tokens": 42,
+        "loc": 12,
+        "tokens": 60,
         "correct": false,
-        "adversarial": true
+        "adversarial": false
       },
       "terse": {
-        "loc": 2,
-        "tokens": 30,
+        "loc": 4,
+        "tokens": 34,
         "correct": false,
-        "adversarial": true
+        "adversarial": false
       },
       "matcha": {
-        "loc": 5,
-        "tokens": 42,
-        "correct": true,
-        "adversarial": true
+        "loc": 7,
+        "tokens": 41,
+        "correct": false,
+        "adversarial": false
       }
     },
     {
       "id": "chunk-array",
       "name": "Chunk Array",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 10,
+        "tokens": 78,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 8,
+        "tokens": 64,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 10,
+        "tokens": 78,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -91,21 +91,21 @@
       "id": "config-parser",
       "name": "Config Parser",
       "baseline": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 17,
+        "tokens": 137,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 13,
+        "tokens": 90,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 18,
+        "tokens": 164,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -113,20 +113,20 @@
       "id": "csv-sum",
       "name": "Csv Sum",
       "baseline": {
-        "loc": 11,
-        "tokens": 76,
+        "loc": 15,
+        "tokens": 96,
         "correct": true,
         "adversarial": true
       },
       "terse": {
         "loc": 2,
-        "tokens": 37,
+        "tokens": 57,
         "correct": true,
         "adversarial": true
       },
       "matcha": {
-        "loc": 4,
-        "tokens": 43,
+        "loc": 10,
+        "tokens": 73,
         "correct": true,
         "adversarial": true
       }
@@ -135,20 +135,20 @@
       "id": "date-fmt",
       "name": "Date Fmt",
       "baseline": {
-        "loc": 10,
-        "tokens": 91,
-        "correct": true,
-        "adversarial": true
+        "loc": 14,
+        "tokens": 109,
+        "correct": false,
+        "adversarial": false
       },
       "terse": {
-        "loc": 2,
-        "tokens": 54,
+        "loc": 9,
+        "tokens": 96,
         "correct": false,
-        "adversarial": true
+        "adversarial": false
       },
       "matcha": {
-        "loc": 7,
-        "tokens": 83,
+        "loc": 10,
+        "tokens": 110,
         "correct": false,
         "adversarial": false
       }
@@ -158,19 +158,19 @@
       "name": "Debounce",
       "baseline": {
         "loc": 8,
-        "tokens": 47,
+        "tokens": 49,
         "correct": true,
         "adversarial": true
       },
       "terse": {
-        "loc": 2,
-        "tokens": 31,
+        "loc": 8,
+        "tokens": 45,
         "correct": true,
         "adversarial": true
       },
       "matcha": {
-        "loc": 8,
-        "tokens": 45,
+        "loc": 10,
+        "tokens": 56,
         "correct": true,
         "adversarial": true
       }
@@ -179,20 +179,20 @@
       "id": "deep-clone",
       "name": "Deep Clone",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 21,
+        "tokens": 128,
         "correct": false,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 16,
+        "loc": 9,
+        "tokens": 95,
         "correct": false,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 9,
+        "tokens": 89,
         "correct": false,
         "adversarial": false
       }
@@ -201,20 +201,20 @@
       "id": "deep-get",
       "name": "Deep Get",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 12,
+        "tokens": 90,
         "correct": false,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 16,
+        "loc": 11,
+        "tokens": 65,
         "correct": false,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 16,
+        "loc": 12,
+        "tokens": 77,
         "correct": false,
         "adversarial": false
       }
@@ -223,20 +223,20 @@
       "id": "deep-merge",
       "name": "Deep Merge",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 39,
+        "tokens": 292,
         "correct": false,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 16,
+        "loc": 18,
+        "tokens": 157,
         "correct": false,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
+        "loc": 26,
+        "tokens": 225,
         "correct": false,
         "adversarial": false
       }
@@ -245,20 +245,20 @@
       "id": "email-validator",
       "name": "Email Validator",
       "baseline": {
-        "loc": 8,
-        "tokens": 69,
+        "loc": 30,
+        "tokens": 340,
         "correct": true,
         "adversarial": true
       },
       "terse": {
-        "loc": 3,
-        "tokens": 39,
+        "loc": 23,
+        "tokens": 235,
         "correct": true,
         "adversarial": true
       },
       "matcha": {
-        "loc": 5,
-        "tokens": 58,
+        "loc": 16,
+        "tokens": 189,
         "correct": true,
         "adversarial": true
       }
@@ -267,20 +267,20 @@
       "id": "fizzbuzz",
       "name": "Fizzbuzz",
       "baseline": {
-        "loc": 11,
-        "tokens": 74,
+        "loc": 16,
+        "tokens": 86,
         "correct": true,
         "adversarial": true
       },
       "terse": {
-        "loc": 2,
-        "tokens": 37,
+        "loc": 11,
+        "tokens": 67,
         "correct": true,
         "adversarial": true
       },
       "matcha": {
-        "loc": 6,
-        "tokens": 46,
+        "loc": 14,
+        "tokens": 104,
         "correct": true,
         "adversarial": true
       }
@@ -289,20 +289,20 @@
       "id": "log-filter",
       "name": "Log Filter",
       "baseline": {
-        "loc": 8,
-        "tokens": 69,
+        "loc": 15,
+        "tokens": 117,
         "correct": false,
-        "adversarial": true
+        "adversarial": false
       },
       "terse": {
         "loc": 3,
-        "tokens": 45,
+        "tokens": 41,
         "correct": false,
-        "adversarial": true
+        "adversarial": false
       },
       "matcha": {
-        "loc": 4,
-        "tokens": 49,
+        "loc": 6,
+        "tokens": 59,
         "correct": false,
         "adversarial": false
       }
@@ -311,21 +311,21 @@
       "id": "memoize",
       "name": "Memoize",
       "baseline": {
-        "loc": 1,
-        "tokens": 16,
-        "correct": false,
+        "loc": 11,
+        "tokens": 73,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 16,
-        "correct": false,
+        "loc": 11,
+        "tokens": 62,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 16,
-        "correct": false,
+        "loc": 11,
+        "tokens": 73,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -333,21 +333,21 @@
       "id": "palindrome-checker",
       "name": "Palindrome Checker",
       "baseline": {
-        "loc": 1,
-        "tokens": 19,
-        "correct": false,
+        "loc": 13,
+        "tokens": 88,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 8,
+        "tokens": 67,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 19,
-        "correct": false,
+        "loc": 14,
+        "tokens": 103,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -355,21 +355,21 @@
       "id": "pipe-compose",
       "name": "Pipe Compose",
       "baseline": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 12,
+        "tokens": 75,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 5,
+        "tokens": 48,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 9,
+        "tokens": 64,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -377,21 +377,21 @@
       "id": "retry-async",
       "name": "Retry Async",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 21,
+        "tokens": 139,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 13,
+        "tokens": 97,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 14,
+        "tokens": 110,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -399,21 +399,21 @@
       "id": "semver-compare",
       "name": "Semver Compare",
       "baseline": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 10,
+        "tokens": 66,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 9,
+        "tokens": 62,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 10,
+        "tokens": 67,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -421,21 +421,21 @@
       "id": "throttle",
       "name": "Throttle",
       "baseline": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 46,
+        "tokens": 277,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 16,
-        "correct": false,
+        "loc": 20,
+        "tokens": 128,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 16,
-        "correct": false,
+        "loc": 32,
+        "tokens": 201,
+        "correct": true,
         "adversarial": false
       }
     },
@@ -443,21 +443,21 @@
       "id": "unique-filter",
       "name": "Unique Filter",
       "baseline": {
-        "loc": 1,
-        "tokens": 18,
-        "correct": false,
+        "loc": 14,
+        "tokens": 82,
+        "correct": true,
         "adversarial": false
       },
       "terse": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 2,
+        "tokens": 47,
+        "correct": true,
         "adversarial": false
       },
       "matcha": {
-        "loc": 1,
-        "tokens": 17,
-        "correct": false,
+        "loc": 11,
+        "tokens": 74,
+        "correct": true,
         "adversarial": false
       }
     }

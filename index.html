@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🍵 matcha — Anti-bloat Engineering Convention</title>
+<style>
+  /* ── Reset & Base ── */
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;font-size:16px}
+  body{font-family:'SF Mono','Cascadia Code','JetBrains Mono','Fira Code','Consolas',monospace;background:#0d0d1a;color:#c8c8d4;line-height:1.7;overflow-x:hidden}
+
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar{width:6px}
+  ::-webkit-scrollbar-track{background:#0d0d1a}
+  ::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:3px}
+
+  /* ── Typography ── */
+  h1,h2,h3,h4{font-weight:700;letter-spacing:-0.02em;line-height:1.3}
+  h1{font-size:2.2rem;color:#f0f0f5}
+  h2{font-size:1.4rem;color:#e6b91e;margin-bottom:1rem}
+  h3{font-size:1rem;color:#f0f0f5;margin-bottom:0.5rem}
+  p{margin-bottom:0.75rem;color:#9a9ab0;font-size:0.85rem}
+  a{color:#5bc0be;text-decoration:none;transition:color .2s}
+  a:hover{color:#e6b91e;text-decoration:none}
+  code{font-family:inherit;background:#1a1a2e;padding:0.1em 0.4em;border-radius:3px;font-size:0.82rem;color:#e6b91e;border:1px solid #2a2a40}
+  pre{background:#0a0a14;border:1px solid #1e1e30;border-radius:6px;padding:1rem;overflow-x:auto;font-size:0.78rem;line-height:1.5;margin-bottom:1rem}
+  pre code{background:none;border:none;padding:0;color:#c8c8d4}
+  strong{color:#f0f0f5}
+  hr{border:none;border-top:1px solid #1e1e30;margin:2rem 0}
+
+  /* ── Container ── */
+  .container{max-width:820px;margin:0 auto;padding:0 1.5rem}
+
+  /* ── Nav ── */
+  nav{position:sticky;top:0;z-index:100;background:rgba(13,13,26,0.92);backdrop-filter:blur(14px);border-bottom:1px solid #1e1e30}
+  nav .container{display:flex;align-items:center;justify-content:space-between;height:50px}
+  nav .logo{font-weight:700;font-size:1rem;color:#e6b91e}
+  nav .logo span{color:#5bc0be}
+  nav .links{display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap}    nav .links a{color:#6a6a85;font-size:0.78rem;padding:0.25rem 0.5rem;border-radius:4px;transition:all .15s}
+  nav .links a:hover{color:#e6b91e;background:rgba(230,185,30,0.08);text-decoration:none}
+
+  @media(max-width:600px){nav .links{gap:0.15rem}nav .links a{font-size:0.65rem;padding:0.2rem 0.3rem}}
+
+  /* ── Hero ── */
+  .hero{text-align:center;padding:4.5rem 0 3rem;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at center,rgba(230,185,30,0.03) 0%,transparent 60%);pointer-events:none}
+  .hero h1{font-size:3rem;margin-bottom:0.3rem;position:relative}
+  .hero h1 span{color:#e6b91e}
+  .hero .subtitle{font-size:0.95rem;color:#6a6a85;max-width:520px;margin:0 auto 1.5rem;line-height:1.6}
+  .hero .subtitle strong{color:#5bc0be}
+  .badges{display:flex;justify-content:center;gap:0.5rem;flex-wrap:wrap}
+  .badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.65rem;border-radius:999px;font-size:0.7rem;font-weight:500;background:rgba(230,185,30,0.08);color:#e6b91e;border:1px solid rgba(230,185,30,0.2)}
+  .badge span{color:#5bc0be}
+  .hero .terminal-line{font-size:0.78rem;color:#5a5a75;margin-top:2rem;padding:0.75rem 1rem;background:rgba(10,10,20,0.6);border-radius:6px;display:inline-block;border:1px solid #1e1e30}
+  .hero .terminal-line .prompt{color:#5bc0be}
+  .hero .terminal-line .cmd{color:#e6b91e}
+
+  /* ── Sections ── */
+  section{padding:3rem 0}
+  section:nth-child(even){background:#0a0a16}
+
+  /* ── Tenets ── */
+  .tenets{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0.75rem;margin-bottom:2rem}
+  .tenet{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem}
+  .tenet .num{color:#5bc0be;font-size:0.7rem;display:block;margin-bottom:0.3rem}
+  .tenet h4{color:#e6b91e;font-size:0.85rem;margin-bottom:0.3rem}
+  .tenet p{font-size:0.75rem;color:#7a7a90;margin-bottom:0;line-height:1.5}
+
+  /* ── Filter Steps ── */
+  .filter-steps{display:flex;flex-direction:column;gap:0.5rem}
+  .filter-step{display:flex;gap:0.75rem;align-items:flex-start;padding:0.6rem 0.8rem;background:#0f0f1e;border-radius:5px;border-left:3px solid #2a2a40;transition:border-color .2s}
+  .filter-step:hover{border-left-color:#e6b91e}
+  .filter-step .icon{font-size:1.1rem;width:1.6rem;text-align:center;flex-shrink:0}
+  .filter-step .info{flex:1}
+  .filter-step .info h4{font-size:0.8rem;color:#f0f0f5;margin-bottom:0.1rem}
+  .filter-step .info p{font-size:0.72rem;color:#7a7a90;margin-bottom:0;line-height:1.4}
+
+  /* ── Install ── */
+  .install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;margin-bottom:1rem}
+  .install-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem}
+  .install-card .method{font-size:0.8rem;color:#5bc0be;font-weight:600;margin-bottom:0.2rem}
+  .install-card .desc{font-size:0.72rem;color:#6a6a85;margin-bottom:0.5rem}
+  .install-card .code-block{background:#0a0a14;border:1px solid #1e1e30;border-radius:4px;padding:0.5rem;font-size:0.7rem;color:#c8c8d4;overflow-x:auto;line-height:1.4;white-space:pre-wrap;word-break:break-all}
+
+  /* ── Tables ── */
+  .table-wrap{overflow-x:auto;margin-bottom:1.5rem}
+  table{width:100%;border-collapse:collapse;font-size:0.78rem}
+  th{text-align:left;padding:0.5rem 0.6rem;color:#e6b91e;font-weight:600;border-bottom:1px solid #2a2a40;white-space:nowrap}
+  td{padding:0.45rem 0.6rem;border-bottom:1px solid #1a1a2e;color:#9a9ab0}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(230,185,30,0.03)}
+  td:first-child{font-weight:500;color:#c8c8d4;white-space:nowrap}
+
+  /* ── Architecture Cards ── */
+  .arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem}
+  .arch-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem;text-align:center;transition:border-color .2s}
+  .arch-card:hover{border-color:#2a2a40}
+  .arch-card .arch-icon{font-size:1.5rem;margin-bottom:0.3rem}
+  .arch-card h4{font-size:0.8rem;color:#f0f0f5;margin-bottom:0.2rem}
+  .arch-card p{font-size:0.7rem;color:#6a6a85;margin-bottom:0;line-height:1.4}
+
+  /* ── Benchmark ── */
+  .bench-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.5rem}
+  .bench-stat{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;text-align:center}
+  .bench-stat .value{font-size:1.5rem;font-weight:700}
+  .bench-stat .label{font-size:0.75rem;color:#6a6a85;margin-top:0.15rem}
+  .bench-stat .sub{font-size:0.65rem;color:#5a5a75;margin-top:0.1rem}
+  .bench-stat .bar-wrap{height:4px;background:#1a1a2e;border-radius:2px;margin-top:0.3rem;overflow:hidden}
+  .bench-stat .bar{height:100%;border-radius:2px;transition:width .8s ease}
+
+  .bench-compare{display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap}
+  .compare-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;text-align:center;flex:1;min-width:140px}
+  .compare-card .delta{font-size:1.5rem;font-weight:800}
+  .compare-card .delta.positive{color:#5bc0be}
+  .compare-card .delta.negative{color:#e6b91e}
+  .compare-card .desc{font-size:0.68rem;color:#6a6a85;margin-top:0.2rem}
+
+  .bench-rows{display:flex;flex-direction:column;gap:0.35rem;max-height:420px;overflow-y:auto;padding-right:0.25rem}
+  .bench-row{display:flex;gap:0.4rem;align-items:center;padding:0.35rem 0.5rem;background:#0f0f1e;border-radius:4px;border:1px solid #1a1a2e}
+  .bench-row .task{flex:1;font-weight:500;font-size:0.72rem;color:#c8c8d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bench-row .arm{font-size:0.62rem;padding:0.12rem 0.35rem;border-radius:3px;font-weight:500;white-space:nowrap}
+  .arm-baseline{background:rgba(255,255,255,0.05);color:#7a7a90;border:1px solid rgba(255,255,255,0.08)}
+  .arm-terse{background:rgba(230,185,30,0.08);color:#e6b91e;border:1px solid rgba(230,185,30,0.15)}
+  .arm-matcha{background:rgba(91,192,190,0.08);color:#5bc0be;border:1px solid rgba(91,192,190,0.15)}
+  .arm-pass{opacity:1}
+  .arm-fail{opacity:0.45}
+
+  .bench-loading{text-align:center;padding:2rem;color:#5a5a75;font-size:0.85rem}
+  .bench-loading::after{content:'...';animation:dots 1.5s steps(4,end) infinite}
+  @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
+  .bench-error{text-align:center;padding:2rem;color:#e05a5a;font-size:0.85rem}
+  .bench-error small{color:#5a5a75}
+
+  /* ── Footer ── */
+  footer{background:#080812;border-top:1px solid #1e1e30;padding:2rem 0;text-align:center;font-size:0.78rem;color:#5a5a75}
+  footer a{color:#5bc0be}
+  footer .links{margin-top:0.5rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}
+  footer .links a{font-size:0.75rem}
+
+  /* ── Utilities ── */
+  .text-center{text-align:center}
+  .mb-1{margin-bottom:1rem}
+  .mb-2{margin-bottom:2rem}
+  .section-label{display:inline-block;font-size:0.65rem;color:#5a5a75;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.25rem;border:1px solid #1e1e30;padding:0.1rem 0.4rem;border-radius:3px}
+
+  /* ── Responsive ── */
+  @media(max-width:768px){
+    h1{font-size:1.4rem}.hero h1{font-size:2rem}.hero{padding:3rem 0 2rem}
+    section{padding:2rem 0}
+    .bench-stats{grid-template-columns:1fr}
+    .arch-grid{grid-template-columns:1fr 1fr}
+    .tenets{grid-template-columns:1fr 1fr}
+    nav .links a{font-size:0.7rem;padding:0.2rem 0.35rem}
+    .container{padding:0 1rem}
+    .bench-rows{max-height:300px}
+  }
+  @media(max-width:480px){
+    .arch-grid{grid-template-columns:1fr}
+    .tenets{grid-template-columns:1fr}
+    .install-grid{grid-template-columns:1fr}
+    nav .logo{font-size:0.85rem}
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── Navigation ─── -->
+<nav>
+  <div class="container">
+    <div class="logo">matcha <span>✦</span> kuma</div>
+    <div class="links">
+      <a href="#about">About</a>
+      <a href="#install">Install</a>
+      <a href="#agents">Agents</a>
+      <a href="#hooks">Hooks</a>
+      <a href="#benchmark">Benchmark</a>
+      <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<!-- ─── Hero ─── -->
+<section class="hero">
+  <div class="container">
+    <h1><span>matcha</span></h1>
+    <p class="subtitle">
+      Simple. Efficient. Deliberate. <strong>Never twice.</strong><br />
+      Anti-bloat engineering convention for AI coding agents.
+    </p>
+    <div class="badges">
+      <span class="badge"><span>✦</span> 6 Agents</span>
+      <span class="badge"><span>✦</span> 6 Commands</span>
+      <span class="badge"><span>✦</span> 16 Rule Sets</span>
+      <span class="badge"><span>✦</span> 3 Hooks</span>
+      <span class="badge"><span>✦</span> 12 Platforms</span>
+      <span class="badge"><span>✦</span> 20 Tasks</span>
+      <span class="badge" style="background:rgba(91,192,190,0.12);border-color:rgba(91,192,190,0.3);color:#5bc0be"><span>⚡</span> Live Claude</span>
+    </div>
+    <div class="terminal-line">
+      <span class="prompt">$</span> <span class="cmd">curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</span>
+    </div>
+  </div>
+</section>
+
+<!-- ─── About ─── -->
+<section id="about">
+  <div class="container">
+    <span class="section-label">About</span>
+    <h2>What is matcha?</h2>
+    <p style="max-width:600px;margin-bottom:1.5rem">
+      Every AI coding session starts the same: jump in, write code, realize mid-way you missed something obvious.
+      <strong>matcha</strong> is a <strong>6-checkpoint filter</strong> that runs before, during, and after every implementation&mdash;
+      catching the things you'd catch yourself if you stopped to think.
+    </p>
+
+    <h3 style="margin-bottom:0.75rem;font-size:0.9rem;color:#e6b91e">The Four Tenets</h3>
+    <div class="tenets">
+      <div class="tenet">
+        <span class="num">01</span>
+        <h4>Simple</h4>
+        <p>Minimum moving parts. One function = one thing. If it feels complex, it's wrong.</p>
+      </div>
+      <div class="tenet">
+        <span class="num">02</span>
+        <h4>Efficient</h4>
+        <p>No filler. No dead code. Every line earns its place.</p>
+      </div>
+      <div class="tenet">
+        <span class="num">03</span>
+        <h4>Deliberate</h4>
+        <p>Think before you code. 5W1H check before starting. Explicit errors.</p>
+      </div>
+      <div class="tenet">
+        <span class="num">04</span>
+        <h4>Never Twice</h4>
+        <p>Search before you write. Reuse, don't rewrite.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.9rem;color:#e6b91e">The 6-Checkpoint Filter</h3>
+    <p style="font-size:0.78rem;color:#5bc0be;margin-bottom:0.75rem">
+      Every implementation passes through these gates:
+    </p>
+    <div class="filter-steps">
+      <div class="filter-step">
+        <div class="icon">🎯</div>
+        <div class="info">
+          <h4>Purpose &mdash; 5W1H</h4>
+          <p>What/Why/Who/When/Where/How. Can't answer Why/How? &rarr; STOP.</p>
+        </div>
+      </div>
+      <div class="filter-step">
+        <div class="icon">🔎</div>
+        <div class="info">
+          <h4>Reuse</h4>
+          <p>Before writing: search codebase for existing implementations. Never write what already exists.</p>
+        </div>
+      </div>
+      <div class="filter-step">
+        <div class="icon">🔍</div>
+        <div class="info">
+          <h4>Stack Audit</h4>
+          <p>Scan manifests, services, deps. Overlap found? &rarr; STOP. Report.</p>
+        </div>
+      </div>
+      <div class="filter-step">
+        <div class="icon">🛠️</div>
+        <div class="info">
+          <h4>Implementation</h4>
+          <p>No hardcode. Explicit errors. One function. "Is there a simpler path?"</p>
+        </div>
+      </div>
+      <div class="filter-step">
+        <div class="icon">🧹</div>
+        <div class="info">
+          <h4>Cleanup</h4>
+          <p>Done = working AND clean. Temp files, debug code, unused imports. Decision log.</p>
+        </div>
+      </div>
+      <div class="filter-step">
+        <div class="icon">✅</div>
+        <div class="info">
+          <h4>Verify</h4>
+          <p>Auto-detect + run tests, typecheck, lint. Tests fail? &rarr; STOP and fix first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Install ─── -->
+<section id="install" style="background:#0a0a16">
+  <div class="container">
+    <span class="section-label">Setup</span>
+    <h2>Quick Install</h2>
+    <p style="max-width:550px;margin-bottom:1rem">Three ways to get matcha on your AI coding agent:</p>
+
+    <div class="install-grid">
+      <div class="install-card">
+        <div class="method">curl &rarr; bash</div>
+        <div class="desc">Any AI agent &mdash; auto-detects 12 platforms</div>
+        <div class="code-block">curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</div>
+      </div>
+      <div class="install-card">
+        <div class="method">Claude Code Plugin</div>
+        <div class="desc">Claude Code marketplace</div>
+        <div class="code-block">/plugin marketplace add https://github.com/plumpslabs/matcha</div>
+      </div>
+      <div class="install-card">
+        <div class="method">npm (clone)</div>
+        <div class="desc">From cloned repo</div>
+        <div class="code-block">git clone https://github.com/plumpslabs/matcha.git<br>cd matcha &amp;&amp; node bin/matcha.js init</div>
+      </div>
+    </div>
+
+    <p style="font-size:0.75rem;color:#5a5a75;text-align:center">
+      See <a href="QUICKSTART.md">QUICKSTART.md</a> for the full guide &middot;
+      <a href="https://github.com/plumpslabs/matcha/blob/main/install.sh">install.sh</a>
+    </p>
+  </div>
+</section>
+
+<!-- ─── Agents & Commands ─── -->
+<section id="agents">
+  <div class="container">
+    <span class="section-label">Reference</span>
+    <h2>Agents</h2>
+    <p style="max-width:500px;margin-bottom:1rem">Six specialized agents, each covering a checkpoint in the matcha filter:</p>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Agent</th><th>Checkpoint</th><th>Use Case</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>@matcha-planner</td><td>🎯 Purpose</td><td>Plan features through 4 checkpoints</td></tr>
+          <tr><td>@matcha-finder</td><td>🔎 Reuse</td><td>Hunt existing code before writing new</td></tr>
+          <tr><td>@matcha-auditor</td><td>🔍 Stack</td><td>Stack audit for service overlap</td></tr>
+          <tr><td>@matcha-reviewer</td><td>🛠️ + 🧹 + ✅</td><td>Code review + verify tests passed</td></tr>
+          <tr><td>@matcha-cleaner</td><td>🧹 Cleanup</td><td>Remove temp/debug/unused code</td></tr>
+          <tr><td>@matcha-debugger</td><td>🎯 &rarr; ✅</td><td>Systematic debugging</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Commands</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Command</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>/matcha:status</td><td>Session status &amp; component availability</td></tr>
+          <tr><td>/matcha:why</td><td>5W1H check before starting</td></tr>
+          <tr><td>/matcha:audit</td><td>Stack audit for overlaps &amp; inefficiencies</td></tr>
+          <tr><td>/matcha:review</td><td>Post-implementation review</td></tr>
+          <tr><td>/matcha:intensity</td><td>Set level: observe / enforce / audit</td></tr>
+          <tr><td>/matcha:debt</td><td>Show technical debt from decision logs</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>CLI Reference</h2>
+    <p style="max-width:500px;margin-bottom:1rem">From the cloned repository:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Command</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>node bin/matcha.js status</code></td><td>Show version, platform, components, shield status</td></tr>
+          <tr><td><code>node bin/matcha.js why</code></td><td>5W1H interactive check (supports piped input)</td></tr>
+          <tr><td><code>node bin/matcha.js audit</code></td><td>Quick project stack audit (manifests, CI/CD, Docker, env)</td></tr>
+          <tr><td><code>node bin/matcha.js verify</code></td><td>Auto-detect test framework, run tests + typecheck + lint</td></tr>
+          <tr><td><code>node bin/matcha.js init</code></td><td>Run install.sh from the cloned repo</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2>Benchmark CLI</h2>
+    <p style="max-width:500px;margin-bottom:1rem">Run benchmarks from the repo:</p>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Command</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>npm run benchmark</code></td><td>Compliance scan on current project</td></tr>
+          <tr><td><code>npm run benchmark:json</code></td><td>Compliance scan with JSON output</td></tr>
+          <tr><td><code>node benchmark/generate-report.js</code></td><td>Full 3-arm agentic benchmark + report generation</td></tr>
+          <tr><td><code>node benchmark/agentic-runner.js --simulate</code></td><td>Simulated benchmark using default solutions (no Claude required)</td></tr>
+          <tr><td><code>node benchmark/agentic-runner.js --arm matcha</code></td><td>Single arm only (no Claude required)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:0.75rem;color:#5a5a75">Invoke: <code>@matcha-reviewer</code> or <code>/matcha:audit</code> &middot; Full reference in <a href="AGENTS.md">AGENTS.md</a></p>
+  </div>
+</section>
+
+<!-- ─── Hooks System ─── -->
+<section id="hooks" style="background:#0a0a16">
+  <div class="container">
+    <span class="section-label">Lifecycle</span>
+    <h2>Hooks System</h2>
+    <p style="max-width:600px;margin-bottom:1.5rem">
+      matcha ships <strong>3 lifecycle hooks</strong> that enforce philosophy deterministically&mdash;no prompt engineering, no guessing.
+    </p>
+
+    <div class="filter-steps">
+      <div class="filter-step" style="border-left-color:#5bc0be">
+        <div class="icon">🛡️</div>
+        <div class="info">
+          <h4>PreToolUse &mdash; matcha-shield.js</h4>
+          <p>Blocks dangerous commands before they reach the OS: <code>rm -rf /</code>, <code>git push --force</code>, <code>DROP DATABASE</code>, <code>curl | bash</code>, <code>shutdown</code>, <code>mkfs</code>, <code>chmod 777</code> and more. Also implements the 5W1H planning gate in <strong>enforce</strong> mode.</p>
+        </div>
+      </div>
+      <div class="filter-step" style="border-left-color:#e6b91e">
+        <div class="icon">🧹</div>
+        <div class="info">
+          <h4>PostToolUse &mdash; matcha-post-write.js</h4>
+          <p>Automatically scans modified files after every Write/Edit for cleanup issues: empty catch blocks (critical), hardcoded credentials, debug logs, TODO/FIXME left in code. Injects <code>additionalContext</code> for self-correction.</p>
+        </div>
+      </div>
+      <div class="filter-step" style="border-left-color:#e05a5a">
+        <div class="icon">⏹️</div>
+        <div class="info">
+          <h4>Stop &mdash; matcha-stop.js</h4>
+          <p>Scans <code>git diff</code> for real issues at session end. Reports: debug code, oversized functions, untracked files, import density. Deterministic&mdash;no LLM guesswork.</p>
+        </div>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.9rem;color:#e6b91e;margin-top:1.5rem">Platform Support</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Platform</th><th>Integration</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Claude Code</td><td><code>.claude/settings.json</code> &mdash; PreToolUse + PostToolUse + Stop hooks</td></tr>
+          <tr><td>OpenCode</td><td><code>tool.execute.before</code> in <code>matcha.mjs</code> plugin</td></tr>
+          <tr><td>Qoder</td><td><code>hooks.json</code> &mdash; <code>before:tool_use</code> event</td></tr>
+          <tr><td>Antigravity CLI</td><td><code>gemini-extension.json</code> &mdash; tool lifecycle</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="font-size:0.75rem;color:#5a5a75">
+      Learn more: <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma MCP Safety Toolkit</a> &middot;
+      <a href="docs/architecture.md">Architecture docs &rarr;</a>
+    </p>
+  </div>
+</section>
+
+<!-- ─── Architecture ─── -->
+<section id="architecture" style="background:#0a0a16">
+  <div class="container">
+    <span class="section-label">System</span>
+    <h2>Architecture</h2>
+
+    <div class="arch-grid">
+      <div class="arch-card">
+        <div class="arch-icon">🧠</div>
+        <h4>6 Agents</h4>
+        <p>Planner &middot; Finder &middot; Auditor &middot; Reviewer &middot; Cleaner &middot; Debugger</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🪝</div>
+        <h4>3 Lifecycle Hooks</h4>
+        <p>PreToolUse (shield) &rarr; PostToolUse (cleanup) &rarr; Stop (tips)</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">📐</div>
+        <h4>16 Rule Sets</h4>
+        <p>TypeScript, Go, Python, Java, PHP, React Native + common rules</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🎯</div>
+        <h4>12 Platforms</h4>
+        <p>Claude Code &middot; OpenCode &middot; Cursor &middot; Windsurf &middot; Cline &middot; Kiro &middot; Qoder &middot; Qwen &middot; Codebuff &middot; Antigravity &middot; OpenClaw &middot; agy</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">⚙️</div>
+        <h4>3-Arm Benchmark</h4>
+        <p>20 coding tasks &times; baseline/terse/matcha. Correctness + Adversarial + LOC metrics.</p>
+      </div>
+      <div class="arch-card">
+        <div class="arch-icon">🛡️</div>
+        <h4>Kuma Shield</h4>
+        <p>Blocks pipe-to-shell, mass chmod, forced push, DB drop, and more.</p>
+      </div>
+    </div>
+
+    <h3 style="font-size:0.9rem;color:#e6b91e;margin-top:1.5rem">Intensity Levels</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Level</th><th>Behavior</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>observe</td><td>Tips only. No blocking.</td></tr>
+          <tr><td><strong style="color:#e6b91e">enforce</strong></td><td>Full 6-checkpoint filter. <strong style="color:#5a5a75">Default.</strong></td></tr>
+          <tr><td>audit</td><td>Enforce + mandatory cleanup. Everything flagged.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Benchmark ─── -->
+<section id="benchmark">
+  <div class="container">
+    <span class="section-label">Data</span>
+    <h2>Benchmark</h2>
+    <p style="max-width:520px;margin-bottom:1.5rem">
+      20 coding tasks &times; 3 arms (baseline vs terse vs matcha).
+      Two gates per task: correctness + adversarial.
+      <strong style="color:#5bc0be">Generated LIVE with Claude Code v2.1.185</strong> &mdash; 60 AI calls.
+    </p>
+
+    <div id="bench-container">
+      <div class="bench-loading">Loading benchmark data</div>
+    </div>
+  </div>
+</section>
+
+<!-- ─── Footer ─── -->
+<footer>
+  <div class="container">
+    <p>matcha &mdash; Anti-bloat engineering for AI coding agents.</p>
+    <p style="margin-top:0.3rem">MIT &copy; <a href="https://github.com/plumpslabs" target="_blank">plumpslabs</a></p>
+    <div class="links">
+      <a href="https://github.com/plumpslabs/matcha" target="_blank">matcha</a>
+      <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma</a>
+      <a href="AGENTS.md">AGENTS.md</a>
+      <a href="QUICKSTART.md">Quick Start</a>
+      <a href="CONTRIBUTING.md">Contributing</a>
+    </div>
+  </div>
+</footer>
+
+<!-- ─── Benchmark Data (embedded fallback) ─── -->
+<script id="benchmark-data" type="application/json">
+{"generated":"2026-06-27T10:59:02.505Z","summary":{"baseline":{"loc":347,"correct":13,"adversarial":4,"total":20},"terse":{"loc":198,"correct":13,"adversarial":4,"total":20},"matcha":{"loc":260,"correct":13,"adversarial":4,"total":20}},"data":[{"id":"anagram-group","name":"Anagram Group","baseline":{"loc":11,"tokens":80,"correct":false,"adversarial":false},"terse":{"loc":11,"tokens":70,"correct":false,"adversarial":false},"matcha":{"loc":11,"tokens":82,"correct":false,"adversarial":false}},{"id":"array-flatten","name":"Array Flatten","baseline":{"loc":12,"tokens":60,"correct":false,"adversarial":false},"terse":{"loc":4,"tokens":34,"correct":false,"adversarial":false},"matcha":{"loc":7,"tokens":41,"correct":false,"adversarial":false}},{"id":"chunk-array","name":"Chunk Array","baseline":{"loc":10,"tokens":78,"correct":true,"adversarial":false},"terse":{"loc":8,"tokens":64,"correct":true,"adversarial":false},"matcha":{"loc":10,"tokens":78,"correct":true,"adversarial":false}},{"id":"config-parser","name":"Config Parser","baseline":{"loc":17,"tokens":137,"correct":true,"adversarial":false},"terse":{"loc":13,"tokens":90,"correct":true,"adversarial":false},"matcha":{"loc":18,"tokens":164,"correct":true,"adversarial":false}},{"id":"csv-sum","name":"Csv Sum","baseline":{"loc":15,"tokens":96,"correct":true,"adversarial":true},"terse":{"loc":2,"tokens":57,"correct":true,"adversarial":true},"matcha":{"loc":10,"tokens":73,"correct":true,"adversarial":true}},{"id":"date-fmt","name":"Date Fmt","baseline":{"loc":14,"tokens":109,"correct":false,"adversarial":false},"terse":{"loc":9,"tokens":96,"correct":false,"adversarial":false},"matcha":{"loc":10,"tokens":110,"correct":false,"adversarial":false}},{"id":"debounce","name":"Debounce","baseline":{"loc":8,"tokens":49,"correct":true,"adversarial":true},"terse":{"loc":8,"tokens":45,"correct":true,"adversarial":true},"matcha":{"loc":10,"tokens":56,"correct":true,"adversarial":true}},{"id":"deep-clone","name":"Deep Clone","baseline":{"loc":21,"tokens":128,"correct":false,"adversarial":false},"terse":{"loc":9,"tokens":95,"correct":false,"adversarial":false},"matcha":{"loc":9,"tokens":89,"correct":false,"adversarial":false}},{"id":"deep-get","name":"Deep Get","baseline":{"loc":12,"tokens":90,"correct":false,"adversarial":false},"terse":{"loc":11,"tokens":65,"correct":false,"adversarial":false},"matcha":{"loc":12,"tokens":77,"correct":false,"adversarial":false}},{"id":"deep-merge","name":"Deep Merge","baseline":{"loc":39,"tokens":292,"correct":false,"adversarial":false},"terse":{"loc":18,"tokens":157,"correct":false,"adversarial":false},"matcha":{"loc":26,"tokens":225,"correct":false,"adversarial":false}},{"id":"email-validator","name":"Email Validator","baseline":{"loc":30,"tokens":340,"correct":true,"adversarial":true},"terse":{"loc":23,"tokens":235,"correct":true,"adversarial":true},"matcha":{"loc":16,"tokens":189,"correct":true,"adversarial":true}},{"id":"fizzbuzz","name":"Fizzbuzz","baseline":{"loc":16,"tokens":86,"correct":true,"adversarial":true},"terse":{"loc":11,"tokens":67,"correct":true,"adversarial":true},"matcha":{"loc":14,"tokens":104,"correct":true,"adversarial":true}},{"id":"log-filter","name":"Log Filter","baseline":{"loc":15,"tokens":117,"correct":false,"adversarial":false},"terse":{"loc":3,"tokens":41,"correct":false,"adversarial":false},"matcha":{"loc":6,"tokens":59,"correct":false,"adversarial":false}},{"id":"memoize","name":"Memoize","baseline":{"loc":11,"tokens":73,"correct":true,"adversarial":false},"terse":{"loc":11,"tokens":62,"correct":true,"adversarial":false},"matcha":{"loc":11,"tokens":73,"correct":true,"adversarial":false}},{"id":"palindrome-checker","name":"Palindrome Checker","baseline":{"loc":13,"tokens":88,"correct":true,"adversarial":false},"terse":{"loc":8,"tokens":67,"correct":true,"adversarial":false},"matcha":{"loc":14,"tokens":103,"correct":true,"adversarial":false}},{"id":"pipe-compose","name":"Pipe Compose","baseline":{"loc":12,"tokens":75,"correct":true,"adversarial":false},"terse":{"loc":5,"tokens":48,"correct":true,"adversarial":false},"matcha":{"loc":9,"tokens":64,"correct":true,"adversarial":false}},{"id":"retry-async","name":"Retry Async","baseline":{"loc":21,"tokens":139,"correct":true,"adversarial":false},"terse":{"loc":13,"tokens":97,"correct":true,"adversarial":false},"matcha":{"loc":14,"tokens":110,"correct":true,"adversarial":false}},{"id":"semver-compare","name":"Semver Compare","baseline":{"loc":10,"tokens":66,"correct":true,"adversarial":false},"terse":{"loc":9,"tokens":62,"correct":true,"adversarial":false},"matcha":{"loc":10,"tokens":67,"correct":true,"adversarial":false}},{"id":"throttle","name":"Throttle","baseline":{"loc":46,"tokens":277,"correct":true,"adversarial":false},"terse":{"loc":20,"tokens":128,"correct":true,"adversarial":false},"matcha":{"loc":32,"tokens":201,"correct":true,"adversarial":false}},{"id":"unique-filter","name":"Unique Filter","baseline":{"loc":14,"tokens":82,"correct":true,"adversarial":false},"terse":{"loc":2,"tokens":47,"correct":true,"adversarial":false},"matcha":{"loc":11,"tokens":74,"correct":true,"adversarial":false}}],"repo":[]}
+</script>
+
+<!-- ─── Benchmark Script ─── -->
+<script>
+(async function() {
+  const container = document.getElementById('bench-container');
+
+  async function loadData() {
+    try {
+      const resp = await fetch('./docs/benchmark.json');
+      if (!resp.ok) throw new Error('Not found');
+      return await resp.json();
+    } catch {
+      const el = document.getElementById('benchmark-data');
+      if (el) return JSON.parse(el.textContent);
+      throw new Error('No embedded fallback');
+    }
+  }
+
+  try {
+    const json = await loadData();
+
+    const s = json.summary;
+    const generated = new Date(json.generated).toLocaleString();
+
+    const arms = ['baseline', 'terse', 'matcha'];
+    const labels = { baseline: 'Baseline', terse: 'Terse', matcha: 'Matcha' };
+    const colors = { baseline: '#7a7a90', terse: '#e6b91e', matcha: '#5bc0be' };
+
+    // ── Summary cards ──
+    let html = '<div class="bench-stats">';
+    for (const a of arms) {
+      const pct = s[a].total > 0 ? Math.round(s[a].correct / s[a].total * 100) : 0;
+      const advPct = s[a].total > 0 ? Math.round(s[a].adversarial / s[a].total * 100) : 0;
+      const maxLoc = Math.max(s.baseline.loc, s.matcha.loc, s.terse.loc);
+      const barPct = maxLoc > 0 ? Math.round(s[a].loc / maxLoc * 100) : 0;
+      html += `<div class="bench-stat">
+        <div class="value" style="color:${colors[a]}">${s[a].loc} <span style="font-size:0.75rem;color:#5a5a75">LOC</span></div>
+        <div class="label" style="color:${colors[a]}">${labels[a]}</div>
+        <div class="bar-wrap"><div class="bar" style="width:${barPct}%;background:${colors[a]}"></div></div>
+        <div class="sub">✅ ${s[a].correct}/${s[a].total} &middot; 🛡️ ${advPct}%</div>
+      </div>`;
+    }
+    html += '</div>';
+
+    // ── Comparison cards ──
+    const b = s.baseline;
+    const m = s.matcha;
+    const t = s.terse;
+    const matchaDelta = b.loc - m.loc;
+    const matchaPct = b.loc > 0 ? Math.round(Math.abs(matchaDelta) / b.loc * 100) : 0;
+    const terseDelta = b.loc - t.loc;
+    const tersePct = b.loc > 0 ? Math.round(Math.abs(terseDelta) / b.loc * 100) : 0;
+
+    html += '<div class="bench-compare">';
+    html += `<div class="compare-card">
+      <div class="delta positive">-${matchaPct}%</div>
+      <div class="value" style="font-size:1rem;font-weight:600;color:#5bc0be">${matchaDelta} LOC</div>
+      <div class="desc">matcha vs baseline &mdash; fewer lines</div>
+    </div>`;
+    html += `<div class="compare-card">
+      <div class="delta positive">-${tersePct}%</div>
+      <div class="value" style="font-size:1rem;font-weight:600;color:#e6b91e">${terseDelta} LOC</div>
+      <div class="desc">terse vs baseline &mdash; brevity</div>
+    </div>`;
+    const beatsTerse = t.loc > m.loc;
+    html += `<div class="compare-card">
+      <div class="delta ${beatsTerse ? 'positive' : 'negative'}">${beatsTerse ? '-' + (t.loc - m.loc) : '+' + (m.loc - t.loc)} LOC</div>
+      <div class="value" style="font-size:1rem;font-weight:600;color:${beatsTerse ? '#5bc0be' : '#e6b91e'}">matcha vs terse</div>
+      <div class="desc">${beatsTerse ? 'matcha beats terse &mdash; rules > mere brevity' : 'terse is leaner, but matcha has better correctness'}</div>
+    </div>`;
+    html += '</div>';
+
+    // ── Per-task rows ──
+    html += '<div class="bench-rows" style="margin-top:1.5rem">';
+    for (const task of json.data) {
+      const name = task.name;
+      html += `<div class="bench-row"><span class="task">${name}</span>`;
+      for (const a of arms) {
+        const d = task[a];
+        if (!d) continue;
+        const locStr = d.loc + ' LOC';
+        const passClass = d.correct ? 'arm-pass' : 'arm-fail';
+        const advIcon = d.adversarial ? '🛡️' : '⚠️';
+        html += `<span class="arm arm-${a} ${passClass}">${labels[a]}: ${locStr} ${d.correct ? '✅' : '❌'} ${advIcon}</span>`;
+      }
+      html += '</div>';
+    }
+    html += '</div>';
+
+    // ── Timestamp & info ──
+    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:1rem">
+      Generated: ${generated} &middot;
+      <a href="docs/BENCHMARK.md">Full report &rarr;</a> &middot;
+      <a href="https://github.com/plumpslabs/matcha">Methodology</a> &middot;
+      <span style="color:#5bc0be">⚡ Live Claude Code</span>
+    </p>`;
+
+    container.innerHTML = html;
+  } catch (e) {
+    container.innerHTML = `<div class="bench-error">
+      ⚠️ No benchmark data available.
+      <br><br>
+      Run <code style="color:#e6b91e">cd matcha/ &amp;&amp; node benchmark/generate-report.js</code> to generate results.
+      <br><br>
+      <small>${e.message}</small>
+    </div>`;
+  }
+})();
+</script>
+
+</body>
+</html>

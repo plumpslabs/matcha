@@ -315,7 +315,7 @@
     </div>
 
     <p style="font-size:0.75rem;color:#5a5a75;text-align:center">
-      See <a href="QUICKSTART.md">QUICKSTART.md</a> for the full guide &middot;
+      See <a href="../QUICKSTART.md">QUICKSTART.md</a> for the full guide &middot;
       <a href="https://github.com/plumpslabs/matcha/blob/main/install.sh">install.sh</a>
     </p>
   </div>
@@ -395,7 +395,7 @@
       </table>
     </div>
 
-    <p style="font-size:0.75rem;color:#5a5a75">Invoke: <code>@matcha-reviewer</code> or <code>/matcha:audit</code> &middot; Full reference in <a href="AGENTS.md">AGENTS.md</a></p>
+    <p style="font-size:0.75rem;color:#5a5a75">Invoke: <code>@matcha-reviewer</code> or <code>/matcha:audit</code> &middot; Full reference in <a href="../AGENTS.md">AGENTS.md</a></p>
   </div>
 </section>
 
@@ -449,7 +449,7 @@
 
     <p style="font-size:0.75rem;color:#5a5a75">
       Learn more: <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma MCP Safety Toolkit</a> &middot;
-      <a href="docs/architecture.md">Architecture docs &rarr;</a>
+      <a href="./architecture.md">Architecture docs &rarr;</a>
     </p>
   </div>
 </section>
@@ -534,9 +534,9 @@
     <div class="links">
       <a href="https://github.com/plumpslabs/matcha" target="_blank">matcha</a>
       <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma</a>
-      <a href="AGENTS.md">AGENTS.md</a>
-      <a href="QUICKSTART.md">Quick Start</a>
-      <a href="CONTRIBUTING.md">Contributing</a>
+      <a href="../AGENTS.md">AGENTS.md</a>
+      <a href="../QUICKSTART.md">Quick Start</a>
+      <a href="../CONTRIBUTING.md">Contributing</a>
     </div>
   </div>
 </footer>
@@ -553,7 +553,7 @@
 
   async function loadData() {
     try {
-      const resp = await fetch('./docs/benchmark.json');
+      const resp = await fetch('./benchmark.json');
       if (!resp.ok) throw new Error('Not found');
       return await resp.json();
     } catch {
@@ -637,7 +637,7 @@
     // ── Timestamp & info ──
     html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:1rem">
       Generated: ${generated} &middot;
-      <a href="docs/BENCHMARK.md">Full report &rarr;</a> &middot;
+      <a href="./BENCHMARK.md">Full report &rarr;</a> &middot;
       <a href="https://github.com/plumpslabs/matcha">Methodology</a> &middot;
       <span style="color:#5bc0be">⚡ Live Claude Code</span>
     </p>`;

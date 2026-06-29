@@ -10,7 +10,7 @@
 
 <p align="center">
   <b>Anti-bloat engineering convention for AI coding agents.</b><br />
-  6 agents · 5 commands · 1 skill · 16 rule sets · 3 lifecycle hooks · 12 platforms
+  6 agents · 6 commands · 16 rule sets · 3 lifecycle hooks · 12 platforms
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
   <img src="https://img.shields.io/badge/agents-6-8A2BE2" alt="6 agents" />
   <img src="https://img.shields.io/badge/rules-16-forestgreen" alt="16 rules" />
-  <img src="https://img.shields.io/badge/tests-263-success" alt="251 tests" />
+  <img src="https://img.shields.io/badge/tests-393-success" alt="393 tests" />
 </p>
 
 ---
@@ -75,6 +75,35 @@ Every implementation passes through these gates:
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function. "Is there a simpler path?" |
 | 🧹 | **Cleanup** | Done = working AND clean. Temp files, debug code, unused imports. Decision log. |
 | ✅ | **Verify** | Auto-detect + run tests, typecheck, lint. Tests fail? → STOP and fix first. |
+
+---
+
+## Philosophy
+
+matcha enforces **universal engineering principles** — language-agnostic, framework-agnostic, team-agnostic. Every rule traces back to one of these core ideas:
+
+| Principle | What it means | Applied in |
+|-----------|---------------|------------|
+| **Type-safe by default** | No escape hatches, no `any` casting. Let the type system work for you. | Writing rules |
+| **CQS** | Commands change state (return void). Queries return data (no side effects). Never both. | Writing rules |
+| **Idempotency** | Mutations must be retry-safe. Use idempotency keys for payments, webhooks, and critical writes. | Writing rules |
+| **Validate at boundaries** | Validate inputs at the outer layer (controller/handler), not deep in service logic. Fail before mutation, not after partial write. | Writing rules |
+| **Contract-first** | Draft response shape / component props / API contract before implementation. No contract = no code. | Checkpoint 1 (5W1H) |
+| **Error shape consistency** | All endpoints return errors in the same format. FE shouldn't guess error structure. | Writing rules |
+| **State origin awareness** | Before adding state: is this server state, client state, or shared state? Prevents state management refactors. | Writing rules |
+| **Observability** | Structured logging, no `console.log`. Every log line should be parsable and actionable. | Writing rules + PostToolUse hook |
+| **Pure functions first** | Side effects at boundaries. Business logic should be pure — testable without mocks. | Writing rules |
+| **Fail fast** | Validate config at startup, not at first use. Catch misconfig before it reaches production. | Config validation |
+| **Performance awareness** | Watch for N+1 queries, O(n²+) loops, and unnecessary allocations in hot paths. | Performance rules + PostToolUse hook |
+
+### Companion Tools
+
+matcha pairs naturally with other tools from the same ecosystem:
+
+- 🐻 **[Kuma](https://github.com/plumpslabs/kuma)** — Runtime safety enforcement. MCP server that blocks dangerous operations before they execute. Complements matcha-shield. Use when handling sensitive data or production infrastructure.
+- 🦊 **[Fennec](https://github.com/plumpslabs/fennec)** — AI-native developer observability. MCP server that gives AI agents browser, terminal, and process visibility. Complements matcha's debugging and review checkpoints.
+
+Together they form a complete stack: **matcha 🍵** (philosophy) + **kuma 🐻** (safety) + **fennec 🦊** (observability).
 
 ---
 
@@ -156,6 +185,9 @@ Automatically scans **modified files** after every Write/Edit for cleanup issues
 | 🔴 **Critical** | Hardcoded credential | API key/secret/password/token |
 | 🟡 **Minor** | Debug log/statement | `console.log`, `print()`, `debugger` |
 | 🟡 **Minor** | TODO/FIXME | Unfinished work left in code |
+| 🟡 **Minor** | Unbounded query | `SELECT` without `LIMIT` |
+| 🟡 **Minor** | High OFFSET | Consider cursor pagination |
+| 🟡 **Minor** | Function in WHERE | `YEAR()`, `MONTH()`, `LOWER()` — index won't be used |
 
 **How it works:**
 1. After Write/Edit tool completes, hook fires
@@ -185,13 +217,25 @@ Replaces the old prompt-based "surface 3 tips" instruction with a **deterministi
   "hooks": {
     "PreToolUse": [{
       "matcher": "Bash",
-      "hooks": ["node hooks/matcha-shield.js"]
+      "hooks": [{
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-shield.js",
+        "timeout": 5000
+      }]
     }],
     "PostToolUse": [{
-      "hooks": ["node hooks/matcha-post-write.js"]
+      "hooks": [{
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-post-write.js",
+        "timeout": 3000
+      }]
     }],
     "Stop": [{
-      "hooks": ["node hooks/matcha-stop.js"]
+      "hooks": [{
+        "type": "command",
+        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-stop.js",
+        "timeout": 5000
+      }]
     }]
   }
 }
@@ -342,8 +386,8 @@ matcha adapts to **12 platforms**, each with its own file format and lifecycle m
 
 | Platform | Files | Key Features |
 |----------|-------|-------------|
-| **Claude Code** | `.claude/agents/`, `.claude/commands/`, `.claude/settings.json` | 6 agents + 5 commands + 3 lifecycle hooks + skill |
-| **OpenCode** | `.opencode/agents/`, `.opencode/plugins/matcha.mjs` | 6 agents + 5 commands + lifecycle plugin (`tool.execute.before`, `session.created`) |
+| **Claude Code** | `.claude/agents/`, `.claude/commands/`, `.claude/settings.json` | 6 agents + 6 commands + 3 lifecycle hooks + skill |
+| **OpenCode** | `.opencode/agents/`, `.opencode/plugins/matcha.mjs` | 6 agents + 6 commands + lifecycle plugin (`tool.execute.before`, `session.created`) |
 | **Cursor** | `.cursor/rules/matcha-*.mdc` (20 files) | 4 scoped rules: **core** (alwaysApply), **cleanup** (globs), **audit** (manual), **review** (manual) + 15 language rules + 1 combined legacy |
 | **Windsurf** | `.windsurfrules` (root) + `.windsurf/rules/*.md` | Root `.windsurfrules` read by Cascade AI + 16 per-language `.md` rules |
 | **Kiro** | `.kiro/steering/matcha*.md` (17 files) | `inclusion: always` for core, `inclusion: manual` for dev/review modes |

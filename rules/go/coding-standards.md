@@ -107,6 +107,19 @@ func NewHandler(store UserStore) *Handler {
 }
 ```
 
+## Type Safety
+```go
+// ❌ Bad — empty interface as escape hatch
+func process(data interface{}) interface{} { return data }
+// ✅ Good — concrete type or generics
+func process[T any](data T) T { return data }
+// ✅ Good — explicit interface
+func process(data io.Reader) ([]byte, error) { return io.ReadAll(data) }
+```
+
+Go's `interface{}` is the universal escape hatch. Prefer concrete types or generics (Go 1.18+).
+If you need abstraction, define a small interface with 1-3 methods where it's consumed.
+
 ## No Global State
 ```go
 // ❌ Bad — global mutable state
@@ -119,6 +132,7 @@ func NewHandler(db *sql.DB) *Handler { return &Handler{db: db} }
 
 ## Checklist
 
+- [ ] No `interface{}` as escape hatch — use concrete types, generics, or small interfaces
 - [ ] Errors always checked — no `_` assignments for errors
 - [ ] Error wrapping with `%w` at boundaries
 - [ ] Context passed as first parameter for cancellable operations

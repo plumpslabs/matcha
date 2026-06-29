@@ -7,6 +7,29 @@ paths:
 
 > This file extends [common/coding-standards.md](../common/coding-standards.md) with Java-specific rules.
 
+## Generics & Type Safety
+```java
+// ❌ Bad — raw type (no type safety)
+List list = new ArrayList();
+list.add("hello");
+Integer x = (Integer) list.get(0); // ClassCastException at runtime!
+
+// ✅ Good — parameterized
+List<String> list = new ArrayList<>();
+list.add("hello");
+String x = list.get(0); // safe
+
+// ❌ Bad — unchecked warning suppressed
+@SuppressWarnings("unchecked")
+List<Widget> widgets = (List<Widget>)(List<?>) someRawList;
+
+// ✅ Good — type-safe with wildcards
+List<? extends Widget> widgets = repository.findAll();
+```
+
+Raw types bypass the compiler's type checker. Always parameterize generics.
+Use `List<?>` or bounded wildcards (`? extends T`, `? super T`) when the exact type is unknown.
+
 ## No Null
 ```java
 // ❌ Bad
@@ -102,6 +125,7 @@ public Optional<User> findByEmail(String email) {
 
 ## Checklist
 
+- [ ] No raw types — always parameterize generics
 - [ ] No null — `Optional`, `Objects.requireNonNull`, or `@NotNull`
 - [ ] Records over classes for data carriers (Java 16+)
 - [ ] Modern Java features used (sealed classes, pattern matching, text blocks)

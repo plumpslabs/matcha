@@ -13,9 +13,19 @@ paths:
 def process(data):
     return data["value"]
 
+# ❌ Bad — Any as escape hatch
+def process(data: Any) -> Any:
+    return data["value"]
+
 # ✅ Good — typed
 def process(data: dict[str, Any]) -> str:
     return str(data["value"])
+
+# ✅ Use TypeVar for generics instead of Any
+from typing import TypeVar
+T = TypeVar("T")
+def first(items: list[T]) -> T | None:
+    return items[0] if items else None
 
 # ✅ Pydantic v2 for data validation
 from pydantic import BaseModel, EmailStr
@@ -92,7 +102,7 @@ def create_user(data: dict) -> User:
 
 ## Checklist
 
-- [ ] Type hints on all function signatures (parameters + return)
+- [ ] Type hints on all function signatures — avoid `Any` as escape hatch, prefer `TypeVar` / `Unknown`
 - [ ] `pathlib.Path` over `os.path` for file operations
 - [ ] Pydantic v2 for data validation at boundaries
 - [ ] Specific exceptions in `except` blocks — no bare `except:`

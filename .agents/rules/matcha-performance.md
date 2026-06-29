@@ -7,6 +7,7 @@ alwaysApply: false
 
 ## Database
 - N+1 queries = #1 perf killer — eager load, batch
+- O(n²+) loops = #2 perf killer — watch for nested iterations in hot paths
 - Paginate ALL list endpoints (cursor > offset)
 - Index columns in WHERE, JOIN, ORDER BY
 - Connection pool with sane limits
@@ -31,6 +32,7 @@ alwaysApply: false
 
 ## Checklist
 - [ ] No N+1 queries in hot paths
+- [ ] No O(n²+) loops in hot paths
 - [ ] List endpoints paginated
 - [ ] External calls have timeouts
 - [ ] Static assets compressed + cached

@@ -11,10 +11,14 @@ alwaysApply: false
 # ❌ Bad
 def process(data): return data["value"]
 
+# ❌ Bad — Any as escape hatch
+def process(data: Any) -> Any: return data["value"]
+
 # ✅ Good
 def process(data: dict[str, Any]) -> str:
     return str(data["value"])
 ```
+Avoid `Any` as escape hatch — use `TypeVar` or `Unknown` for generics.
 
 ## Error Handling
 ```python
@@ -38,7 +42,7 @@ stdlib → third-party → internal
 - Testing: pytest, pytest-asyncio
 
 ## Checklist
-- [ ] Type hints on all function signatures
+- [ ] Type hints on all function signatures — avoid `Any` escape hatch
 - [ ] Pydantic v2 for data validation at boundaries
 - [ ] Specific exceptions — no bare `except:`
 - [ ] Imports: stdlib → third-party → internal

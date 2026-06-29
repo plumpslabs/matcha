@@ -1,6 +1,6 @@
 ---
 name: matcha
-version: 2.2.0
+version: 2.3.0
 description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation. Triggers on any coding,
@@ -59,6 +59,7 @@ Every implementation passes through 5 checkpoints. Each checkpoint notes how beh
 | **Why** | What breaks if we skip this? |
 | **Who** | What depends on this? |
 | **When** | Needed now or premature? |
+| **Contract** | What is the response shape / component props / API contract? Draft before implement. |
 | **Where** | Where in stack/codebase? |
 | **How** | Simplest full solution? |
 
@@ -103,10 +104,19 @@ is this for caching/TTL specifically, or pub/sub?
 
 **While writing**:
 - No hardcoded values. Ever. Env vars: `APPNAME_VAR_NAME`
-- Error paths explicit, not swallowed
+- Error paths explicit, consistent shape, not swallowed
 - One function = one responsibility
+- **Type-safe by default** — explicit types on all public APIs. No type escape hatches (`any`, `interface{}`, `Any`, `mixed`, raw types). Prefer the type system over runtime escape hatches.
 - Prefer stdlib over new dependency
 - 3 use cases minimum before abstracting (within same task/PR — verify from current context)
+- **Performance awareness** — watch for N+1 queries, O(n²+) loops, unnecessary allocations in hot paths. Measure before optimizing, never guess.
+- **Fail fast** — validate inputs at boundaries, guard clauses early. Fail immediately with clear errors, not deep into logic.
+- **Observability** — use structured logging (info/warn/error levels, context-rich messages). Never commit `console.log` without a proper logger.
+- **Pure functions first** — prefer pure functions for logic/transformations. Isolate side effects (I/O, DB, API, mutations) at boundaries.
+- **Config validation** — validate required config at startup. Fail fast with descriptive error if required env vars are missing.
+- **Validate at boundaries** — validate input at layer boundaries (controller/API), not deep in service logic. Partial failure after partial write is worse than early rejection.
+- **Command-Query Separation (CQS)** — a method either returns data (query) or changes state (command), never both. `saveAndReturn()` is a red flag — split into `save()` (void) and `get()` (data).
+- **Idempotency** — operations should be safe to retry. Same request sent twice = same result. Use idempotency keys for mutations, especially payments, webhooks, and retry logic.
 
 **After writing — mandatory review. Pause and ask:**
 *"Is there a simpler or more efficient path?"*
@@ -147,6 +157,8 @@ Wait for user. Don't finish current approach first.
 
 **"Done" = working AND clean.** Not just working.
 - Remove temp files, debug code, unused imports
+- **Split big files** — files >300 lines or handling >3 concerns should be decomposed
+- **DRY scan** — verify no duplicated logic was introduced during this task
 - Archive or note completed migrations
 - Feature flags → note when to remove
 - **Decision log**: mark deliberate shortcuts with `// matcha: [reason]`
@@ -242,9 +254,11 @@ After every task, surface context-aware suggestions:
 ### 🔴 Critical — Flag immediately (matcha pause, blocking)
 - **Error handling empty/swallowed** → silent failures
 - **Nested loops O(n²+) in hot path** → performance risk
+- **N+1 queries in hot path** → database performance risk
 - **Hardcoded secrets/API keys** → security issue
 - **Race condition in concurrent state** → data corruption risk
 - **Unhandled promise / async without error handling** → crash risk
+- **God object / big file (>300 lines)** → maintainability decay risk
 
 ### 🟡 Minor — Only if genuinely found (no padding)
 - TODO/FIXME left → roast the procrastination

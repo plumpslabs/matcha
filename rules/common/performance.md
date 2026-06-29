@@ -8,6 +8,7 @@
 2. **N+1 queries are the #1 perf killer** — identify and batch
 3. **Cache at the right layer** — in-memory > Redis > DB query cache
 4. **Profile in production-like environment** — dev perf != prod perf
+5. **Watch for O(n²+) complexity and unnecessary allocations** — nested loops in hot paths are the #2 perf killer after N+1
 
 ## Database
 
@@ -55,6 +56,9 @@ Cold data (infrequent)       → DB query cache / no cache
 ## Checklist
 
 - [ ] No N+1 queries in hot paths
+- [ ] Unbounded queries always have LIMIT — no SELECT without limit
+- [ ] New query columns checked for index coverage
+- [ ] No O(n²+) loops in hot paths — watch for nested iterations
 - [ ] List endpoints paginated
 - [ ] DB queries have appropriate indexes
 - [ ] External calls have timeouts

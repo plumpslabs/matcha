@@ -6,6 +6,15 @@ alwaysApply: false
 
 # Java Standards
 
+## Generics & Type Safety
+```java
+// ❌ Bad — raw type
+List list = new ArrayList();
+// ✅ Good — parameterized
+List<String> list = new ArrayList<>();
+```
+No raw types — always parameterize generics.
+
 ## No Null
 ```java
 // ❌ Bad
@@ -48,6 +57,7 @@ catch (IOException e) {
 - Testing: JUnit 5, Mockito
 
 ## Checklist
+- [ ] No raw types — always parameterize generics
 - [ ] No null — `Optional`, `Objects.requireNonNull`, or `@NotNull`
 - [ ] Records over classes for data carriers (Java 16+)
 - [ ] Modern Java features used (sealed classes, pattern matching)

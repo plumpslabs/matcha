@@ -19,6 +19,34 @@ import { readFileSync, existsSync } from "fs";
  * Keep this list focused on matcha's 🧹 Cleanup checkpoint.
  */
 const CHECKS = [
+
+  {
+    name: "unbounded-query",
+    patterns: [
+      /SELECT\s+.*\s+FROM\s+.*\s+WHERE(?!.*LIMIT)/is,
+    ],
+    issue: "Unbounded query detected — no LIMIT clause",
+    fix: "Add LIMIT or explicit comment why not needed",
+    severity: "minor",
+  },
+  {
+    name: "high-offset",
+    patterns: [
+      /OFFSET\s\d{4,}/i,
+    ],
+    issue: "High OFFSET value — consider cursor pagination",
+    fix: "Use cursor-based pagination for large offsets",
+    severity: "minor",
+  },
+  {
+    name: "function-in-where",
+    patterns: [
+      /WHERE\s+(?:YEAR|MONTH|DATE|LOWER|UPPER)\(/i,
+    ],
+    issue: "Function in WHERE clause — index won't be used",
+    fix: "Use computed column or raw comparison instead",
+    severity: "minor",
+  },
   {
     name: "debug-log",
     patterns: [

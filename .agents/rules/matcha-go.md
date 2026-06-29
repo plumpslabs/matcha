@@ -24,6 +24,15 @@ No panic for expected errors, channels over shared memory
 ## Context
 Always pass `context.Context` for cancellation
 
+## Type Safety
+```go
+// ❌ Bad — empty interface as escape hatch
+func process(data interface{}) interface{} { return data }
+// ✅ Good — concrete type or generics
+func process[T any](data T) T { return data }
+```
+Prefer concrete types, generics, or small interfaces over `interface{}` as escape hatch.
+
 ## No Global State
 Use dependency injection
 
@@ -34,6 +43,7 @@ Use dependency injection
 - Testing: table-driven tests, `testify/assert`, `httptest`
 
 ## Checklist
+- [ ] No `interface{}` as escape hatch — concrete types, generics, or small interfaces
 - [ ] Errors always checked — no `_` assignments for errors
 - [ ] Error wrapping with `%w` at boundaries
 - [ ] Context passed for cancellable operations

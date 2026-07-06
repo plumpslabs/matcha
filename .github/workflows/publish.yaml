@@ -29,7 +29,7 @@ jobs:
         run: |
           node -e "
             const pkg = JSON.parse(require('fs').readFileSync('package.json','utf8'));
-            pkg.name = '@plumpslabs/kuma';
+            pkg.name = '@plumpslabs/matcha';
             require('fs').writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
           "
 

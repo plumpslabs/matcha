@@ -1,1 +1,0 @@
-../../.agents/rules/matcha-python.md

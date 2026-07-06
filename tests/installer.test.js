@@ -9,79 +9,58 @@ describe("install.sh syntax", () => {
   });
 });
 
-describe("install.sh flags", () => {
+describe("install.sh — core structure", () => {
   const installer = readProjectFile("install.sh");
 
-  test("has --lang flag", () => {
-    expect(installer).toContain("--lang");
+  test("has --target flag", () => {
+    expect(installer).toContain("--target");
   });
 
-  test("has --profile flag", () => {
-    expect(installer).toContain("--profile");
+  test("has platform detection loop", () => {
+    expect(installer).toContain("for p in");
   });
 
-  test("has detect_languages function", () => {
-    expect(installer).toContain("detect_languages");
+  test("installs all 6 agents", () => {
+    expect(installer).toContain("matcha-planner");
+    expect(installer).toContain("matcha-debugger");
   });
 
-  test("has ALL_LANGS variable", () => {
-    expect(installer).toContain("ALL_LANGS");
+  test("installs all 6 commands", () => {
+    expect(installer).toContain("for cmd in why review audit intensity status debt");
   });
 
-  test("has resolve_langs function", () => {
-    expect(installer).toContain("resolve_langs");
-  });
-
-  test("normalizes commas to spaces in LANG_FILTER", () => {
-    expect(installer).toContain("LANG_FILTER=\"\${LANG_FILTER//,/ }\"");
-  });
-
-  test("does not overwrite LANG_FILTER in resolve_langs full profile if already set", () => {
-    expect(installer).toContain('-z "$LANG_FILTER"');
+  test("installs hooks", () => {
+    expect(installer).toContain("matcha-shield.js");
+    expect(installer).toContain("matcha-post-write.js");
+    expect(installer).toContain("matcha-stop.js");
   });
 });
 
-describe("install.sh — Qoder platform detection", () => {
+
+
+describe("install.sh — platform coverage", () => {
   const installer = readProjectFile("install.sh");
 
   test("detects .qoder/ directory", () => {
     expect(installer).toContain(".qoder");
-    expect(installer).toContain("qoder)");
     expect(installer).toContain("matcha-shield.js");
   });
 
-  test("installs AGENTS.md for Qoder", () => {
-    expect(installer).toMatch(/qoder\)[\s\S]*?install_context/);
-  });
-});
-
-describe("install.sh — Qwen platform detection", () => {
-  const installer = readProjectFile("install.sh");
-
   test("detects .qwen/ directory", () => {
     expect(installer).toContain(".qwen");
-    expect(installer).toContain("qwen)");
   });
 
-  test("installs skill for Qwen", () => {
-    expect(installer).toContain("qwen/skills/matcha/SKILL.md");
-  });
-
-  test("generates settings.json for Qwen", () => {
-    expect(installer).toContain("settings.json");
-  });
-
-  test("auto-creates QWEN.md for qwen", () => {
-    expect(installer).toContain('install_file "$TARGET/QWEN.md"');
-  });
-});
-
-describe("install.sh — platform coverage", () => {
-  const installer = readProjectFile("install.sh");
-  const cases = installer.match(/^\s+[a-z]+\)/gm);
-
-  test("has 10+ platform cases", () => {
-    expect(cases?.length).toBeGreaterThanOrEqual(10);
+  test("installs on all 10 platforms", () => {
+    expect(installer).toContain(".claude");
+    expect(installer).toContain(".opencode");
+    expect(installer).toContain(".cursor");
+    expect(installer).toContain(".agents");
+    expect(installer).toContain(".clinerules");
+    expect(installer).toContain(".windsurf");
+    expect(installer).toContain(".kiro");
+    expect(installer).toContain(".openclaw");
+    expect(installer).toContain(".qoder");
+    expect(installer).toContain(".qwen");
   });
 });
 

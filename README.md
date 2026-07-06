@@ -10,15 +10,15 @@
 
 <p align="center">
   <b>Anti-bloat engineering convention for AI coding agents.</b><br />
-  6 agents · 6 commands · 16 rule sets · 3 lifecycle hooks · 12 platforms
+  6 agents · 6 commands · 3 lifecycle hooks
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
   <img src="https://img.shields.io/badge/agents-6-8A2BE2" alt="6 agents" />
-  <img src="https://img.shields.io/badge/rules-16-forestgreen" alt="16 rules" />
-  <img src="https://img.shields.io/badge/tests-393-success" alt="393 tests" />
+
+  <img src="https://img.shields.io/badge/tests-316-success" alt="316 tests" />
 </p>
 
 ---
@@ -84,17 +84,15 @@ matcha enforces **universal engineering principles** — language-agnostic, fram
 
 | Principle | What it means | Applied in |
 |-----------|---------------|------------|
-| **Type-safe by default** | No escape hatches, no `any` casting. Let the type system work for you. | Writing rules |
-| **CQS** | Commands change state (return void). Queries return data (no side effects). Never both. | Writing rules |
-| **Idempotency** | Mutations must be retry-safe. Use idempotency keys for payments, webhooks, and critical writes. | Writing rules |
-| **Validate at boundaries** | Validate inputs at the outer layer (controller/handler), not deep in service logic. Fail before mutation, not after partial write. | Writing rules |
+| **Type-safe by default** | No escape hatches, no `any` casting. Let the type system work for you. | Implementation checkpoint |
+| **CQS** | Commands change state (return void). Queries return data (no side effects). Never both. | Implementation checkpoint |
+| **Idempotency** | Mutations must be retry-safe. Use idempotency keys for payments, webhooks, and critical writes. | Implementation checkpoint |
+| **Validate at boundaries** | Validate inputs at the outer layer (controller/handler), not deep in service logic. Fail before mutation, not after partial write. | Implementation checkpoint |
 | **Contract-first** | Draft response shape / component props / API contract before implementation. No contract = no code. | Checkpoint 1 (5W1H) |
-| **Error shape consistency** | All endpoints return errors in the same format. FE shouldn't guess error structure. | Writing rules |
-| **State origin awareness** | Before adding state: is this server state, client state, or shared state? Prevents state management refactors. | Writing rules |
-| **Observability** | Structured logging, no `console.log`. Every log line should be parsable and actionable. | Writing rules + PostToolUse hook |
-| **Pure functions first** | Side effects at boundaries. Business logic should be pure — testable without mocks. | Writing rules |
+| **Observability** | Structured logging, no `console.log`. Every log line should be parsable and actionable. | PostToolUse hook |
+| **Pure functions first** | Side effects at boundaries. Business logic should be pure — testable without mocks. | Implementation checkpoint |
 | **Fail fast** | Validate config at startup, not at first use. Catch misconfig before it reaches production. | Config validation |
-| **Performance awareness** | Watch for N+1 queries, O(n²+) loops, and unnecessary allocations in hot paths. | Performance rules + PostToolUse hook |
+| **Performance awareness** | Watch for N+1 queries, O(n²+) loops, and unnecessary allocations in hot paths. | PostToolUse hook |
 
 ### Companion Tools
 
@@ -131,10 +129,7 @@ Invoke: `@matcha-reviewer` or let the agent auto-route via description.
 | `/matcha:audit` | Stack audit for overlaps & inefficiencies | Claude, OpenCode |
 | `/matcha:observe\|enforce\|audit` | Set intensity level | Claude, OpenCode |
 | `/matcha:status` | Session health + component availability | Claude, OpenCode |
-| `node bin/matcha.js status` | Show version, platform, shield status | Cloned repo |
-| `node bin/matcha.js why` | 5W1H interactive check (piped input) | Cloned repo |
-| `node bin/matcha.js audit` | Quick project stack audit | Cloned repo |
-| `node bin/matcha.js verify` | Auto-run tests + typecheck + lint | Cloned repo |
+| `/matcha:debt` | Technical debt from decision logs | Claude, OpenCode |
 
 ---
 
@@ -354,74 +349,19 @@ Adversarial:          5/7      5/7       7/7
 
 ---
 
-## Language Rules
-
-matcha ships per-language coding standards for your tech stack:
-
-| Language / Framework | Files | Auto-activates when editing |
-|----------------------|-------|----------------------------|
-| Common | `matcha-common` | Always (testing, git, conventions) |
-| Redis | `matcha-redis` | All files (caching patterns) |
-| Tailwind CSS | `matcha-tailwind` | `*.css`, `*.tsx`, `*.jsx`, `*.html`, `*.vue` |
-| TypeScript/JS | `matcha-typescript` | `*.ts`, `*.tsx`, `*.js`, `*.jsx` |
-| React | `matcha-react` | `*.tsx`, `*.jsx` |
-| Next.js | `matcha-nextjs` | `*.tsx`, `*.ts` |
-| TanStack | `matcha-tanstack` | `*.ts`, `*.tsx` |
-| Angular | `matcha-angular` | `*.ts` |
-| NestJS | `matcha-nestjs` | `*.ts` |
-| Nuxt | `matcha-nuxt` | `*.vue`, `*.ts` |
-| Go | `matcha-go` | `*.go` |
-| Python | `matcha-python` | `*.py` |
-| PHP | `matcha-php` | `*.php` |
-| Java | `matcha-java` | `*.java` |
-| React Native | `matcha-react-native` | `*.tsx`, `*.jsx` |
-
-Rules are available on all platforms with adapter-specific formatting (Cursor `.mdc`, Kiro steering, Windsurf rules, etc.).
-
----
-
 ## Platform Adapters
 
-matcha adapts to **12 platforms**, each with its own file format and lifecycle model.
+matcha adapts your conventions to each AI coding platform's native format.
 
-| Platform | Files | Key Features |
-|----------|-------|-------------|
-| **Claude Code** | `.claude/agents/`, `.claude/commands/`, `.claude/settings.json` | 6 agents + 6 commands + 3 lifecycle hooks + skill |
-| **OpenCode** | `.opencode/agents/`, `.opencode/plugins/matcha.mjs` | 6 agents + 6 commands + lifecycle plugin (`tool.execute.before`, `session.created`) |
-| **Cursor** | `.cursor/rules/matcha-*.mdc` (20 files) | 4 scoped rules: **core** (alwaysApply), **cleanup** (globs), **audit** (manual), **review** (manual) + 15 language rules + 1 combined legacy |
-| **Windsurf** | `.windsurfrules` (root) + `.windsurf/rules/*.md` | Root `.windsurfrules` read by Cascade AI + 16 per-language `.md` rules |
-| **Kiro** | `.kiro/steering/matcha*.md` (17 files) | `inclusion: always` for core, `inclusion: manual` for dev/review modes |
-| **Cline / Roo Code** | `.clinerules/matcha*.md` | Per-language `.clinerules` files |
-| **OpenClaw** | `.openclaw/skills/matcha/SKILL.md` | Skill file only |
-| **Qoder** | `.qoder/` | AGENTS.md + agents + rules + shield hook |
-| **Qwen Code** | `.qwen/` | QWEN.md + skill + settings.json |
-| **Codebuff / agy** | `.agents/` (or global) | agents + commands + rules + skill (universal format) |
-| **Antigravity CLI** | `GEMINI.md` + `gemini-extension.json` | GEMINI.md convention + deprecated extension manifest |
-| **Any / None** | `.agents/` (auto-created) | Universal format — agents + rules + commands + skill |
-
-### Adapter Details
-
-**Cursor — Scoped `.mdc` files:**
-- `matcha-core.mdc` — `alwaysApply: true`, under 200 words, loaded on every request
-- `matcha-cleanup.mdc` — `globs: ["**/*.{ts,tsx,js,jsx,py,go,java,php}"]`, auto-triggered on source files
-- `matcha-audit.mdc` — `alwaysApply: false`, on-demand via `@matcha-auditor`
-- `matcha-review.mdc` — `alwaysApply: false`, on-demand via `@matcha-reviewer`
-- 15 language `.mdc` files with `globs` scoped to respective file types
-
-**Kiro — Steering files:**
-- `matcha.md` — `inclusion: always` (loaded every turn), trimmed to core rules (<200 words)
-- `dev-mode.md`, `review-mode.md`, language files — `inclusion: manual` (invoked as needed)
-- Uses native Kiro `inclusion` mode instead of Cursor's `alwaysApply`/`globs`
-
-**OpenCode — Plugin with lifecycle hooks:**
-- `session.created` — injects matcha system prompt every session
-- `tool.execute.before` — shield enforcement for dangerous commands
-- 3 slash commands: `matcha:why`, `matcha:audit`, `matcha:review`
-- No `tool.execute.after` needed (cleanup handled via inline instructions)
-
-**Antigravity CLI / Gemini:**
-- `GEMINI.md` — convention file with core rules + intensity + agent list
-- `gemini-extension.json` — deprecated (kept for backward compat until v3.0.0), migration guide in `GEMINI.md`
+| Platform | Integration |
+|----------|-------------|
+| **Claude Code** | `.claude/` — agents + commands + 3 lifecycle hooks (shield, post-write, stop) |
+| **OpenCode** | `.opencode/` — plugin + agents + skills |
+| **Kiro** | `.kiro/steering/` — matcha.md, dev-mode.md, review-mode.md |
+| **OpenClaw** | `.openclaw/skills/matcha/SKILL.md` |
+| **Windsurf** | `.windsurfrules` (root) |
+| **Antigravity CLI** | `GEMINI.md` |
+| **Any / None** | `.agents/` (auto-created) — universal format |
 
 ---
 
@@ -455,77 +395,15 @@ Recommendation: [which and why]
 
 ---
 
-## ✍️ Writing Style
 
-matcha ships a **writing style guide** (`rules/common/writing-style.md`) with 10 rules derived from matcha's own DNA — not borrowed or copied. Every rule traces back to matcha's core philosophy: Simple, Efficient, Deliberate, Never twice, 5W1H.
-
-### The 10 Rules
-
-| Rule | Principle | Domain | Mechanical Detection |
-|------|-----------|--------|----------------------|
-| RULE-01: Direct Sentences | Efficient | Commits, docs, comments | ✅ Filler phrases (`in order to`, `due to the fact that`) |
-| RULE-02: Comments = Why, Not What | Deliberate | Code comments | — (via agent system prompt) |
-| RULE-03: Actionable Error Messages | Actionable | Error messages | — (via agent system prompt) |
-| RULE-04: Conventional Commits | Clean | Commit messages | ✅ Vague commit (`WIP`, `fix bug`, `update`) |
-| RULE-05: Concrete, Not Abstract | Never twice | All docs | — (via agent system prompt) |
-| RULE-06: Active Voice | Simple | All docs | ✅ Passive voice (`was done`, `has been implemented`) |
-| RULE-07: PR with 5W1H | 5W1H | PR descriptions | — (via agent system prompt) |
-| RULE-08: No Dead Buzzwords | Simple | All docs | ✅ Buzzwords (`leverage`, `cutting-edge`, `synergy`) |
-| RULE-09: Single Source of Truth | Never twice | Documentation | — (via agent system prompt) |
-| RULE-10: Tone Casual-Direct | matcha tone | All communication | — (via agent system prompt) |
-
-### Enforcement
-
-Writing quality is enforced through **two layers**:
-
-**Layer 1 — System prompt (soft):** The `rules/common/writing-style.md` file is auto-loaded as a common rule on all platforms. The agent reads it at session start and follows the rules during generation.
-
-**Layer 2 — PostToolUse hook (deterministic):** The `matcha-post-write.js` hook scans modified `.md`, `.txt`, and `COMMIT_EDITMSG` files for mechanically detectable violations:
-
-| Check | Detects | Format |
-|-------|---------|--------|
-| 🔵 Filler phrases | `in order to`, `due to the fact that`, `it is important to note that` | 🟢 Writing style |
-| 🔵 Passive voice | `was done`, `has been implemented`, `will be processed` | 🟢 Writing style |
-| 🔵 Dead buzzwords | `leverage`, `cutting-edge`, `synergy`, `paradigm shift` | 🟢 Writing style |
-| 🔵 Vague commit | `fix bug`, `WIP`, `update`, `changes` (on COMMIT_EDITMSG only) | 🟢 Writing style |
-
-### Philosophy
-
-These writing rules are not copy-pasted from other projects. Every rule is born from the matcha DNA:
-
-- **RULE-01** (Direct Sentences) ← Efficient: filler = bloat, just like code bloat
-- **RULE-02** (Comment = Why) ← Deliberate: code = what, comment = why
-- **RULE-06** (Active Voice) ← Simple: shorter, clearer
-- **RULE-09** (Single Source of Truth) ← Never twice: information must not be duplicated
-- **RULE-07** (PR with 5W1H) ← 5W1H: aligned with the Purpose checkpoint
-
-Tone: **casual-direct with light sarcasm**. Not stiff-formal (no "Dear Sir/Madam"), not too informal (no "yo dude"). Target: chatting with a senior engineer you respect.
-
-### Scope
-
-| Domain | Applicable | Enforcement |
-|--------|------------|-------------|
-| Commit messages | ✅ | PostToolUse hook + system prompt |
-| Code comments | ✅ | System prompt |
-| PR descriptions | ✅ | System prompt |
-| Error messages | ✅ | System prompt |
-| README/docs | ✅ | PostToolUse hook + system prompt |
-| External documentation | ❌ (use judgment) | — |
-| Regulatory/compliance | ❌ (use judgment) | — |
-
----
 
 ## CLI (from cloned repo)
 
 ```
 node bin/matcha.js status      Show version, platform, components
-node bin/matcha.js why          5W1H interactive check (piped input supported)
-node bin/matcha.js audit        Quick project stack audit
-node bin/matcha.js verify       Auto-detect + run tests, typecheck, lint
+node bin/matcha.js init         Install matcha to current directory
 node bin/matcha.js help         Show usage
 ```
-
-Supports: npm test, jest, vitest, pytest, go test, cargo test, phpunit, mvn test, gradle test, make test.
 
 Install via:
 ```bash

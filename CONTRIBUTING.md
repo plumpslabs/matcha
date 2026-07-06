@@ -25,57 +25,29 @@ Open an issue to discuss before sending a PR.
 
 1. Fork the repo and create a branch from `main`
 2. Follow matcha rules while contributing — irony is the highest form of respect
-3. If you're adding a new adapter file, add it to:
-   - `scripts/build-openclaw-skills.js` (if it should be auto-generated)
-   - `scripts/check-rule-copies.js` (if it should be validated)
-   - `tests/index.js` (if it should exist)
-   - `bin/matcha.js` ADAPTERS (if it should be installable via CLI)
-4. Run validation before submitting:
-   ```bash
-   npm run build
-   npm run check
-   npm test
-   ```
-5. Submit your PR with a clear description of what changed and why
+3. Run validation: `npm test`
+4. Submit your PR with a clear description of what changed and why
 
 ## Project Structure
 
 ```
 matcha/
-├── AGENTS.md                     # Universal fallback ruleset
-├── CLAUDE.md                     # Claude Code-specific fallback
-├── LICENSE                       # MIT license
-├── README.md                     # You are here
-├── CONTRIBUTING.md               # This file
-├── skills/matcha/SKILL.md        # Source of truth — full ruleset
-├── hooks/
-│   ├── inject-rules.js           # ESM lifecycle hooks (Claude Code, Codex)
-│   └── matcha-instructions.js    # Shared ESM module — reads SKILL.md
-├── .cursor/rules/matcha.mdc      # Cursor adapter (source for static copies)
-├── .windsurf/rules/matcha.md     # Windsurf adapter
-├── .clinerules/matcha.md         # Cline adapter
-├── .kiro/steering/matcha.md      # Kiro adapter
-├── .agents/rules/matcha.md       # Generic agent adapter
-├── .claude-plugin/               # Claude Code / Codex plugin config
-├── .opencode/plugins/matcha.mjs  # OpenCode server plugin
-├── commands/                     # Slash command implementations
-├── bin/matcha.js                 # CLI installer
-├── scripts/
-│   ├── build-openclaw-skills.js  # Regenerate all adapter copies
-│   └── check-rule-copies.js      # Verify copies are in sync
-└── tests/index.js                # Validation test suite
+├── AGENTS.md                     # Agent registry + command reference
+├── CLAUDE.md                     # Claude Code persona
+├── skills/matcha/SKILL.md        # Source of truth — full philosophy
+├── hooks/                        # Lifecycle hooks (shield, post-write, stop)
+├── commands/                     # 6 slash commands
+├── .agents/                      # Universal format (agents + commands + skills)
+├── .claude-plugin/               # Claude Code plugin config
+├── .opencode/plugins/matcha.mjs  # OpenCode plugin
+├── bin/matcha.js                 # CLI (status + init)
+└── tests/                        # Test suite
 ```
 
 ## Development
 
 ```bash
-# Install dependencies (none currently — pure Node.js)
-npm install
-
-# Validate your changes
-npm run build   # Regenerate all adapter copies
-npm run check   # Verify all copies are consistent
-npm test        # Run the validation test suite
+npm test
 ```
 
 ## Guidelines

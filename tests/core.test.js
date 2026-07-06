@@ -96,33 +96,3 @@ describe("AGENTS.md vs CLAUDE.md separation", () => {
   });
 });
 
-describe("Framework rules", () => {
-  const ruleFiles = [
-    "rules/typescript/react.md", "rules/typescript/nextjs.md",
-    "rules/typescript/angular.md", "rules/typescript/nestjs.md",
-    "rules/typescript/nuxt.md", "rules/typescript/tanstack.md",
-    "rules/common/redis.md", "rules/common/tailwind.md",
-    "rules/common/writing-style.md",
-  ];
-
-  test.each(ruleFiles)("%s exists", (f) => assertFile(f));
-
-  test("writing-style.md has exactly 10 rules with Bad/Good examples", () => {
-    const content = readProjectFile("rules/common/writing-style.md");
-    const ruleHeaders = content.match(/^## RULE-/gm) || [];
-    expect(ruleHeaders.length).toBe(10);
-
-    for (let i = 1; i <= 10; i++) {
-      const num = i < 10 ? `0${i}` : `${i}`;
-      expect(content).toContain(`RULE-${num}:`);
-    }
-    expect(content).toMatch(/bad/i);
-    expect(content).toMatch(/good/i);
-    expect(content).toContain("matcha");
-  });
-
-  test("TypeScript rules ban `any` type", () => {
-    const tsRules = readProjectFile("rules/typescript/coding-standards.md");
-    expect(tsRules).toMatch(/no\s*`any`/i);
-  });
-});

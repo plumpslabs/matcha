@@ -18,24 +18,5 @@ describe("bin/matcha.js", () => {
     expect(content).toContain("Platform:");
   });
 
-  test("has why command with 5W1H", () => {
-    expect(content).toContain("5W1H");
-  });
 
-  test("has audit command with Stack Audit", () => {
-    expect(content).toContain("Stack Audit");
-  });
-
-  test("has verify command with Feedback Harness", () => {
-    expect(content).toContain("verify");
-    expect(content).toContain("Feedback Harness");
-  });
-
-  test("detects package.json test script", () => {
-    expect(content).toContain('"test"');
-  });
-
-  test("detects Go test", () => {
-    expect(content).toContain("go test ./...");
-  });
 });

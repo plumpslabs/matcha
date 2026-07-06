@@ -42,15 +42,7 @@ describe("Kiro steering", () => {
   });
 });
 
-describe("Cursor rules", () => {
-  const scopedFiles = [
-    "matcha-core.mdc", "matcha-cleanup.mdc",
-    "matcha-audit.mdc", "matcha-review.mdc",
-  ];
-  test.each(scopedFiles)("cursor/rules/%s exists", (f) => {
-    assertFile(`.cursor/rules/${f}`);
-  });
-});
+
 
 describe("Windsurfrules", () => {
   test("exists at root", () => assertFile(".windsurfrules"));

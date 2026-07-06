@@ -8,7 +8,7 @@
 ## Real Multi-Turn Benchmark
 
 **Setup**: Express API project &middot; 3 features × 3 steps each &middot; agy (Gemini 3.5 Flash)
-**Matcha**: Full `.claude/` + `hooks/` + `rules/` injected
+**Matcha**: Full `.claude/` + `hooks/` injected
 
 ### Results
 
@@ -64,7 +64,7 @@ All 3 features scored **A** for matcha compliance:
 
 - **Tasks**: Real-world multi-turn feature implementation (Express API)
 - **Backend**: agy (Gemini 3.5 Flash) — interactive mode
-- **Matcha**: Full injection (`.claude/`, `hooks/`, `rules/`, `skills/`, `.agents/`)
+- **Matcha**: Full injection (`.claude/`, `hooks/`, `skills/`, `.agents/`)
 - **Metrics**: Test pass rate, LOC, code quality indicators (named constants, error messages, function structure)
 - **Comparison**: Same prompt with and without matcha files in project
 

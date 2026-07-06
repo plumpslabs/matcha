@@ -111,25 +111,4 @@ export const TASK_IDS = [
   "memoize", "chunk-array", "unique-filter", "deep-get", "pipe-compose",
 ];
 
-/** Platform dirs and their expected rule files */
-export const PLATFORM_RULES = {
-  ".cursor/rules": [
-    "matcha-core.mdc", "matcha-cleanup.mdc", "matcha-audit.mdc", "matcha-review.mdc",
-    "matcha-common.mdc", "matcha-go.mdc", "matcha-typescript.mdc",
-    "matcha-python.mdc", "matcha-php.mdc", "matcha-java.mdc", "matcha-react-native.mdc",
-    "matcha-react.mdc", "matcha-angular.mdc", "matcha-nextjs.mdc", "matcha-nestjs.mdc",
-    "matcha-nuxt.mdc", "matcha-tanstack.mdc", "matcha-redis.mdc", "matcha-tailwind.mdc",
-  ],
-  ".agents/rules": [
-    "matcha.md", "matcha-common.md", "matcha-go.md", "matcha-typescript.md",
-    "matcha-python.md", "matcha-php.md", "matcha-java.md", "matcha-react-native.md",
-    "matcha-react.md", "matcha-angular.md", "matcha-nextjs.md", "matcha-nestjs.md",
-    "matcha-nuxt.md", "matcha-tanstack.md", "matcha-redis.md", "matcha-tailwind.md",
-  ],
-  ".kiro/steering": [
-    "matcha.md", "dev-mode.md", "review-mode.md", "matcha-go.md", "matcha-typescript.md",
-    "matcha-python.md", "matcha-php.md", "matcha-java.md", "matcha-react-native.md",
-    "matcha-react.md", "matcha-angular.md", "matcha-nextjs.md", "matcha-nestjs.md",
-    "matcha-nuxt.md", "matcha-tanstack.md", "matcha-redis.md", "matcha-tailwind.md",
-  ],
-};
+

@@ -7,8 +7,7 @@
  *   git clone https://github.com/plumpslabs/matcha.git
  *   cd matcha
  *   node bin/matcha.js status   — Show matcha version & platform detection
- *   node bin/matcha.js why      — 5W1H interactive check
- *   node bin/matcha.js audit    — Quick project stack audit
+ *   node bin/matcha.js init     — Install matcha to current directory
  *   node bin/matcha.js help     — Show help
  *
  * Install via:
@@ -16,7 +15,7 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync, existsSync, mkdirSync } from "fs";
+import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -25,7 +24,6 @@ const PKG_ROOT = join(__dirname, "..");
 const CWD = process.cwd();
 const cmd = process.argv[2];
 
-// Read package.json for version
 let VERSION = "0.0.0";
 try {
   const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf-8"));
@@ -39,9 +37,7 @@ function showHelp() {
 
 Usage (from cloned repo):
   node bin/matcha.js status    Show version, platform, and installed components
-  node bin/matcha.js why       Run 5W1H check — clarify purpose before coding
-  node bin/matcha.js audit     Quick project stack audit
-  node bin/matcha.js verify    Auto-detect test framework and run tests + typecheck
+  node bin/matcha.js init      Install matcha to current directory
   node bin/matcha.js help      Show this help
 
 Install:
@@ -70,17 +66,14 @@ function cmdInit() {
 
   console.log("\n💡 Next steps:");
   console.log("   Run  node bin/matcha.js status   to verify installation");
-  console.log("   See  QUICKSTART.md               for usage guide");
 }
 
 // ─── Status ───────────────────────────────────────────────────────────────────
 function cmdStatus() {
   console.log(`🍵 matcha status\n`);
 
-  // Version
   console.log(`  Version:    v${VERSION}`);
 
-  // Platform detection
   const platformFolders = [
     [".claude", "Claude Code"],
     [".opencode", "OpenCode"],
@@ -98,17 +91,14 @@ function cmdStatus() {
   for (const [folder, name] of platformFolders) {
     if (existsSync(join(CWD, folder))) {
       found.push(name);
-      // Check sub-components
       const hasRules = existsSync(join(CWD, folder, "rules")) ||
                        existsSync(join(CWD, folder, "steering"));
       const hasAgents = existsSync(join(CWD, folder, "agents"));
       const hasCommands = existsSync(join(CWD, folder, "commands"));
-      const hasSkill = existsSync(join(CWD, folder, "skills"));
       const parts = [];
       if (hasRules) parts.push("rules");
       if (hasAgents) parts.push("agents");
       if (hasCommands) parts.push("commands");
-      if (hasSkill) parts.push("skills");
       console.log(`  Platform:   ${name} (${parts.join(", ") || "detected"})`);
     }
   }
@@ -116,20 +106,14 @@ function cmdStatus() {
   if (found.length === 0) {
     console.log("  Platform:   (none detected)");
     console.log("  → Run  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash");
-    console.log("  → Or   cd path/to/matcha && node bin/matcha.js init  (from cloned repo)");
   }
 
-  // Check AGENTS.md
   const hasAgentsMd = existsSync(join(CWD, "AGENTS.md"));
   console.log(`  AGENTS.md:  ${hasAgentsMd ? "✅" : "❌"}`);
 
-  // Check matcha-shield
-  const hasShield =
-    existsSync(join(CWD, "hooks", "matcha-shield.js")) ||
-    existsSync(join(CWD, ".qoder", "hooks", "matcha-shield.js"));
+  const hasShield = existsSync(join(CWD, "hooks", "matcha-shield.js"));
   console.log(`  Shield:     ${hasShield ? "✅ active" : "⏭ not installed"}`);
 
-  // Intensity (from state file, env, or default)
   let intensity = process.env.MATCHA_INTENSITY || "enforce (default)";
   try {
     const statePath = join(CWD, ".agents/matcha-state.json");
@@ -143,251 +127,13 @@ function cmdStatus() {
   console.log(`\n  All systems ${found.length > 0 ? "✅ nominal" : "⏭ pending install"}`);
 }
 
-// ─── Why (5W1H interactive) ──────────────────────────────────────────────────
-function cmdWhy() {
-  const questions = [
-    { q: "🎯 What", desc: "What is the actual problem you're solving?" },
-    { q: "❓ Why", desc: "What breaks if you skip this?" },
-    { q: "👤 Who", desc: "What code/team/service depends on this?" },
-    { q: "⏰ When", desc: "Is this needed now, or premature?" },
-    { q: "📍 Where", desc: "Where in the codebase does this belong?" },
-    { q: "🔧 How", desc: "What's the simplest complete solution?" },
-  ];
-
-  console.log(`\n🍵 matcha: 5W1H Gate — Purpose Check`);
-  console.log(`  Answer each question. If Why or How is unclear, STOP.\n`);
-
-  // Read from stdin if piped, otherwise show prompts for manual answering
-  const isPiped = !process.stdin.isTTY;
-
-  if (isPiped) {
-    // Non-interactive mode — read answers from stdin
-    let input = "";
-    process.stdin.on("data", (chunk) => (input += chunk));
-    process.stdin.on("end", () => {
-      const lines = input.trim().split("\n");
-      console.log("  Answers received:\n");
-      questions.forEach(({ q, desc }, i) => {
-        const answer = lines[i] || "(empty)";
-        console.log(`  ${q}:`);
-        console.log(`    ${answer}`);
-        if ((q === "❓ Why" || q === "🔧 How") && (!answer || answer === "(empty)")) {
-          console.log(`    ⚠️  Cannot answer ${q} — consider STOPPING.\n`);
-        }
-      });
-      console.log("\n  ✅ 5W1H check complete. Proceed with clarity.");
-    });
-  } else {
-    // Interactive mode — show each question
-    console.log("  (Run with piped input for automation, or answer manually)\n");
-    questions.forEach(({ q, desc }) => {
-      console.log(`  ${q} — ${desc}`);
-    });
-    console.log(`\n  Example: echo "fix login bug|users can't log in|auth service|now|auth/login.ts|check token expiry" | node bin/matcha.js why`);
-  }
-}
-
-// ─── Audit ────────────────────────────────────────────────────────────────────
-function cmdAudit() {
-  console.log(`🍵 matcha: Stack Audit\n`);
-
-  // Check manifest files
-  const manifests = [
-    ["package.json", "Node.js / npm"],
-    ["pyproject.toml", "Python (PEP 621)"],
-    ["requirements.txt", "Python (pip)"],
-    ["go.mod", "Go"],
-    ["Cargo.toml", "Rust"],
-    ["composer.json", "PHP"],
-    ["pom.xml", "Java (Maven)"],
-    ["build.gradle", "Java (Gradle)"],
-    ["Gemfile", "Ruby"],
-    ["mix.exs", "Elixir"],
-  ];
-
-  let manifestCount = 0;
-  for (const [file, label] of manifests) {
-    if (existsSync(join(CWD, file))) {
-      manifestCount++;
-      const content = readFileSync(join(CWD, file), "utf-8").slice(0, 500);
-      console.log(`  📄 ${label}  (${file}):`);
-      // Show first few dependency lines
-      const depLines = content.split("\n").filter(l =>
-        l.includes('"') || l.includes("'") || l.includes("require")
-      ).slice(0, 3);
-      depLines.forEach(l => console.log(`    ${l.trim()}`));
-      if (depLines.length === 3) console.log(`    ...`);
-      console.log("");
-    }
-  }
-
-  if (manifestCount === 0) {
-    console.log("  No project manifests detected.\n");
-  }
-
-  // Check Docker
-  if (existsSync(join(CWD, "Dockerfile"))) {
-    console.log("  🐳 Dockerfile detected");
-  }
-  if (existsSync(join(CWD, "docker-compose.yml")) || existsSync(join(CWD, "docker-compose.yaml"))) {
-    console.log("  🐳 docker-compose detected (check for service overlap)");
-  }
-
-  // Check CI/CD
-  const ciFiles = [
-    [".github/workflows", "GitHub Actions"],
-    [".gitlab-ci.yml", "GitLab CI"],
-    ["Jenkinsfile", "Jenkins"],
-  ];
-  for (const [path, label] of ciFiles) {
-    if (existsSync(join(CWD, path))) {
-      console.log(`  🔄 ${label}`);
-    }
-  }
-
-  // Check env
-  if (existsSync(join(CWD, ".env"))) {
-    console.log("  🔑 .env (contains secrets? Add to .gitignore!)");
-  }
-  if (existsSync(join(CWD, ".env.example"))) {
-    console.log("  🔑 .env.example (good practice ✅)");
-  }
-
-  console.log("\n  ✅ Audit complete.");
-}
-
-// ─── Verify (Feedback Harness) ────────────────────────────────────────────
-function cmdVerify() {
-  console.log(`🍵 matcha: Verify — Feedback Harness\n`);
-
-  const detectCommands = [
-    // Node.js / TypeScript / React
-    { file: "package.json", detect: (content) => {
-        if (content.includes('"test"')) return "npm test";
-        if (content.includes('"jest"') || content.includes('"@jest"')) return "npx jest";
-        if (content.includes('"vitest"')) return "npx vitest run";
-        return null;
-      },
-      typecheck: "npx tsc --noEmit 2>/dev/null || npx tsc --noEmit --project tsconfig.json 2>/dev/null || echo 'no tsc config'",
-      lint: "npx eslint . 2>/dev/null || echo 'no eslint config'",
-      label: "Node.js" },
-    // Python
-    { file: "pyproject.toml", detect: (content) => {
-        if (content.includes("[tool.pytest")) return "pytest";
-        return null;
-      },
-      typecheck: "mypy . 2>/dev/null || echo 'no mypy config'",
-      lint: "ruff check . 2>/dev/null || echo 'no ruff config'",
-      label: "Python" },
-    { file: "requirements.txt", detect: () => "python -m pytest 2>/dev/null || python3 -m pytest 2>/dev/null", typecheck: null, lint: null, label: "Python" },
-    { file: "setup.py", detect: () => "python -m pytest 2>/dev/null || python3 -m pytest 2>/dev/null", typecheck: null, lint: null, label: "Python" },
-    // Go
-    { file: "go.mod", detect: () => "go test ./...", typecheck: "go vet ./...", lint: "golangci-lint run 2>/dev/null || echo 'no golangci-lint'", label: "Go" },
-    // Rust
-    { file: "Cargo.toml", detect: () => "cargo test", typecheck: "cargo check", lint: "cargo clippy 2>/dev/null || echo 'no clippy'", label: "Rust" },
-    // PHP
-    { file: "composer.json", detect: (content) => {
-        if (content.includes('"phpunit"') || content.includes('"pest"')) return "vendor/bin/phpunit 2>/dev/null || vendor/bin/pest 2>/dev/null";
-        return null;
-      },
-      typecheck: null, lint: "vendor/bin/phpcs 2>/dev/null || echo 'no phpcs'",
-      label: "PHP" },
-    // Java
-    { file: "pom.xml", detect: () => "which mvn && mvn test -q 2>/dev/null || mvn test -q 2>/dev/null", typecheck: "which mvn && mvn compile -q 2>/dev/null || mvn compile -q 2>/dev/null || true", lint: null, label: "Java (Maven)" },
-    { file: "build.gradle", detect: () => "./gradlew test 2>/dev/null || gradle test 2>/dev/null", typecheck: "./gradlew compileJava 2>/dev/null || gradle compileJava 2>/dev/null || true", lint: null, label: "Java (Gradle)" },
-    // Makefile
-    { file: "Makefile", detect: (content) => {
-        if (content.includes("test:")) return "make test";
-        return null;
-      },
-      typecheck: null, lint: null,
-      label: "Make" },
-  ];
-
-  let foundCommand = null;
-  let foundTypecheck = null;
-  let foundLint = null;
-  let foundLabel = "";
-
-  for (const entry of detectCommands) {
-    if (existsSync(join(CWD, entry.file))) {
-      try {
-        const content = readFileSync(join(CWD, entry.file), "utf-8");
-        const cmd = entry.detect(content);
-        if (cmd) {
-          foundCommand = cmd;
-          foundTypecheck = entry.typecheck;
-          foundLint = entry.lint;
-          foundLabel = entry.label;
-          break;
-        }
-      } catch {}
-    }
-  }
-
-  if (!foundCommand) {
-    console.log("  No test framework detected.");
-    console.log("  Known manifests checked: package.json, pyproject.toml, go.mod, Cargo.toml, composer.json, pom.xml, build.gradle, Makefile");
-    console.log("\n  Suggestion: navigate to your project root and run relevant tests manually.");
-    return;
-  }
-
-  console.log(`  Detected: ${foundLabel}`);
-  console.log(`  Test cmd: ${foundCommand}\n`);
-
-  // Run tests
-  console.log("  ── Running tests ──");
-  try {
-    execSync(foundCommand, { cwd: CWD, stdio: "inherit", timeout: 120000 });
-    console.log(`  ✅ Tests passed`);
-  } catch {
-    console.log(`  ❌ Tests FAILED`);
-    console.log("  → Fix failures before declaring done.");
-    process.exitCode = 1;
-    return;
-  }
-
-  // Run typecheck
-  if (foundTypecheck) {
-    console.log("\n  ── Running type check ──");
-    try {
-      execSync(foundTypecheck, { cwd: CWD, stdio: "inherit", timeout: 60000 });
-      console.log(`  ✅ Type check passed`);
-    } catch {
-      console.log(`  ⚠️  Type check had issues (non-blocking)`);
-    }
-  }
-
-  // Run lint
-  if (foundLint) {
-    console.log("\n  ── Running linter ──");
-    try {
-      execSync(foundLint, { cwd: CWD, stdio: "inherit", timeout: 60000 });
-      console.log(`  ✅ Lint passed`);
-    } catch {
-      console.log(`  ⚠️  Lint had issues (non-blocking)`);
-    }
-  }
-
-  console.log(`\n  ✅ Verify complete.`);
-}
-
 // ─── CLI Router ──────────────────────────────────────────────────────────────
 switch (cmd) {
-  case "verify":
-    cmdVerify();
-    break;
   case "init":
     cmdInit();
     break;
   case "status":
     cmdStatus();
-    break;
-  case "why":
-    cmdWhy();
-    break;
-  case "audit":
-    cmdAudit();
     break;
   case "help":
   case "--help":
@@ -395,7 +141,6 @@ switch (cmd) {
     showHelp();
     break;
   default:
-    // If no command or unknown, show help
     showHelp();
     break;
 }

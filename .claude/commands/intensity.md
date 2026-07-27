@@ -1,15 +1,25 @@
 # /matcha observe|enforce|audit
 
-Set matcha intensity level for current session.
+Set intensity level for current session.
 
-## Usage
-- `/matcha observe` — tips only, non-blocking
-- `/matcha enforce` — full philosophy, default
-- `/matcha audit` — enforce + mandatory cleanup
+## Checklists
 
-## Instructions for agent
-When user invokes `/matcha <level>`, set intensity to that level for the remainder of the session. Persist until changed.
+**observe** — tips only: flag console.log/TODO optionally, syntax check optional.
 
+**enforce** (default):
+- Planning gate: <what> references files, <why> needs evidence, <how> 2+ steps
+- Cleanup: remove console.log, commented code, unused imports
+- Verify: syntax ✅, typecheck ✅, tests detected ⚠️
+
+**audit** (strict):
+- Enforce rules + no files >300 lines, all env vars documented
+- Verify: syntax ✅, typecheck ✅, lint ✅, tests must exist ✅
+
+## Instructions
+Persist intensity to `.agents/matcha-state.json`:
+```json
+{"intensity": "observe|enforce|audit"}
+```
 Confirm with:
 ```
 🍵 matcha: intensity set to [observe|enforce|audit]

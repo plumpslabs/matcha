@@ -220,6 +220,43 @@ export function checkPlanningGate(event) {
     };
   }
 
+  // ── Enhanced validation (Issue #1:1 / #2:2) ───────────────────────────────
+  // Skip for simple/trivial tasks (under 200 total chars = simple fix)
+  const totalPlanChars = whatText.length + whyText.length + howText.length;
+  if (totalPlanChars < 200) {
+    // Simple task — skip enhanced validation, let it through
+    return null;
+  }
+
+  // <what> must reference specific files (filename or path)
+  const hasFileRef = /\.[a-z]+(:\d+)?\b/i.test(whatText) || whatText.includes("/");
+  if (!hasFileRef) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked\n\nThe <what> section must reference specific files (e.g. \"Optimize sendMessage.js:120\")\nFound: \"${whatText.substring(0, 60)}...\"\n`
+    };
+  }
+
+  // <why> must reference observed evidence (metrics, numbers, evidence)
+  const hasEvidence = /\d+/.test(whyText) ||
+    /\b(profile|benchmark|metric|observe|measured|shows|redundant|slow|N\+1)\b/i.test(whyText);
+  if (!hasEvidence) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked\n\nThe <why> section must reference observed evidence (e.g. \"Profiling shows 7 redundant queries\")\nFound: \"${whyText.substring(0, 60)}...\"\n`
+    };
+  }
+
+  // <how> must list 2+ concrete steps
+  const stepCount = (howText.match(/(?:^|\n)\s*[-*]\s/g) || []).length;
+  const numberedSteps = (howText.match(/\d+\.\s/g) || []).length;
+  if (stepCount + numberedSteps < 2) {
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked\n\nThe <how> section must list 2+ concrete implementation steps (as a list).\n`
+    };
+  }
+
   return null;
 }
 

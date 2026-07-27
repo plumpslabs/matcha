@@ -177,12 +177,12 @@ describe("Shield — Planning Gate", () => {
     expect(result.message).toContain("too short");
   });
 
-  test("allows if plan is valid", () => {
+  test("allows if plan is valid with file refs, evidence, and steps", () => {
     const plan = `
 <matcha_gate>
-  <what>Implement dynamic gate checking</what>
-  <why>To enforce 5W1H before code changes</why>
-  <how>Add hook in matcha-shield.js</how>
+  <what>Implement gate validation in matcha-shield.js:120</what>
+  <why>Profiling shows 7 redundant queries per message send</why>
+  <how>- Add file reference check to <what>\n- Add evidence check to <why>\n- Add step count check to <how></how>
 </matcha_gate>
 `;
     writeFileSync(planPath, plan, "utf-8");

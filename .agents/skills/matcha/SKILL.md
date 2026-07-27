@@ -31,6 +31,21 @@ Always take the **easiest AND most efficient path** — not just one. Easy witho
 
 Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 
+### Concrete Checklists
+
+**observe** — tips only: flag console.log/TODO optionally, syntax check optional.
+
+**enforce** (default):
+- Planning gate: `<what>` references files, `<why>` needs evidence, `<how>` 2+ steps
+- Cleanup: remove console.log, commented code, unused imports
+- Verify: syntax check ✅, typecheck ✅, test detection ⚠️
+
+**audit** (strict):
+- Enforce rules + no files >300 lines created, all new env vars documented
+- Verify: syntax check ✅, typecheck ✅, lint ✅, tests must exist ✅ (scaffold if 0)
+
+See `commands/intensity.md` for full detail.
+
 ### 🔴 PLANNING GATE (ENFORCED BY HOOK)
 
 In **enforce** and **audit** levels, you are blocked from modifying code or executing commands until you create/update the 5W1H plan in `.agents/matcha-plan.md`:

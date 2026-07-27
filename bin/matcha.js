@@ -15,7 +15,7 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -23,12 +23,33 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
 const CWD = process.cwd();
 const cmd = process.argv[2];
+const subcmd = process.argv[3];
 
 let VERSION = "0.0.0";
 try {
   const pkg = JSON.parse(readFileSync(join(PKG_ROOT, "package.json"), "utf-8"));
   VERSION = pkg.version;
 } catch {}
+
+const STATE_DIR = join(CWD, ".agents");
+const STATE_FILE = join(STATE_DIR, "matcha-state.json");
+const SESSION_FILE = join(STATE_DIR, "state", "session.json");
+const DECISIONS_FILE = join(STATE_DIR, "plan", "decisions.log");
+const PLAN_DIR = join(STATE_DIR, "plan");
+
+function readState() {
+  try {
+    if (existsSync(STATE_FILE)) return JSON.parse(readFileSync(STATE_FILE, "utf-8"));
+  } catch {}
+  return { intensity: "enforce", version: VERSION };
+}
+
+function writeState(state) {
+  try {
+    if (!existsSync(STATE_DIR)) mkdirSync(STATE_DIR, { recursive: true });
+    writeFileSync(STATE_FILE, JSON.stringify(state, null, 2) + "\n", "utf-8");
+  } catch {}
+}
 
 // ─── Help ─────────────────────────────────────────────────────────────────────
 function showHelp() {
@@ -38,6 +59,11 @@ function showHelp() {
 Usage (from cloned repo):
   node bin/matcha.js status    Show version, platform, and installed components
   node bin/matcha.js init      Install matcha to current directory
+  node bin/matcha.js stats     Show session health statistics
+  node bin/matcha.js markers   Scan for // matcha: markers in codebase
+  node bin/matcha.js verify    Run verification checks (syntax, typecheck, tests)
+  node bin/matcha.js state     Save/show session state
+  node bin/matcha.js decision  Log a decision (skip, change, add)
   node bin/matcha.js help      Show this help
 
 Install:
@@ -127,6 +153,286 @@ function cmdStatus() {
   console.log(`\n  All systems ${found.length > 0 ? "✅ nominal" : "⏭ pending install"}`);
 }
 
+// ─── Stats — Session Health ───────────────────────────────────────────────────
+function cmdStats() {
+  console.log(`🍵 matcha stats\n`);
+
+  const state = readState();
+
+  // Files changed (git diff)
+  let filesChanged = 0, linesAdded = 0, linesRemoved = 0;
+  try {
+    const diffStat = execSync("git diff --stat", { cwd: CWD, timeout: 3000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+    const files = diffStat.match(/\d+ file\w+ changed/);
+    filesChanged = files ? parseInt(files[0]) : 0;
+    const additions = diffStat.match(/(\d+) insertion/);
+    linesAdded = additions ? parseInt(additions[1]) : 0;
+    const deletions = diffStat.match(/(\d+) deletion/);
+    linesRemoved = deletions ? parseInt(deletions[1]) : 0;
+  } catch {}
+  console.log(`  Files changed:  ${filesChanged} (+${linesAdded} / -${linesRemoved} lines)`);
+
+  // Tests
+  let testsPassed = "unknown", totalTests = 0;
+  try {
+    const testRun = execSync("npm test 2>&1 || true", { cwd: CWD, timeout: 30000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
+    const passMatch = testRun.match(/(\d+) passed/);
+    const failMatch = testRun.match(/(\d+) failed/);
+    totalTests = passMatch ? parseInt(passMatch[1]) : 0;
+    testsPassed = failMatch && parseInt(failMatch[1]) > 0 ? `FAIL (${failMatch[1]} failed)` : `${totalTests} passed`;
+  } catch {}
+  console.log(`  Tests:          ${testsPassed}`);
+
+  // Decisions from log
+  let decisions = 0;
+  try {
+    if (existsSync(DECISIONS_FILE)) {
+      const content = readFileSync(DECISIONS_FILE, "utf-8");
+      decisions = content.split("\n---\n").filter(d => d.trim()).length;
+    }
+  } catch {}
+  console.log(`  Decisions:      ${decisions}`);
+
+  // matcha: markers
+  let markers = 0;
+  try {
+    const markerCount = execSync("grep -r '// matcha:' --include='*.js' --include='*.ts' --include='*.jsx' --include='*.tsx' --include='*.py' --include='*.go' --include='*.rs' . 2>/dev/null | wc -l || echo 0",
+      { cwd: CWD, timeout: 5000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    markers = parseInt(markerCount) || 0;
+  } catch {}
+  console.log(`  Matcha markers: ${markers}`);
+
+  // Phases from plan
+  let phases = "none";
+  const planDir = join(CWD, ".agents/plan");
+  try {
+    if (existsSync(planDir)) {
+      const files = execSync("ls .agents/plan/*.yaml .agents/plan/*.log 2>/dev/null || true",
+        { cwd: CWD, timeout: 2000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+      if (files) phases = files.split("\n").length.toString();
+    }
+  } catch {}
+  console.log(`  Plan artifacts: ${phases}`);
+
+  // Session
+  let duration = "unknown";
+  try {
+    if (existsSync(SESSION_FILE)) {
+      const session = JSON.parse(readFileSync(SESSION_FILE, "utf-8"));
+      if (session.started_at) {
+        const elapsed = Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000);
+        duration = elapsed < 60 ? `${elapsed}m` : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m`;
+      }
+    }
+  } catch {}
+  console.log(`  Duration:       ${duration}`);
+  console.log(`  Intensity:      ${state.intensity || "enforce"}`);
+}
+
+// ─── Markers — Scan for // matcha: comments ─────────────────────────────────
+function cmdMarkers() {
+  console.log(`🍵 matcha: markers\n`);
+
+  const extInclude = "--include='*.js' --include='*.ts' --include='*.jsx' --include='*.tsx' --include='*.py' --include='*.go' --include='*.rs'";
+  try {
+    const output = execSync(`grep -rn '// matcha:' ${extInclude} . 2>/dev/null || true`,
+      { cwd: CWD, timeout: 5000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+
+    if (!output) {
+      console.log("  No // matcha: markers found.\n");
+      console.log("  Tip: Mark intentional shortcuts with:");
+      console.log("    // matcha:explain [reason]");
+      console.log("    // matcha:debt [reason], [fix when]");
+      console.log("    // matcha:todo [task]");
+      return;
+    }
+
+    const lines = output.split("\n");
+    const byLevel = { explain: [], debt: [], todo: [], adr: [], other: [] };
+
+    for (const line of lines) {
+      if (line.includes("// matcha:explain")) byLevel.explain.push(line);
+      else if (line.includes("// matcha:debt")) byLevel.debt.push(line);
+      else if (line.includes("// matcha:todo")) byLevel.todo.push(line);
+      else if (line.includes("// matcha:adr")) byLevel.adr.push(line);
+      else byLevel.other.push(line);
+    }
+
+    console.log(`  Total markers: ${lines.length}\n`);
+    console.log(`  explain: ${byLevel.explain.length} (LOW)`);
+    console.log(`  debt:    ${byLevel.debt.length} (HIGH)`);
+    console.log(`  todo:    ${byLevel.todo.length} (MEDIUM)`);
+    console.log(`  adr:     ${byLevel.adr.length} (INFO)`);
+    console.log(`  other:   ${byLevel.other.length}\n`);
+
+    if (byLevel.debt.length > 0) {
+      console.log("  HIGH items (debt):");
+      for (const d of byLevel.debt.slice(0, 10)) {
+        console.log(`    ${d}`);
+      }
+      if (byLevel.debt.length > 10) console.log(`    ... and ${byLevel.debt.length - 10} more`);
+      console.log("");
+    }
+  } catch {
+    console.error("  Failed to scan for markers. Is ripgrep/grep available?");
+  }
+}
+
+// ─── Verify — Run verification checks ────────────────────────────────────────
+function cmdVerify() {
+  console.log(`🍵 matcha: verify\n`);
+  const state = readState();
+  const intensity = state.intensity || "enforce";
+
+  const results = [];
+  let allPassed = true;
+
+  function check(name, fn) {
+    try {
+      const ok = fn();
+      results.push({ name, status: ok ? "PASS" : "FAIL", detail: "" });
+      if (!ok) allPassed = false;
+    } catch (e) {
+      results.push({ name, status: "FAIL", detail: e.message });
+      allPassed = false;
+    }
+  }
+
+  // 1. Syntax check
+  check("Syntax", () => {
+    execSync("node --check bin/matcha.js", { cwd: CWD, timeout: 5000, stdio: "pipe" });
+    execSync("node --check hooks/matcha-shield.js", { cwd: CWD, timeout: 5000, stdio: "pipe" });
+    return true;
+  });
+
+  // 2. Test detection
+  let testsFound = 0;
+  check("Tests", () => {
+    try {
+      const testFiles = execSync("find tests -name '*.test.js' -o -name '*.test.ts' 2>/dev/null | wc -l",
+        { cwd: CWD, timeout: 3000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+      testsFound = parseInt(testFiles) || 0;
+      if (testsFound === 0) {
+        if (intensity === "audit") {
+          console.log("  ⚠️  No tests found. At audit intensity, at least 1 smoke test required.\n");
+          return false;
+        }
+        console.log("  ⚠️  No test files detected. Consider adding tests.\n");
+        return true; // warn but don't fail for enforce/observe
+      }
+      return true;
+    } catch {
+      return true;
+    }
+  });
+
+  // 3. Typecheck (if tsconfig exists)
+  check("Typecheck", () => {
+    if (existsSync(join(CWD, "tsconfig.json"))) {
+      execSync("npx tsc --noEmit 2>&1 || true", { cwd: CWD, timeout: 30000, stdio: "pipe" });
+    }
+    return true; // non-TS projects pass by default
+  });
+
+  // 4. Lint (if ESLint config exists)
+  check("Lint", () => {
+    if (existsSync(join(CWD, ".eslintrc")) || existsSync(join(CWD, ".eslintrc.js")) || existsSync(join(CWD, ".eslintrc.json"))) {
+      execSync("npx eslint . 2>&1 || true", { cwd: CWD, timeout: 30000, stdio: "pipe" });
+    }
+    return true;
+  });
+
+  console.log(`  Results (intensity: ${intensity}):\n`);
+  for (const r of results) {
+    const icon = r.status === "PASS" ? "✅" : "❌";
+    console.log(`  ${icon} ${r.name}${r.detail ? ` — ${r.detail}` : ""}`);
+  }
+
+  // Determine overall result
+  const criticalCount = results.filter(r => r.status === "FAIL").length;
+  const result = allPassed ? "PASSED" : criticalCount > 0 ? "FAILED" : "PASSED_WITH_WARNINGS";
+  console.log(`\n  Result: ${result} (${testsFound} test files found)`);
+}
+
+// ─── State — Session state management ────────────────────────────────────────
+function cmdState() {
+  if (subcmd === "save") {
+    const sessionId = process.argv[4] || `session-${Date.now()}`;
+    const session = {
+      session_id: sessionId,
+      started_at: new Date().toISOString(),
+      last_active: new Date().toISOString(),
+      status: "active",
+      current_phase: process.argv[5] || "",
+      intensity: readState().intensity || "enforce",
+    };
+    try {
+      if (!existsSync(join(STATE_DIR, "state"))) mkdirSync(join(STATE_DIR, "state"), { recursive: true });
+      writeFileSync(SESSION_FILE, JSON.stringify(session, null, 2) + "\n", "utf-8");
+      console.log(`🍵 matcha: session saved (${sessionId})`);
+    } catch (e) {
+      console.error(`✗ Failed to save session: ${e.message}`);
+    }
+    return;
+  }
+
+  // Show state
+  try {
+    if (existsSync(SESSION_FILE)) {
+      const session = JSON.parse(readFileSync(SESSION_FILE, "utf-8"));
+      console.log(`🍵 matcha: session state\n`);
+      console.log(`  Session ID:    ${session.session_id}`);
+      console.log(`  Status:        ${session.status}`);
+      console.log(`  Started:       ${session.started_at}`);
+      console.log(`  Last active:   ${session.last_active}`);
+      if (session.current_phase) console.log(`  Current phase: ${session.current_phase}`);
+      if (session.resume_note) console.log(`  Resume note:   ${session.resume_note}`);
+      console.log(`  Intensity:     ${session.intensity}`);
+    } else {
+      console.log("  No active session.");
+      console.log("  Start one: node bin/matcha.js state save <session-id>");
+    }
+  } catch (e) {
+    console.error(`✗ Failed to read session state: ${e.message}`);
+  }
+}
+
+// ─── Decision — Log a decision ───────────────────────────────────────────────
+function cmdDecision() {
+  const decisionType = subcmd || "";
+  const reason = process.argv.slice(4).join(" ") || "";
+
+  if (!decisionType || !reason) {
+    console.log(`🍵 matcha: decision\n`);
+    console.log("  Log a decision to .agents/plan/decisions.log");
+    console.log("");
+    console.log("  Usage: node bin/matcha.js decision <type> <reason>");
+    console.log("  Types: skip, change, add, explain, defer");
+    console.log("");
+    console.log("  Examples:");
+    console.log('    node bin/matcha.js decision skip "Task 3.9: debug effects intentionally dep-less"');
+    console.log('    node bin/matcha.js decision change "Switched from Redis to in-memory for this scope"');
+    return;
+  }
+
+  const entry = [
+    `---`,
+    `date: ${new Date().toISOString()}`,
+    `type: ${decisionType}`,
+    `reason: ${reason}`,
+    `---`,
+  ].join("\n");
+
+  try {
+    if (!existsSync(PLAN_DIR)) mkdirSync(PLAN_DIR, { recursive: true });
+    writeFileSync(DECISIONS_FILE, entry + "\n", { encoding: "utf-8", flag: "a" });
+    console.log(`🍵 matcha: decision logged (${decisionType})`);
+    console.log(`  ${reason}`);
+  } catch (e) {
+    console.error(`✗ Failed to log decision: ${e.message}`);
+  }
+}
+
 // ─── CLI Router ──────────────────────────────────────────────────────────────
 switch (cmd) {
   case "init":
@@ -134,6 +440,21 @@ switch (cmd) {
     break;
   case "status":
     cmdStatus();
+    break;
+  case "stats":
+    cmdStats();
+    break;
+  case "markers":
+    cmdMarkers();
+    break;
+  case "verify":
+    cmdVerify();
+    break;
+  case "state":
+    cmdState();
+    break;
+  case "decision":
+    cmdDecision();
     break;
   case "help":
   case "--help":

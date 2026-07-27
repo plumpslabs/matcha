@@ -35,15 +35,25 @@ for (const a of ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-re
   write(`.agents/agents/${a}.md`, read(`.claude/agents/${a}.md`));
 }
 
-// Commands — symlink for Claude Code, file for .agents/
-for (const c of ["why", "review", "audit", "intensity", "status", "debt"]) {
+// Commands — symlink for Claude Code (with size check), file for .agents/
+const SYMLINK_MAX = 1000; // safe limit (actual ~1024 on macOS)
+for (const c of ["why", "review", "audit", "intensity", "status", "debt", "stats", "markers"]) {
   const content = read(`commands/${c}.md`);
   const claudePath = join(ROOT, `.claude/commands/${c}.md`);
   const agentsPath = join(ROOT, `.agents/commands/${c}.md`);
 
   try { rmSync(claudePath); } catch {}
-  symlinkSync(content.trim(), claudePath);
-  console.log(`  ✓ Symlink: .claude/commands/${c}.md`);
+
+  const trimmed = content.trim();
+  if (trimmed.length <= SYMLINK_MAX) {
+    symlinkSync(trimmed, claudePath);
+    console.log(`  ✓ Symlink: .claude/commands/${c}.md (${trimmed.length}B)`);
+  } else {
+    // Truncate for symlink — first 900 chars + pointer to canonical
+    const truncated = trimmed.substring(0, 900) + "\n...\nSee commands/" + c + ".md for full";
+    symlinkSync(truncated, claudePath);
+    console.log(`  ⚠ Truncated symlink: .claude/commands/${c}.md (${truncated.length}B from ${trimmed.length}B)`);
+  }
 
   write(`.agents/commands/${c}.md`, content);
 }

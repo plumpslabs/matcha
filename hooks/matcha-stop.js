@@ -182,7 +182,7 @@ function generateTips(cwd) {
 
   const cleanup = tipCleanup(cwd);
   if (cleanup) tips.push(cleanup);
-  if (cleanup) tips.push(cleanup);
+
 
   return tips;
 }

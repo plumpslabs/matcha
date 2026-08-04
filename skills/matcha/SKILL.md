@@ -1,16 +1,10 @@
 ---
 name: matcha
-version: 2.5.5
 description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
-triggers:
-  - any implementation request
-  - adding dependencies or services
-  - writing new code or files
-  - refactoring or modifying existing code
-  - infrastructure or config changes
-  - '"how do I..." / "implement..." / "add..." / "create..."'
+metadata:
+  version: 2.5.5
 ---
 
 # 🍵 matcha — Engineering Philosophy

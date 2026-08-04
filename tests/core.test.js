@@ -78,6 +78,13 @@ describe("Skill modules", () => {
     expect(content).toContain("modules/core.md");
   });
 
+  test("SKILL.md frontmatter is spec-compliant (no non-standard triggers field)", () => {
+    const content = readProjectFile("skills/matcha/SKILL.md");
+    expect(content).toMatch(/^---\nname: matcha\n/);
+    expect(content).not.toMatch(/^triggers:/m);
+    expect(content).toMatch(/^metadata:\n\s+version: /m);
+  });
+
   test("core.md has all 6 checkpoints", () => {
     const content = readProjectFile("skills/matcha/modules/core.md");
     expect(content).toContain("Checkpoint 1");

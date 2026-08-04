@@ -7,7 +7,7 @@
 #   package.json              "version": "x.y.z"
 #   plugin.json               "version": "x.y.z" (AGY/Gemini plugin manifest)
 #   .claude-plugin/plugin.json "version": "x.y.z"
-#   skills/matcha/SKILL.md    version: x.y.z
+#   skills/matcha/SKILL.md    metadata.version: x.y.z (agentskills spec-compliant)
 #   hooks/patterns.json       "version": "x.y.z" + changelog
 #   hooks/inject-rules.js     version: "x.y.z"
 #   hooks/matcha-mcp-server.js version: "x.y.z"
@@ -117,7 +117,7 @@ replace_in_file "plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\"
 # 3. .claude-plugin/plugin.json
 replace_in_file ".claude-plugin/plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
 
-# 4. skills/matcha/SKILL.md
+# 4. skills/matcha/SKILL.md — version inside metadata (agentskills spec-compliant)
 replace_in_file "skills/matcha/SKILL.md" "version: ${CURRENT_VERSION}" "version: ${NEW_VERSION}"
 
 # 5. hooks/patterns.json — version field

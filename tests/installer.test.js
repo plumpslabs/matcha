@@ -16,6 +16,10 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("--target");
   });
 
+  test("accepts --platforms flag to override auto-detection", () => {
+    expect(installer).toContain("--platforms");
+  });
+
   test("has platform detection loop", () => {
     expect(installer).toContain("for p in");
   });

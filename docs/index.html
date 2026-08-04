@@ -332,6 +332,7 @@ tr:hover td{background:var(--bg-hover)}
   <h3>Option A: npx — one command, nothing installed globally</h3>
   <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
   <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">npx downloads matcha temporarily, runs <code>init</code> into the current project, then discards it. No global install, no cleanup. Re-run any time to update.</p>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">During init, matcha asks which providers to configure (1 Claude · 2 OpenCode · 3 Cursor · 4 Windsurf · 5 Kiro · 6 Universal). Existing providers are auto-detected. For scripting: <code>matcha init --platforms .opencode,.claude</code></p>
 
   <h3>Option B: Global install — <code>matcha</code> command works everywhere</h3>
   <div class="code-block"><pre><code>npm install -g @plumpslabs/matcha

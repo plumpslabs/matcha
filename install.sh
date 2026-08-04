@@ -15,6 +15,11 @@ CLONED=false
 TARGET="${PWD}"
 f=""; for a in "$@"; do [ "$f" = "--target" ] && TARGET="$a" && break; f="$a"; done
 
+# --platforms ".opencode .claude" or $MATCHA_PLATFORMS overrides auto-detection
+PLATFORM_ARG=""
+f=""; for a in "$@"; do [ "$f" = "--platforms" ] && PLATFORM_ARG="$a" && break; f="$a"; done
+[ -z "$PLATFORM_ARG" ] && [ -n "${MATCHA_PLATFORMS:-}" ] && PLATFORM_ARG="$MATCHA_PLATFORMS"
+
 fetch() {
   if $CLONED; then cat "$HERE/$1"; else curl -fsSL "$GH_RAW/$1"; fi
 }
@@ -77,10 +82,17 @@ install_hooks() {
 
 # ─── Platform detection ───────────────────────────────────────────────────────
 PLATFORMS=""
-for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .openclaw .qoder .qwen; do
-  [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
-done
-[ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
+if [ -n "$PLATFORM_ARG" ]; then
+  for p in $PLATFORM_ARG; do
+    mkdir -p "$TARGET/$p"
+    PLATFORMS="$PLATFORMS $p"
+  done
+else
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .openclaw .qoder .qwen; do
+    [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
+  done
+  [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
+fi
 
 # ─── Install to each platform ─────────────────────────────────────────────────
 # ─── AGENTS.md + GEMINI.md: always installed (read by every modern agent) ──

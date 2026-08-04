@@ -13,6 +13,11 @@ describe("bin/matcha.js", () => {
     expect(content).toContain("install.sh");
   });
 
+  test("has --platforms flag for scripted provider selection", () => {
+    expect(content).toContain("--platforms");
+    expect(content).toContain(".opencode,.claude");
+  });
+
   test("has status command with Platform detection", () => {
     expect(content).toContain("status");
     expect(content).toContain("Platform:");

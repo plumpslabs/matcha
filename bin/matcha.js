@@ -18,6 +18,7 @@ import { execSync } from "child_process";
 import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { createInterface } from "readline";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -57,21 +58,28 @@ function showHelp() {
   console.log(`
 🍵 matcha v${VERSION} — Engineering Convention for AI Coding Agents
 
-Usage (from cloned repo):
-  node bin/matcha.js status    Show version, platform, and installed components
-  node bin/matcha.js init      Install matcha to current directory
-  node bin/matcha.js stats     Show session health statistics
-  node bin/matcha.js metrics   Show matcha impact metrics
-  node bin/matcha.js markers   Scan for // matcha: markers in codebase
-  node bin/matcha.js verify    Run verification checks (syntax, typecheck, tests)
-  node bin/matcha.js state     Save/show session state
-  node bin/matcha.js decision  Log a decision (skip, change, add)
-  node bin/matcha.js mcp       Start MCP server (stdio JSON-RPC)
-  node bin/matcha.js help      Show this help
+Usage:
+  matcha <command>                   (after: npm install -g @plumpslabs/matcha)
+  npx @plumpslabs/matcha <command>   (one-time, no global install)
+  node bin/matcha.js <command>       (from a cloned repo)
+
+Commands:
+  status     Show version, platform, and installed components
+  init       Install matcha into the current project (choose providers)
+  init --platforms .opencode,.claude   Install only the listed providers
+  stats      Show session health statistics
+  metrics    Show matcha impact metrics
+  markers    Scan for // matcha: markers in codebase
+  verify     Run verification checks (syntax, typecheck, tests)
+  state      Save/show session state
+  decision   Log a decision (skip, change, add)
+  mcp        Start MCP server (stdio JSON-RPC)
+  help       Show this help
 
 Install:
-  npx @plumpslabs/matcha@latest init                (via npm)
-  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash   (no npm)
+  npx @plumpslabs/matcha@latest init                 (via npm — one-time)
+  npm install -g @plumpslabs/matcha && matcha init   (global CLI)
+  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash  (no npm)
 
 MCP (Model Context Protocol):
   node hooks/matcha-mcp-server.js    Start MCP server
@@ -82,7 +90,27 @@ Docs: https://github.com/plumpslabs/matcha
 }
 
 // ─── Init ────────────────────────────────────────────────────────────────────
-function cmdInit() {
+const PLATFORM_OPTIONS = [
+  { num: "1", dir: ".claude",   label: "Claude Code" },
+  { num: "2", dir: ".opencode", label: "OpenCode" },
+  { num: "3", dir: ".cursor",   label: "Cursor" },
+  { num: "4", dir: ".windsurf", label: "Windsurf" },
+  { num: "5", dir: ".kiro",     label: "Kiro Code" },
+  { num: "6", dir: ".agents",   label: "Universal (.agents)" },
+];
+
+function detectExistingPlatforms() {
+  return PLATFORM_OPTIONS.filter(o => existsSync(join(CWD, o.dir))).map(o => o.dir);
+}
+
+function ask(question) {
+  return new Promise(resolve => {
+    const rl = createInterface({ input: process.stdin, output: process.stdout });
+    rl.question(question, answer => { rl.close(); resolve(answer.trim()); });
+  });
+}
+
+async function cmdInit() {
   console.log(`🍵 matcha init — installing to ${CWD}\n`);
 
   const installScript = join(PKG_ROOT, "install.sh");
@@ -91,8 +119,42 @@ function cmdInit() {
     process.exit(1);
   }
 
+  // 1. Explicit --platforms flag (or MATCHA_PLATFORMS env) wins — scriptable
+  let platformsArg = process.argv[3] === "--platforms" ? process.argv[4] : "";
+  if (!platformsArg && process.env.MATCHA_PLATFORMS) platformsArg = process.env.MATCHA_PLATFORMS;
+
+  // 2. Interactive provider picker (only when attached to a terminal)
+  if (!platformsArg && process.stdin.isTTY) {
+    const existing = detectExistingPlatforms();
+    console.log("Select providers to configure (comma-separated, e.g. 1,2):");
+    for (const o of PLATFORM_OPTIONS) {
+      const mark = existing.includes(o.dir) ? " (detected)" : "";
+      console.log(`  ${o.num}. ${o.label}${mark}`);
+    }
+    console.log("  a. All platforms");
+    console.log("  0. Auto (detected providers, or Universal if none) — default");
+    console.log("");
+    const answer = await ask("Choice [0]: ");
+    const choice = (answer || "0").toLowerCase();
+    if (choice === "a" || choice === "all") {
+      platformsArg = PLATFORM_OPTIONS.map(o => o.dir).join(" ");
+    } else if (choice !== "0" && choice !== "auto" && choice !== "") {
+      const dirs = choice
+        .split(/[\s,]+/)
+        .map(n => {
+          const o = PLATFORM_OPTIONS.find(p => p.num === n);
+          return o ? o.dir : null;
+        })
+        .filter(Boolean);
+      platformsArg = dirs.join(" ");
+    }
+    if (platformsArg) console.log(`  → Installing providers: ${platformsArg}\n`);
+  }
+  // Non-TTY without flag → "" → install.sh auto-detects (existing behavior)
+
+  const flag = platformsArg ? ` --platforms "${platformsArg}"` : "";
   try {
-    execSync(`bash "${installScript}"`, { cwd: CWD, stdio: "inherit" });
+    execSync(`bash "${installScript}"${flag}`, { cwd: CWD, stdio: "inherit" });
   } catch (e) {
     console.error(`\n✗ Install failed: ${e.message}`);
     process.exit(1);
@@ -486,9 +548,10 @@ function cmdMcp() {
   execSync(`node "${serverPath}"`, { stdio: "inherit" });
 }
 
+(async () => {
 switch (cmd) {
   case "init":
-    cmdInit();
+    await cmdInit();
     break;
   case "status":
     cmdStatus();
@@ -523,3 +586,4 @@ switch (cmd) {
     showHelp();
     break;
 }
+})();

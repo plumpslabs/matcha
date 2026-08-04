@@ -166,6 +166,10 @@ tr:hover td{background:var(--bg-hover)}
     <a class="sidebar-link" href="#project-constraints" onclick="setActive(this)"><i data-lucide="settings"></i> Project Constraints</a>
   </div>
   <div class="sidebar-section">
+    <div class="sidebar-label">Workflow</div>
+    <a class="sidebar-link" href="#workflow" onclick="setActive(this)"><i data-lucide="route"></i> Workflow Guide</a>
+  </div>
+  <div class="sidebar-section">
     <div class="sidebar-label">Reference</div>
     <a class="sidebar-link" href="#commands" onclick="setActive(this)"><i data-lucide="terminal"></i> Commands</a>
     <a class="sidebar-link" href="#agents" onclick="setActive(this)"><i data-lucide="users"></i> Agents</a>
@@ -790,6 +794,113 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   </ul>
 
   <div class="callout callout-info"><strong>Auto-loading:</strong> matcha automatically loads <code>MATCHA_PROJECT.md</code> from project root when present.</div>
+</div>
+
+<!-- Workflow Guide -->
+<div class="section" id="workflow">
+  <h1>Workflow Guide</h1>
+  <p>How to actually use matcha day-to-day: which agent or command to call, when, and in what order — from a blank task to a reviewed, shippable change.</p>
+
+  <div class="callout callout-info"><strong>Keep it simple.</strong> Most of the pipeline runs automatically (planning gate, shield, verify). You don't need to invoke everything — the only step you should <em>never</em> skip is the review gate before saying "done".</div>
+
+  <h3>End-to-End Flow</h3>
+
+  <div class="step">
+    <div class="step-num">0</div>
+    <div class="step-body">
+      <h4>Set intensity (one-time per session)</h4>
+      <p><code>/matcha:intensity</code> — <strong>enforce</strong> is the default for normal work. Switch to <strong>observe</strong> while exploring or prototyping (tips only, no blocking). Switch to <strong>audit</strong> for critical paths (auth, payments, DB, legacy refactors).</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Plan before code</h4>
+      <p><code>/matcha:why</code> or <code>@matcha-planner</code>. In enforce mode the planning gate runs automatically — the agent must state What / Why / How before touching any file. No blind implementation.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Reuse before write</h4>
+      <p><code>@matcha-finder</code>: <em>"Check if there's existing code for X."</em> Reuse over rewrite — never duplicate what already exists.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Audit the stack (optional)</h4>
+      <p><code>/matcha:audit</code> or <code>@matcha-auditor</code>. For large or legacy projects, run this first to know overlaps, waste, and security issues before you start.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Implement</h4>
+      <p>The agent writes code per core rules: no hardcoded values, one responsibility per function, the most efficient simple path — not just "it works". If a better approach appears mid-task, the agent pauses and confirms with you instead of forcing through.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
+      <h4>Verify (automatic)</h4>
+      <p>Tests + typecheck + lint run automatically (framework auto-detected). Red tests → stop and fix, never continue.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">6</div>
+    <div class="step-body">
+      <h4>Review gate — before "done"</h4>
+      <p><code>/matcha:review</code> or <code>@matcha-reviewer</code>. Risk-based routing: L0 output check → L1 lint/typecheck → L2 full review (8 categories) → L3 expert + threat model. Verdict: <code>BLOCK</code> / <code>PASS_WITH_FIXES</code> / <code>PASS</code> / <code>EXPERT_REQUIRED</code>. If blocked, use <code>@matcha-debugger</code> to find the root cause.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">7</div>
+    <div class="step-body">
+      <h4>Cleanup &amp; debt</h4>
+      <p><code>@matcha-cleaner</code> removes temp/debug/unused code. <code>/matcha:debt</code> and <code>/matcha:markers</code> surface decision markers (<code>// matcha: ...</code>) and open items.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">8</div>
+    <div class="step-body">
+      <h4>Report</h4>
+      <p><code>/matcha:status</code> and <code>/matcha:stats</code> show the session dashboard: components, intensity, changes, test results.</p>
+    </div>
+  </div>
+
+  <h3>When to Call What</h3>
+  <table>
+    <tr><th>Phase</th><th>Automatic?</th><th>Command</th><th>Agent</th><th>Example</th></tr>
+    <tr><td>Setup</td><td>No</td><td><code>/matcha:intensity</code></td><td>—</td><td>Set enforce / observe / audit</td></tr>
+    <tr><td>Plan</td><td>Gate auto-runs</td><td><code>/matcha:why</code></td><td><code>@matcha-planner</code></td><td>"Plan this feature with 5W1H"</td></tr>
+    <tr><td>Reuse</td><td>No</td><td>—</td><td><code>@matcha-finder</code></td><td>"Is there existing code for X?"</td></tr>
+    <tr><td>Audit</td><td>Optional</td><td><code>/matcha:audit</code></td><td><code>@matcha-auditor</code></td><td>Health check before legacy refactor</td></tr>
+    <tr><td>Implement</td><td>Rules enforced</td><td>—</td><td>—</td><td>"matcha pause" if a better path appears</td></tr>
+    <tr><td>Verify</td><td>Yes</td><td>—</td><td>—</td><td>Tests + typecheck + lint</td></tr>
+    <tr><td>Review</td><td>No — must run</td><td><code>/matcha:review</code></td><td><code>@matcha-reviewer</code></td><td>Gate before "done"</td></tr>
+    <tr><td>Debug (if blocked)</td><td>No</td><td>—</td><td><code>@matcha-debugger</code></td><td>"Find the root cause of the N+1 query"</td></tr>
+    <tr><td>Cleanup</td><td>No</td><td><code>/matcha:debt</code> <code>/matcha:markers</code></td><td><code>@matcha-cleaner</code></td><td>Remove temp/debug/unused</td></tr>
+    <tr><td>Report</td><td>No</td><td><code>/matcha:status</code> <code>/matcha:stats</code></td><td>—</td><td>Session dashboard</td></tr>
+  </table>
+
+  <h3>Mode by Situation</h3>
+  <table>
+    <tr><th>Mode</th><th>When</th><th>Behavior</th></tr>
+    <tr><td><strong>observe</strong></td><td>Exploring, prototyping, learning a new codebase</td><td>Tips only — no blocking</td></tr>
+    <tr><td><strong>enforce</strong></td><td>Normal implementation work (default)</td><td>Planning gate + shield active</td></tr>
+    <tr><td><strong>audit</strong></td><td>Critical paths: auth, payments, DB, legacy refactors, pre-release</td><td>Enforce + mandatory cleanup</td></tr>
+  </table>
+
+  <div class="callout callout-success"><strong>Rule of thumb:</strong> default to <code>enforce</code>. Drop to <code>observe</code> when exploring. Raise to <code>audit</code> when the stakes are high. Always end with <code>/matcha:review</code>.</div>
 </div>
 
 <!-- Commands Reference -->

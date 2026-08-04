@@ -128,12 +128,18 @@ Stack: Next.js 15, TypeScript strict, pnpm
 ### Daily Flow
 
 ```
-Start task    → @matcha-planner (plan first)
-Before code   → @matcha-finder (find existing)
-While coding  → @matcha-debugger (if stuck)
-After coding  → /matcha:review + @matcha-cleaner
-Ship          → /matcha:review (blocking gate)
+0. Setup      → /matcha:intensity enforce    (default; observe/audit per task)
+1. Plan       → /matcha:why or @matcha-planner (planning gate auto-runs)
+2. Reuse      → @matcha-finder "existing code for X?" (reuse > rewrite)
+3. Audit      → /matcha:audit                (optional — large/legacy projects)
+4. Implement  → core rules; "matcha pause" if a better path appears
+5. Verify     → tests + typecheck + lint     (auto-detect)
+6. Review     → /matcha:review               (BLOCKING gate — before "done")
+7. Cleanup    → @matcha-cleaner + /matcha:debt
+8. Report     → /matcha:status + /matcha:stats
 ```
+
+Minimal cheat-sheet: **plan → reuse → implement → review**. Everything else is automatic or optional. Full step-by-step guide with example prompts lives in the [Workflow Guide](docs/index.html#workflow).
 
 ### Commands
 

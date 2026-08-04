@@ -3,17 +3,21 @@
 # Usage: ./scripts/bump.sh <new-version>
 # Example: ./scripts/bump.sh 4.1.0
 #
+# This script uses REGEX patterns to find version strings in each file,
+# so it works even if files have drifted out of sync with package.json.
+#
 # Files updated:
 #   package.json              "version": "x.y.z"
 #   plugin.json               "version": "x.y.z" (AGY/Gemini plugin manifest)
 #   .claude-plugin/plugin.json "version": "x.y.z"
 #   skills/matcha/SKILL.md    metadata.version: x.y.z (agentskills spec-compliant)
-#   hooks/patterns.json       "version": "x.y.z" + changelog
+#   hooks/patterns.json       "version": "x.y.z"
 #   hooks/inject-rules.js     version: "x.y.z"
 #   hooks/matcha-mcp-server.js version: "x.y.z"
 #   README.md                 badge + text references
 #   INSTALL.md                version comment
 #   tests/core.test.js        version assertion
+#   docs/index.html           version badge
 #
 # Note: package-lock.json and pnpm-lock.yaml update automatically
 #       when running npm/pnpm install after package.json changes.
@@ -44,7 +48,7 @@ NEW_VERSION="$1"
 # Validate semver format
 if ! [[ "$NEW_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
   echo -e "${RED}Error: Invalid version format '${NEW_VERSION}'${NC}"
-  echo "Expected format: X.Y.Z (e.g., 4.1.0, 5.0.0-beta.1)"
+  echo "Expected format: X.Y.Z (e.g., 4.1.0, 5.0.0)"
   exit 1
 fi
 
@@ -52,6 +56,10 @@ fi
 
 CURRENT_VERSION=$(cd "$ROOT_DIR" && node -p "require('./package.json').version")
 NEW_TAG="v${NEW_VERSION}"
+
+# Semver regex pattern — matches any x.y.z version string
+# Used as fallback when CURRENT_VERSION pattern is not found
+SV='[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*'
 
 echo -e "${CYAN}🍵 matcha version bump${NC}"
 echo -e "   Current: ${YELLOW}v${CURRENT_VERSION}${NC}"
@@ -67,9 +75,51 @@ if [ "${2:-}" = "--dry-run" ]; then
   echo ""
 fi
 
-# ── Helper: replace in file ─────────────────────────────────────────────────
+# ── Helper: sed wrapper (macOS/Linux compat) ────────────────────────────────
 
-replace_in_file() {
+do_sed() {
+  local file="$1"
+  local pattern="$2"
+  if [[ "$OSTYPE" == "darwin"* ]]; then
+    sed -i '' "$pattern" "$file"
+  else
+    sed -i "$pattern" "$file"
+  fi
+}
+
+# ── Helper: replace version in file ─────────────────────────────────────────
+# Uses a CONTEXT-AWARE regex pattern so it only replaces the version string
+# in the correct context (e.g. "version": "x.y.z") rather than relying on
+# an exact CURRENT_VERSION match that breaks when files drift.
+
+replace_version() {
+  local file="$1"
+  local context_pattern="$2"  # sed regex with capture group for context
+  local replacement="$3"      # replacement with backreference
+  local full_path="${ROOT_DIR}/${file}"
+
+  if [ ! -f "$full_path" ]; then
+    echo -e "  ${YELLOW}SKIP${NC}  ${file} (not found)"
+    return
+  fi
+
+  if ! grep -qE "$(echo "$context_pattern" | sed 's|\\(||g; s|\\)||g; s|\\1||g')" "$full_path" 2>/dev/null; then
+    echo -e "  ${YELLOW}SKIP${NC}  ${file} (pattern not found)"
+    return
+  fi
+
+  if [ "$DRY_RUN" = true ]; then
+    echo -e "  ${CYAN}DRY${NC}   ${file}"
+    return
+  fi
+
+  do_sed "$full_path" "s|${context_pattern}|${replacement}|g"
+  echo -e "  ${GREEN}✓${NC}     ${file}"
+}
+
+# ── Helper: simple exact replace (legacy compat) ────────────────────────────
+
+replace_exact() {
   local file="$1"
   local old="$2"
   local new="$3"
@@ -87,19 +137,10 @@ replace_in_file() {
 
   if [ "$DRY_RUN" = true ]; then
     echo -e "  ${CYAN}DRY${NC}   ${file}"
-    grep -n "$old" "$full_path" | head -3 | while read -r line; do
-      echo -e "         ${line}"
-    done
     return
   fi
 
-  # macOS sed requires '', Linux sed requires nothing
-  if [[ "$OSTYPE" == "darwin"* ]]; then
-    sed -i '' "s|${old}|${new}|g" "$full_path"
-  else
-    sed -i "s|${old}|${new}|g" "$full_path"
-  fi
-
+  do_sed "$full_path" "s|${old}|${new}|g"
   echo -e "  ${GREEN}✓${NC}     ${file}"
 }
 
@@ -108,41 +149,103 @@ replace_in_file() {
 echo -e "${CYAN}Bumping version in files...${NC}"
 echo ""
 
-# 1. package.json
-replace_in_file "package.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
+# 1. package.json — "version": "x.y.z"
+replace_version "package.json" \
+  "\"version\": \"${SV}\"" \
+  "\"version\": \"${NEW_VERSION}\""
 
 # 2. plugin.json (AGY/Gemini plugin manifest)
-replace_in_file "plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
+replace_version "plugin.json" \
+  "\"version\": \"${SV}\"" \
+  "\"version\": \"${NEW_VERSION}\""
 
 # 3. .claude-plugin/plugin.json
-replace_in_file ".claude-plugin/plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
+replace_version ".claude-plugin/plugin.json" \
+  "\"version\": \"${SV}\"" \
+  "\"version\": \"${NEW_VERSION}\""
 
-# 4. skills/matcha/SKILL.md — version inside metadata (agentskills spec-compliant)
-replace_in_file "skills/matcha/SKILL.md" "version: ${CURRENT_VERSION}" "version: ${NEW_VERSION}"
+# 4. skills/matcha/SKILL.md — version: x.y.z (YAML frontmatter)
+replace_version "skills/matcha/SKILL.md" \
+  "version: ${SV}" \
+  "version: ${NEW_VERSION}"
 
-# 5. hooks/patterns.json — version field
-replace_in_file "hooks/patterns.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
+# 5. hooks/patterns.json — "version": "x.y.z"
+replace_version "hooks/patterns.json" \
+  "\"version\": \"${SV}\"" \
+  "\"version\": \"${NEW_VERSION}\""
 
-# 6. hooks/inject-rules.js
-replace_in_file "hooks/inject-rules.js" "version: \"${CURRENT_VERSION}\"" "version: \"${NEW_VERSION}\""
+# 6. hooks/inject-rules.js — version: "x.y.z"
+replace_version "hooks/inject-rules.js" \
+  "version: \"${SV}\"" \
+  "version: \"${NEW_VERSION}\""
 
-# 7. hooks/matcha-mcp-server.js
-replace_in_file "hooks/matcha-mcp-server.js" "version: \"${CURRENT_VERSION}\"" "version: \"${NEW_VERSION}\""
+# 7. hooks/matcha-mcp-server.js — version: "x.y.z"
+replace_version "hooks/matcha-mcp-server.js" \
+  "version: \"${SV}\"" \
+  "version: \"${NEW_VERSION}\""
 
-# 8. README.md — badge
-replace_in_file "README.md" "badge/version-${CURRENT_VERSION}" "badge/version-${NEW_VERSION}"
-replace_in_file "README.md" "alt=\"v${CURRENT_VERSION}\"" "alt=\"${NEW_TAG}\""
+# 8. README.md — badge image src + alt
+replace_version "README.md" \
+  "badge/version-${SV}" \
+  "badge/version-${NEW_VERSION}"
+replace_version "README.md" \
+  "alt=\"v${SV}\"" \
+  "alt=\"${NEW_TAG}\""
 
 # 9. INSTALL.md — version comment
-replace_in_file "INSTALL.md" "# Version: v${CURRENT_VERSION}" "# Version: ${NEW_TAG}"
+replace_version "INSTALL.md" \
+  "# Version: v${SV}" \
+  "# Version: ${NEW_TAG}"
 
-# 10. tests/core.test.js — version assertion
-replace_in_file "tests/core.test.js" "\"${CURRENT_VERSION}\"" "\"${NEW_VERSION}\""
+# 10. tests/core.test.js — version assertion strings
+replace_version "tests/core.test.js" \
+  "\"${SV}\"" \
+  "\"${NEW_VERSION}\""
 
-# 11. docs/index.html — version in hero + footer
-replace_in_file "docs/index.html" "v${CURRENT_VERSION}" "${NEW_TAG}"
+# 11. docs/index.html — version in badge span + any other refs
+replace_version "docs/index.html" \
+  "v${SV}" \
+  "${NEW_TAG}"
 
 echo ""
+
+# ── Verification ────────────────────────────────────────────────────────────
+
+echo -e "${CYAN}Verifying all files are at ${NEW_TAG}...${NC}"
+echo ""
+
+STALE_COUNT=0
+check_version() {
+  local file="$1"
+  local full_path="${ROOT_DIR}/${file}"
+  if [ ! -f "$full_path" ]; then return; fi
+  # Check for any semver that is NOT the new version
+  local stale
+  stale=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' "$full_path" | grep -v "^${NEW_VERSION}$" | grep -v '^4\.0\.0$' | head -1 || true)
+  if [ -n "$stale" ]; then
+    echo -e "  ${RED}STALE${NC} ${file} — found ${stale} (expected ${NEW_VERSION})"
+    STALE_COUNT=$((STALE_COUNT + 1))
+  else
+    echo -e "  ${GREEN}✓${NC}     ${file}"
+  fi
+}
+
+if [ "$DRY_RUN" = false ]; then
+  check_version "package.json"
+  check_version "plugin.json"
+  check_version ".claude-plugin/plugin.json"
+  check_version "skills/matcha/SKILL.md"
+  check_version "hooks/patterns.json"
+  check_version "hooks/inject-rules.js"
+  check_version "hooks/matcha-mcp-server.js"
+  check_version "tests/core.test.js"
+  echo ""
+
+  if [ "$STALE_COUNT" -gt 0 ]; then
+    echo -e "${RED}⚠️  ${STALE_COUNT} file(s) still have stale versions!${NC}"
+    echo ""
+  fi
+fi
 
 # ── Summary ─────────────────────────────────────────────────────────────────
 
@@ -153,10 +256,9 @@ else
   echo -e "${GREEN}✓ Version bumped to ${NEW_TAG}${NC}"
   echo ""
   echo -e "${CYAN}Next steps:${NC}"
-  echo "  1. Update changelog in hooks/patterns.json"
-  echo "  2. Run: node scripts/build-adapters.js"
-  echo "  3. Run: npm test"
-  echo "  4. Commit: git add -A && git commit -m 'release: ${NEW_TAG}'"
-  echo "  5. Tag: git tag ${NEW_TAG}"
-  echo "  6. Push: git push && git push --tags"
+  echo "  1. Run: npm run build:check"
+  echo "  2. Run: npm test"
+  echo "  3. Commit: git add -A && git commit -m 'release: ${NEW_TAG}'"
+  echo "  4. Tag: git tag ${NEW_TAG}"
+  echo "  5. Push: git push && git push --tags"
 fi

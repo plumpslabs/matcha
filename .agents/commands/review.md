@@ -15,18 +15,19 @@ Not all code needs the same review. Matcha auto-detects risk tier and routes acc
 
 ## Auto-Detection
 
-Risk tier is detected from:
+Risk tier is detected via **trigger packs** — domain-specific signal rules.
+
+Default signals (no pack loaded):
 
 | Signal | Tier |
 |--------|------|
-| Files in `auth/`, `payment/`, `crypto/`, `security/` | L3 |
-| Keywords: password, token, secret, encrypt, jwt | L3 |
-| DB changes: ALTER, DROP, schema | L3 |
-| Payment: charge, refund, billing | L3 |
-| New API endpoints, business logic | L2 |
+| Files in security-sensitive paths | L3 (use trigger pack for specifics) |
+| Keywords: credentials, tokens, secrets | L3 |
+| Database schema changes | L3 |
+| New public API endpoints | L2 |
 | Test files, fixtures, mocks | L1 |
-| Docs, comments, formatting | L1 |
-| Files in `tmp/`, `temp/`, `debug/` | L0 |
+| Documentation, comments | L1 |
+| Files in disposable paths | L0 |
 | `// matcha:explain` with justification | L0 |
 
 ## Review Checklists by Tier
@@ -65,13 +66,12 @@ Risk tier is detected from:
 All L2 checks PLUS:
 - [ ] Threat model documented
 - [ ] Input validation at every boundary
-- [ ] Auth checks enforced (authN + authZ)
+- [ ] Access control checks enforced
 - [ ] No secrets in code, logs, errors
-- [ ] Parameterized queries only
-- [ ] Rate limiting considered
-- [ ] Audit trail for sensitive ops
-- [ ] Rollback plan for DB changes
-- [ ] **Security team sign-off required**
+- [ ] Data access is safe and bounded
+- [ ] Audit trail for sensitive operations
+- [ ] Rollback plan for destructive changes
+- [ ] **Domain expert sign-off required**
 
 **Verdict:** EXPERT_REQUIRED (cannot auto-pass)
 

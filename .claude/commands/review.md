@@ -15,17 +15,17 @@ Not all code needs the same review. Matcha auto-detects risk tier and routes acc
 
 ## Auto-Detection
 
-Risk tier is detected from:
+Risk tier is detected via **trigger packs** — domain-specific signal rules.
+
+Default signals (no pack loaded):
 
 | Signal | Tier |
 |--------|------|
-| Files in `auth/`, `payment/`, `crypto/`, `security/` | L3 |
-| Keywords: password, token, secret, encrypt, jwt | L3 |
-| DB changes: ALTER, DROP, schema | L3 |
-| Payment: charge, refund, billing | L3 |
-| New API endpoints, business logic | L2 |
+| Files in security-sensitive paths | L3 (use trigger pack for specifics) |
+| Keywords: credentials, tokens, secrets | L3 |
+| Database schema changes | L3 |
+| New public API endpoints | L2 |
 | Test files, fixtures, mocks | L1 |
-| Docs, comments, formatting | L1 |
-| Files in `tmp/`, `
+| Documentation, comments |
 ...
 See commands/review.md for full

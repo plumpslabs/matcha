@@ -37,11 +37,11 @@ Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the 5W1H plan.
 
 **Smart Auto-Skip:** Planning gate is automatically skipped for:
-- Read-only commands (git status, grep, ls, cat)
-- Test commands (npm test, vitest, jest)
-- Lint/format commands (eslint, prettier)
-- Documentation files (.md, .txt)
-- Test files (.test.js, .spec.ts)
+- Read-only commands (grep, ls, cat, find, git status)
+- Test commands (any test runner)
+- Lint/format commands (any linter or formatter)
+- Documentation files (.md, .txt, .rst)
+- Test files (any test pattern)
 
 **Enforced for:**
 - New feature implementation
@@ -239,8 +239,8 @@ Recommendation: [which and why]
 | > 300 LOC or >3 concerns | Split | Cognitive load too high |
 | Read-heavy data | Cache + invalidate | Recalculation waste |
 | Write-heavy data | Compute on write | Read latency critical |
-| Simple transform | `map`/`filter`/`reduce` | Declarative, testable |
-| Complex logic with side effects | `for` loop | Explicit control, debuggable |
+| Simple data transform | Declarative pipeline | Clear intent, testable |
+| Complex logic with side effects | Imperative loop | Explicit control, debuggable |
 | < 3 params | Object/struct | Readability |
 | 4+ params | Object/struct | Prevents arg-order bugs |
 | Optional behavior | Strategy pattern | Open/closed principle |

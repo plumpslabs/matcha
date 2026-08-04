@@ -32,7 +32,7 @@ For each: **what does it actually do?** Not just "it exists."
 
 | Check | How |
 |-------|-----|
-| **Unused deps** | `npm ls` vs actual imports. Grep for usage. |
+| **Unused deps** | Check dependency list vs actual imports. Grep for usage. |
 | **Over-abstracted code** | Abstractions used <2 times. Inline them. |
 | **Dead config** | Config files for tools not installed. |
 | **Stale migrations** | DB migrations that are backward-compatible but still present. |
@@ -41,7 +41,7 @@ For each: **what does it actually do?** Not just "it exists."
 
 | Check | How |
 |-------|-----|
-| **Known vulnerabilities** | `npm audit`, `pip audit`, `cargo audit` |
+| **Known vulnerabilities** | Run package manager audit (npm audit, pip audit, cargo audit, etc.) |
 | **Outdated deps** | Major versions behind? Security patches missing? |
 | **Secret exposure** | `.env` in git? Secrets in config files? |
 | **Missing security deps** | No rate limiting? No input validation library? |

@@ -66,7 +66,7 @@ After the 8 categories, ask:
 2. **Is this the most efficient path?** — O(n²) when O(n) exists?
 3. **Will this age well?** — Easy to modify in 6 months?
 4. **Does it prevent debt?** — No duplication, no magic numbers, no dead code?
-5. **Are anti-patterns present?** — SQL SELECT *, nested callbacks, var, ==?
+5. **Are anti-patterns present?** — Check anti-pattern tables in core.md
 6. **Is the approach optimal?** — Right data structure, right algorithm, right abstraction level?
 
 ### L3 — Expert Review + Threat Model

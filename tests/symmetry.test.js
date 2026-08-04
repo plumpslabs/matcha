@@ -38,6 +38,27 @@ describe("Symmetry — canonical source", () => {
   });
 });
 
+describe("Symmetry — AGY plugin root agents/", () => {
+  for (const agent of AGENT_NAMES) {
+    const file = `${agent}.md`;
+
+    test(`agents/${file} exists (AGY plugin subagent)`, () => {
+      expect(existsSync(join(ROOT, "agents", file))).toBe(true);
+    });
+
+    test(`agents/${file} matches canonical .agents/agents/${file}`, () => {
+      const canonical = readFileSync(join(ROOT, ".agents/agents", file), "utf-8");
+      const rootCopy = readFileSync(join(ROOT, "agents", file), "utf-8");
+      expect(rootCopy).toBe(canonical);
+    });
+  }
+
+  test("mcp_config.json (AGY plugin) is valid JSON with matcha server", () => {
+    const content = JSON.parse(readFileSync(join(ROOT, "mcp_config.json"), "utf-8"));
+    expect(content.mcpServers.matcha).toBeDefined();
+  });
+});
+
 describe("Symmetry — no stale duplicates", () => {
   const platformDirs = [".opencode/agents", ".claude/agents"];
 

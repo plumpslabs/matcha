@@ -566,23 +566,15 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   </div>
 
   <h3>What Gets Installed</h3>
+  <p>The repo ships an AGY-compatible plugin manifest (<code>plugin.json</code>) plus root <code>agents/</code> and <code>mcp_config.json</code> so <code>agy plugin install</code> picks up everything:</p>
   <ul>
-    <li><code>GEMINI.md</code> — rules file</li>
-    <li><code>.agents/agents/*.md</code> — 6 agent definitions</li>
-    <li><code>.agents/commands/*.md</code> — 8 slash commands</li>
-    <li><code>.agents/skills/matcha/SKILL.md</code> — skill file</li>
-    <li><code>AGENTS.md</code> — cross-tool file</li>
+    <li><code>skills/</code> — 1 skill (<code>matcha</code>) → usable via <code>/matcha</code></li>
+    <li><code>commands/</code> — 8 commands → converted to skills (<code>matcha:review</code>, <code>matcha:why</code>, ...)</li>
+    <li><code>agents/</code> — 6 subagents (planner, finder, auditor, reviewer, cleaner, debugger)</li>
+    <li><code>mcp_config.json</code> — matcha MCP server auto-registered</li>
+    <li><code>GEMINI.md</code> + <code>AGENTS.md</code> — rules files (read automatically)</li>
   </ul>
-
-  <h3>MCP Configuration (Optional)</h3>
-  <div class="code-block"><pre><code>{
-  "mcpServers": {
-    "matcha": {
-      "command": "node",
-      "args": ["hooks/matcha-mcp-server.js"]
-    }
-  }
-}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <div class="callout callout-info"><strong>Note:</strong> AGY converts plugin commands into skills. The <code>/matcha</code> slash command is the core skill; command skills are invoked via <code>matcha:review</code>-style names. Hooks use Claude Code's format, so they are not registered by AGY's plugin scanner.</div>
 </div>
 
 <div class="section" id="setup-kiro">

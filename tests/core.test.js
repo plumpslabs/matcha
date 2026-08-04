@@ -11,6 +11,7 @@ const CORE_FILES = [
   ".claude/settings.json", "GEMINI.md", ".windsurfrules",
   "hooks/patterns.json", "hooks/matcha-mcp-server.js",
   "scripts/build-adapters.js",
+  "plugin.json", "mcp_config.json",
 ];
 
 describe("Core files", () => {
@@ -36,6 +37,31 @@ describe("Core files", () => {
     const content = readProjectFile(".claude/settings.json");
     expect(content).toContain('"Stop"');
     expect(content).toContain("matcha-stop.js");
+  });
+
+  test("plugin.json (AGY manifest) has current version", () => {
+    const content = JSON.parse(readProjectFile("plugin.json"));
+    expect(content.name).toBe("matcha");
+    expect(content.version).toBe("2.5.4");
+  });
+
+  test("plugin.json (AGY manifest) declares all 8 commands", () => {
+    const content = JSON.parse(readProjectFile("plugin.json"));
+    const names = content.commands.map((c) => c.name);
+    expect(names).toContain("matcha:why");
+    expect(names).toContain("matcha:review");
+    expect(names).toContain("matcha:audit");
+    expect(names).toContain("matcha:intensity");
+    expect(names).toContain("matcha:status");
+    expect(names).toContain("matcha:debt");
+    expect(names).toContain("matcha:markers");
+    expect(names).toContain("matcha:stats");
+  });
+
+  test("mcp_config.json (AGY manifest) points to matcha MCP server", () => {
+    const content = JSON.parse(readProjectFile("mcp_config.json"));
+    expect(content.mcpServers.matcha.command).toBe("node");
+    expect(content.mcpServers.matcha.args[0]).toContain("matcha-mcp-server.js");
   });
 });
 

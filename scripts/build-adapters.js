@@ -173,6 +173,35 @@ for (const f of kiroFiles) {
 
 console.log("");
 
+// ─── agents/ (AGY plugin subagents) ───────────────────────────────────────────
+
+console.log("── agents/ (AGY plugin) ──");
+
+// AGY (Antigravity CLI) scans the root-level `agents/` dir of a plugin repo.
+// Real files (not symlinks — npm-packlist skips symlinks).
+for (const agent of AGENT_NAMES) {
+  write(`agents/${agent}.md`, read(`.agents/agents/${agent}.md`));
+}
+
+console.log("");
+
+// ─── mcp_config.json (AGY plugin MCP) ─────────────────────────────────────────
+
+console.log("── mcp_config.json (AGY plugin) ──");
+
+// AGY reads root-level `mcp_config.json` for plugin MCP servers.
+write("mcp_config.json", JSON.stringify({
+  mcpServers: {
+    matcha: {
+      command: "node",
+      args: ["hooks/matcha-mcp-server.js"],
+      env: {},
+    },
+  },
+}, null, 2) + "\n");
+
+console.log("");
+
 // ─── Root platform files ─────────────────────────────────────────────────────
 
 console.log("── Root platform files ──");
@@ -214,5 +243,7 @@ console.log("  .opencode/ (symlinks → .agents/ + skills/)");
 console.log("  .agents/ (canonical agent/command files)");
 console.log("  .openclaw/ (symlink → skills/)");
 console.log("  .kiro/ (platform-specific, not overwritten)");
+console.log("  agents/ (AGY plugin subagents — real files)");
+console.log("  mcp_config.json (AGY plugin MCP server)");
 console.log("  .windsurfrules (from source)");
 console.log("  GEMINI.md (from source)");

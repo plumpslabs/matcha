@@ -64,7 +64,7 @@ for (const copyPath of SKILL_COPIES) {
 
 // ─── Skill modules ───────────────────────────────────────────────────────────
 console.log("\n📋 Checking skill modules...");
-const MODULES = ["core.md", "tdd.md", "loop.md", "communication.md"];
+const MODULES = ["core.md", "project.md", "modes.md", "risk.md", "legacy.md"];
 
 for (const mod of MODULES) {
   const modPath = join(ROOT, `skills/matcha/modules/${mod}`);
@@ -153,18 +153,68 @@ for (const cmd of COMMANDS) {
     }
   }
 
-  // .claude/commands — symlink
+  // .claude/commands — regular file (truncated for Claude Code context window)
   const claudePath = join(ROOT, `.claude/commands/${cmd}.md`);
-  try {
-    const stat = lstatSync(claudePath);
-    if (!stat.isSymbolicLink()) {
-      console.warn(`  ⚠️  NOT SYMLINK: .claude/commands/${cmd}.md`);
+  if (!existsSync(claudePath)) {
+    console.warn(`  ⚠️  MISSING: .claude/commands/${cmd}.md`);
+    allGood = false;
+  } else {
+    const claudeContent = readFileSync(claudePath, "utf-8").trim();
+    if (!claudeContent || claudeContent.length < 20) {
+      console.warn(`  ⚠️  TOO SHORT: .claude/commands/${cmd}.md`);
       allGood = false;
     } else {
-      console.log(`  ✓  OK: .claude/commands/${cmd}.md (symlink)`);
+      console.log(`  ✓  OK: .claude/commands/${cmd}.md (${claudeContent.length} chars)`);
     }
-  } catch {
-    console.warn(`  ⚠️  MISSING: .claude/commands/${cmd}.md`);
+  }
+}
+
+// ─── AGY plugin root agents/ (real files, must match canonical) ─────────────
+console.log("\n📋 Checking AGY plugin root agents/...");
+const AGENT_NAMES = [
+  "matcha-planner", "matcha-finder", "matcha-auditor",
+  "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
+];
+
+for (const agent of AGENT_NAMES) {
+  const canonical = join(ROOT, `.agents/agents/${agent}.md`);
+  const rootCopy = join(ROOT, `agents/${agent}.md`);
+  if (!existsSync(canonical)) {
+    console.warn(`  ⚠️  MISSING canonical: .agents/agents/${agent}.md`);
+    allGood = false;
+    continue;
+  }
+  if (!existsSync(rootCopy)) {
+    console.warn(`  ⚠️  MISSING: agents/${agent}.md`);
+    allGood = false;
+    continue;
+  }
+  const cHash = hash(readFileSync(canonical, "utf-8"));
+  const rHash = hash(readFileSync(rootCopy, "utf-8"));
+  if (cHash !== rHash) {
+    console.warn(`  ⚠️  OUTDATED: agents/${agent}.md`);
+    allGood = false;
+  } else {
+    console.log(`  ✓  OK: agents/${agent}.md`);
+  }
+}
+
+// AGY plugin mcp_config.json
+const agyMcp = join(ROOT, "mcp_config.json");
+if (!existsSync(agyMcp)) {
+  console.warn("  ⚠️  MISSING: mcp_config.json");
+  allGood = false;
+} else {
+  try {
+    const parsed = JSON.parse(readFileSync(agyMcp, "utf-8"));
+    if (!parsed.mcpServers?.matcha) {
+      console.warn("  ⚠️  mcp_config.json missing matcha mcpServers entry");
+      allGood = false;
+    } else {
+      console.log("  ✓  OK: mcp_config.json (matcha MCP server)");
+    }
+  } catch (e) {
+    console.warn(`  ⚠️  INVALID JSON: mcp_config.json — ${e.message}`);
     allGood = false;
   }
 }

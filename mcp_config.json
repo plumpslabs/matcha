@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": [
+        "hooks/matcha-mcp-server.js"
+      ],
+      "env": {}
+    }
+  }
+}

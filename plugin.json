@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.3.2",
+  "version": "2.5.4",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",
@@ -39,6 +39,21 @@
       "name": "matcha:status",
       "description": "Show matcha session status",
       "file": "commands/status.md"
+    },
+    {
+      "name": "matcha:debt",
+      "description": "Show technical debt from decision logs",
+      "file": "commands/debt.md"
+    },
+    {
+      "name": "matcha:markers",
+      "description": "Scan for // matcha: markers in the codebase",
+      "file": "commands/markers.md"
+    },
+    {
+      "name": "matcha:stats",
+      "description": "Show session health statistics",
+      "file": "commands/stats.md"
     }
   ],
   "hooks": "hooks/hooks.json"

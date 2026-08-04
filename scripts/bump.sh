@@ -5,6 +5,7 @@
 #
 # Files updated:
 #   package.json              "version": "x.y.z"
+#   plugin.json               "version": "x.y.z" (AGY/Gemini plugin manifest)
 #   .claude-plugin/plugin.json "version": "x.y.z"
 #   skills/matcha/SKILL.md    version: x.y.z
 #   hooks/patterns.json       "version": "x.y.z" + changelog
@@ -110,32 +111,35 @@ echo ""
 # 1. package.json
 replace_in_file "package.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
 
-# 2. .claude-plugin/plugin.json
+# 2. plugin.json (AGY/Gemini plugin manifest)
+replace_in_file "plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
+
+# 3. .claude-plugin/plugin.json
 replace_in_file ".claude-plugin/plugin.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
 
-# 3. skills/matcha/SKILL.md
+# 4. skills/matcha/SKILL.md
 replace_in_file "skills/matcha/SKILL.md" "version: ${CURRENT_VERSION}" "version: ${NEW_VERSION}"
 
-# 4. hooks/patterns.json — version field
+# 5. hooks/patterns.json — version field
 replace_in_file "hooks/patterns.json" "\"version\": \"${CURRENT_VERSION}\"" "\"version\": \"${NEW_VERSION}\""
 
-# 5. hooks/inject-rules.js
+# 6. hooks/inject-rules.js
 replace_in_file "hooks/inject-rules.js" "version: \"${CURRENT_VERSION}\"" "version: \"${NEW_VERSION}\""
 
-# 6. hooks/matcha-mcp-server.js
+# 7. hooks/matcha-mcp-server.js
 replace_in_file "hooks/matcha-mcp-server.js" "version: \"${CURRENT_VERSION}\"" "version: \"${NEW_VERSION}\""
 
-# 7. README.md — badge
+# 8. README.md — badge
 replace_in_file "README.md" "badge/version-${CURRENT_VERSION}" "badge/version-${NEW_VERSION}"
 replace_in_file "README.md" "alt=\"v${CURRENT_VERSION}\"" "alt=\"${NEW_TAG}\""
 
-# 8. INSTALL.md — version comment
+# 9. INSTALL.md — version comment
 replace_in_file "INSTALL.md" "# Version: v${CURRENT_VERSION}" "# Version: ${NEW_TAG}"
 
-# 9. tests/core.test.js — version assertion
+# 10. tests/core.test.js — version assertion
 replace_in_file "tests/core.test.js" "\"${CURRENT_VERSION}\"" "\"${NEW_VERSION}\""
 
-# 10. docs/index.html — version in hero + footer
+# 11. docs/index.html — version in hero + footer
 replace_in_file "docs/index.html" "v${CURRENT_VERSION}" "${NEW_TAG}"
 
 echo ""

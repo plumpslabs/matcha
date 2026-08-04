@@ -42,13 +42,20 @@ install_symlink() {
 }
 
 install_context() { install_file "$1/AGENTS.md" "AGENTS.md"; }
-install_skill() { install_file "$1" "skills/matcha/SKILL.md"; }
+install_skill() {
+  local dst="$1"
+  mkdir -p "$dst/modules"
+  install_file "$dst/SKILL.md" "skills/matcha/SKILL.md"
+  for m in core project modes risk legacy; do
+    install_file "$dst/modules/$m.md" "skills/matcha/modules/$m.md"
+  done
+}
 
 install_agents() {
   local target="$1"
   mkdir -p "$target"
   for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger; do
-    install_file "$target/$agent.md" ".claude/agents/$agent.md"
+    install_file "$target/$agent.md" ".agents/agents/$agent.md"
   done
 }
 
@@ -76,26 +83,36 @@ done
 [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
 
 # ─── Install to each platform ─────────────────────────────────────────────────
+# ─── AGENTS.md + GEMINI.md: always installed (read by every modern agent) ──
+install_context "$TARGET"
+install_file "$TARGET/GEMINI.md" "GEMINI.md"
+
+# ─── Install to each platform ─────────────────────────────────────────────────
 for p in $PLATFORMS; do
   echo "── $p ──"
   case "$p" in
     .claude | .opencode | .agents)
       install_agents "$TARGET/$p/agents"
       install_commands "$TARGET/$p/commands"
-      install_skill "$TARGET/$p/skills/matcha/SKILL.md"
-      [ "$p" = ".agents" ] && install_context "$TARGET"
+      install_skill "$TARGET/$p/skills/matcha"
       ;;
-    .cursor | .clinerules | .kiro)
-      # Files ship with repo
+    .cursor | .clinerules)
+      # No repo files for these platforms — AGENTS.md (above) is read by both
+      ;;
+    .kiro)
+      install_skill "$TARGET/.kiro/skills/matcha"
+      mkdir -p "$TARGET/.kiro/steering"
+      for f in matcha.md dev-mode.md review-mode.md; do
+        install_file "$TARGET/.kiro/steering/$f" ".kiro/steering/$f"
+      done
       ;;
     .windsurf)
       install_file "$TARGET/.windsurfrules" ".windsurfrules"
       ;;
     .openclaw | .qwen)
-      install_skill "$TARGET/$p/skills/matcha/SKILL.md"
+      install_skill "$TARGET/$p/skills/matcha"
       ;;
     .qoder)
-      install_context "$TARGET"
       install_agents "$TARGET/$p/agents"
       install_file "$TARGET/$p/hooks/matcha-shield.js" "hooks/matcha-shield.js"
       ;;
@@ -105,23 +122,58 @@ done
 
 # ─── Install hooks + MCP server ──────────────────────────────────────────────
 echo "── hooks + mcp ──"
-if [ -d "$TARGET/hooks" ] || [ -d "$TARGET/.agents" ]; then
-  HOOKS_DIR="$TARGET/hooks"
-  mkdir -p "$HOOKS_DIR"
-  install_hooks "$HOOKS_DIR"
-  echo ""
-  echo "  💡 MCP server available at: $HOOKS_DIR/matcha-mcp-server.js"
-  echo "     Add to your MCP config:"
-  echo '     { "mcpServers": { "matcha": { "command": "node", "args": ["hooks/matcha-mcp-server.js"] } } }'
-fi
+HOOKS_DIR="$TARGET/hooks"
+mkdir -p "$HOOKS_DIR"
+install_hooks "$HOOKS_DIR"
+echo ""
+echo "  💡 MCP server available at: $HOOKS_DIR/matcha-mcp-server.js"
+echo "     Add to your MCP config:"
+echo '     { "mcpServers": { "matcha": { "command": "node", "args": ["hooks/matcha-mcp-server.js"] } } }'
 
 # ─── Safe merge settings (don't overwrite existing hooks) ─────────────────────
-if [ -f "$TARGET/.claude/settings.json" ]; then
-  echo ""
-  echo "── safe merge settings ──"
-  echo "  ℹ️  Existing .claude/settings.json detected — merging hooks (not overwriting)"
-  if [ -f "$TARGET/scripts/safe-merge-settings.js" ]; then
-    node "$TARGET/scripts/safe-merge-settings.js" 2>/dev/null || echo "  ⚠️  Could not merge settings — add hooks manually"
+# ─── Claude Code hooks: create or safe-merge settings.json ───────────────────
+if [ -d "$TARGET/.claude" ]; then
+  SETTINGS="$TARGET/.claude/settings.json"
+  if [ ! -f "$SETTINGS" ]; then
+    cat > "$SETTINGS" <<'MATCHA_EOF'
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "node hooks/matcha-shield.js", "timeout": 5000 } ] }
+    ],
+    "PostToolUse": [
+      { "hooks": [ { "type": "command", "command": "node hooks/matcha-post-write.js", "timeout": 3000 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node hooks/matcha-stop.js", "timeout": 5000 } ] }
+    ]
+  }
+}
+MATCHA_EOF
+    echo "  ✅ $SETTINGS (created with matcha hooks)"
+  else
+    echo ""
+    echo "── safe merge settings ──"
+    echo "  ℹ️  $SETTINGS exists — merging matcha hooks (not overwriting)"
+    if grep -q 'matcha-shield' "$SETTINGS" 2>/dev/null; then
+      echo "  ✅ matcha hooks already present"
+    else
+      node -e '
+        const fs = require("fs");
+        const p = process.argv[1];
+        let s = {};
+        try { s = JSON.parse(fs.readFileSync(p, "utf8")); } catch {}
+        s.hooks = s.hooks || {};
+        const push = (ev, hook) => {
+          s.hooks[ev] = s.hooks[ev] || [];
+          if (!s.hooks[ev].some(h => JSON.stringify(h).includes("matcha"))) s.hooks[ev].push(hook);
+        };
+        push("PreToolUse", { matcher: "Bash", hooks: [{ type: "command", command: "node hooks/matcha-shield.js", timeout: 5000 }] });
+        push("PostToolUse", { hooks: [{ type: "command", command: "node hooks/matcha-post-write.js", timeout: 3000 }] });
+        push("Stop", { hooks: [{ type: "command", command: "node hooks/matcha-stop.js", timeout: 5000 }] });
+        fs.writeFileSync(p, JSON.stringify(s, null, 2) + "\n");
+      ' "$SETTINGS" && echo "  ✅ merged matcha hooks into settings.json"
+    fi
   fi
 fi
 
@@ -129,6 +181,6 @@ echo ""
 echo "🍵 matcha: install complete"
 echo ""
 echo "Next steps:"
-echo "  1. Run  node bin/matcha.js status  to verify"
+echo "  1. Verify: ls AGENTS.md GEMINI.md hooks/matcha-shield.js"
 echo "  2. Configure MCP server in your AI agent (optional)"
 echo "  3. Start coding with matcha! 🍵"

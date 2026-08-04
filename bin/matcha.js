@@ -70,7 +70,8 @@ Usage (from cloned repo):
   node bin/matcha.js help      Show this help
 
 Install:
-  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+  npx @plumpslabs/matcha@latest init                (via npm)
+  curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash   (no npm)
 
 MCP (Model Context Protocol):
   node hooks/matcha-mcp-server.js    Start MCP server
@@ -98,7 +99,7 @@ function cmdInit() {
   }
 
   console.log("\n💡 Next steps:");
-  console.log("   Run  node bin/matcha.js status   to verify installation");
+  console.log("   Verify: ls AGENTS.md GEMINI.md hooks/matcha-shield.js");
 }
 
 // ─── Status ───────────────────────────────────────────────────────────────────

@@ -134,7 +134,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.2</span>
+    <span class="header-badge">v2.5.3</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -285,9 +285,9 @@ tr:hover td{background:var(--bg-hover)}
     <div class="step-body">
       <h4>Install matcha</h4>
       <p>One command. Works on macOS, Linux, and WSL.</p>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
       <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or install globally:</p>
-      <div class="code-block"><pre><code>npm install -g matcha && matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npm install -g @plumpslabs/matcha && matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
       <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or without npm (curl script):</p>
       <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
@@ -297,9 +297,7 @@ tr:hover td{background:var(--bg-hover)}
     <div class="step-num">2</div>
     <div class="step-body">
       <h4>Configure your provider</h4>
-      <p>Matcha auto-detects your platform. Or configure manually:</p>
-      <div class="code-block"><pre><code>node scripts/build-adapters.js
-# Generates CLAUDE.md, .windsurfrules, GEMINI.md, etc.</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <p>Matcha auto-detects your platform (Claude Code, OpenCode, Cursor, Windsurf, Kiro, and more) and installs the right files. No manual configuration needed.</p>
     </div>
   </div>
 
@@ -308,7 +306,7 @@ tr:hover td{background:var(--bg-hover)}
     <div class="step-body">
       <h4>Add project constraints (optional)</h4>
       <p>Copy the template and fill in your project-specific rules:</p>
-      <div class="code-block"><pre><code>cp skills/matcha/modules/project.md ./MATCHA_PROJECT.md
+      <div class="code-block"><pre><code>cp .agents/skills/matcha/modules/project.md ./MATCHA_PROJECT.md
 # Edit with your framework, package manager, coding standards</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
@@ -317,13 +315,13 @@ tr:hover td{background:var(--bg-hover)}
     <div class="step-num">4</div>
     <div class="step-body">
       <h4>Verify installation</h4>
-      <p>Check that everything is working:</p>
-      <div class="code-block"><pre><code>matcha status
-# Shows: version, platform, intensity, installed components</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <p>Check that the rules files are installed:</p>
+      <div class="code-block"><pre><code>ls AGENTS.md GEMINI.md hooks/matcha-shield.js
+# All three must exist — matcha is now active for every agent.</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
 
-  <div class="callout callout-success"><strong>Done!</strong> Your agent now follows matcha's philosophy. The shield hook runs automatically on every command.</div>
+  <div class="callout callout-success"><strong>Done!</strong> Your agent now follows matcha's philosophy. Rules are active in every tool; safety hooks are installed in <code>hooks/</code> and wired into <code>.claude/settings.json</code> for Claude Code.</div>
 </div>
 
 <!-- Installation -->
@@ -331,36 +329,47 @@ tr:hover td{background:var(--bg-hover)}
   <h1>Installation</h1>
   <p>Multiple ways to install matcha depending on your setup.</p>
 
-  <h3>Option A: npm (recommended)</h3>
-  <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
-  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or install globally:</p>
-  <div class="code-block"><pre><code>npm install -g matcha
-matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <h3>Option A: npx — one command, nothing installed globally</h3>
+  <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">npx downloads matcha temporarily, runs <code>init</code> into the current project, then discards it. No global install, no cleanup. Re-run any time to update.</p>
 
-  <h3>Option B: One-liner (any agent, no npm)</h3>
+  <h3>Option B: Global install — <code>matcha</code> command works everywhere</h3>
+  <div class="code-block"><pre><code>npm install -g @plumpslabs/matcha
+matcha init        # install matcha rules into the current project
+matcha status      # verify + show platform detection</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">The <code>matcha</code> CLI is available in every project. Run <code>matcha init</code> in each project you want to enable.</p>
+
+  <h3>Option C: Project-local dev dependency — pinned per repo</h3>
+  <div class="code-block"><pre><code>npm install --save-dev @plumpslabs/matcha
+npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Scoped to one project via package.json. Best for teams — the matcha version is locked with the code.</p>
+
+  <h3>Option D: One-liner — no npm required</h3>
   <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Pure shell script, works on macOS / Linux / WSL. Installs the rules files only (no CLI).</p>
 
-  <h3>Option C: Clone + build</h3>
-  <div class="code-block"><pre><code>git clone https://github.com/plumpslabs/matcha.git
-cd matcha
-node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
-
-  <h3>Option D: Claude Code plugin</h3>
-  <div class="code-block"><pre><code># From Claude Code marketplace
-/install matcha</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <h3>Which one should I use?</h3>
+  <table>
+    <tr><th>Situation</th><th>Command</th><th>Why</th></tr>
+    <tr><td>Most users — try it out</td><td><code>npx @plumpslabs/matcha@latest init</code></td><td>One command, zero cleanup</td></tr>
+    <tr><td>Use matcha in many projects</td><td><code>npm install -g @plumpslabs/matcha</code></td><td><code>matcha</code> CLI available everywhere</td></tr>
+    <tr><td>Team repo, pinned version</td><td><code>npm install --save-dev @plumpslabs/matcha</code></td><td>Version locked in package.json</td></tr>
+    <tr><td>No Node.js / no npm</td><td>curl one-liner</td><td>Pure shell, no dependencies</td></tr>
+  </table>
 
   <h3>What Gets Installed</h3>
   <table>
-    <tr><th>File/Dir</th><th>Purpose</th></tr>
-    <tr><td><code>AGENTS.md</code></td><td>Primary cross-tool rules file</td></tr>
-    <tr><td><code>.claude/</code></td><td>Claude Code agents, commands, skills, hooks</td></tr>
-    <tr><td><code>.opencode/</code></td><td>OpenCode agents and skills</td></tr>
-    <tr><td><code>.agents/</code></td><td>Universal agent definitions (canonical source)</td></tr>
-    <tr><td><code>.openclaw/</code></td><td>OpenClaw skills</td></tr>
-    <tr><td><code>.kiro/</code></td><td>Kiro steering files</td></tr>
-    <tr><td><code>.windsurfrules</code></td><td>Windsurf rules</td></tr>
-    <tr><td><code>GEMINI.md</code></td><td>Antigravity/Agy rules</td></tr>
-    <tr><td><code>hooks/</code></td><td>Lifecycle hooks (shield, post-write, stop, metrics)</td></tr>
+    <tr><th>Target</th><th>Contents</th><th>For</th></tr>
+    <tr><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td>Primary rules files</td><td>Every agent</td></tr>
+    <tr><td><code>.claude/</code></td><td>6 agents, 6 commands, skill + modules, hooks + settings.json</td><td>Claude Code</td></tr>
+    <tr><td><code>.opencode/</code></td><td>6 agents, 6 commands, skill + modules</td><td>OpenCode</td></tr>
+    <tr><td><code>.agents/</code></td><td>6 agents, 6 commands, skill + modules</td><td>Universal / AGENTS-compatible tools</td></tr>
+    <tr><td><code>.kiro/</code></td><td>3 steering files, skill + modules</td><td>Kiro Code</td></tr>
+    <tr><td><code>.openclaw/</code> / <code>.qwen/</code></td><td>Skill + modules</td><td>OpenClaw, Qwen Code</td></tr>
+    <tr><td><code>.qoder/</code></td><td>6 agents + shield hook</td><td>Qoder</td></tr>
+    <tr><td><code>.windsurfrules</code></td><td>Rules file</td><td>Windsurf</td></tr>
+    <tr><td><code>hooks/</code></td><td>Shield, post-write, stop, metrics, MCP server</td><td>Every agent (server-side safety)</td></tr>
+    <tr><td>Cursor / Cline</td><td>Covered via <code>AGENTS.md</code></td><td>Cursor, Cline/Roo</td></tr>
   </table>
 
   <div class="callout callout-info"><strong>Safety:</strong> matcha uses safe-merge for settings. It will NOT overwrite existing hooks from other tools (Kuma, Fennec, etc.).</div>
@@ -380,7 +389,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
 
@@ -403,8 +412,8 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">3</div>
     <div class="step-body">
       <h4>Verify</h4>
-      <div class="code-block"><pre><code>node bin/matcha.js status
-# Should show: Platform: Claude Code ✅</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>ls AGENTS.md .claude/skills/matcha/SKILL.md
+# Should show both files — Claude Code is configured ✅</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
 
@@ -430,7 +439,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
   <div class="step">
@@ -464,7 +473,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
   <div class="step">
@@ -496,7 +505,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
   <div class="step">
@@ -532,7 +541,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
 
@@ -580,7 +589,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div class="step-num">1</div>
     <div class="step-body">
       <h4>Install matcha</h4>
-      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <div class="code-block"><pre><code>npx @plumpslabs/matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
   <div class="step">
@@ -738,7 +747,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
   <p>matcha supports project-specific rules that agents must follow.</p>
 
   <h3>Setup</h3>
-  <div class="code-block"><pre><code>cp skills/matcha/modules/project.md ./MATCHA_PROJECT.md</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <div class="code-block"><pre><code>cp .agents/skills/matcha/modules/project.md ./MATCHA_PROJECT.md</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
 
   <h3>Template Sections</h3>
   <ul>

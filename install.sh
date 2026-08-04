@@ -88,7 +88,7 @@ if [ -n "$PLATFORM_ARG" ]; then
     PLATFORMS="$PLATFORMS $p"
   done
 else
-  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .openclaw .qoder .qwen; do
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder; do
     [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
   done
   [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
@@ -108,8 +108,11 @@ for p in $PLATFORMS; do
       install_commands "$TARGET/$p/commands"
       install_skill "$TARGET/$p/skills/matcha"
       ;;
-    .cursor | .clinerules)
-      # No repo files for these platforms — AGENTS.md (above) is read by both
+    .cursor)
+      install_file "$TARGET/.cursor/rules/matcha.mdc" ".cursor/rules/matcha.mdc"
+      ;;
+    .clinerules)
+      install_file "$TARGET/.clinerules/matcha.md" ".clinerules/matcha.md"
       ;;
     .kiro)
       install_skill "$TARGET/.kiro/skills/matcha"
@@ -120,13 +123,10 @@ for p in $PLATFORMS; do
       ;;
     .windsurf)
       install_file "$TARGET/.windsurfrules" ".windsurfrules"
-      ;;
-    .openclaw | .qwen)
-      install_skill "$TARGET/$p/skills/matcha"
+      install_file "$TARGET/.windsurf/rules/matcha.md" ".windsurf/rules/matcha.md"
       ;;
     .qoder)
-      install_agents "$TARGET/$p/agents"
-      install_file "$TARGET/$p/hooks/matcha-shield.js" "hooks/matcha-shield.js"
+      install_file "$TARGET/.qoder/rules/matcha.md" ".qoder/rules/matcha.md"
       ;;
   esac
   echo ""

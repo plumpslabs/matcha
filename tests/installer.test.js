@@ -45,16 +45,17 @@ describe("install.sh — core structure", () => {
 describe("install.sh — platform coverage", () => {
   const installer = readProjectFile("install.sh");
 
-  test("detects .qoder/ directory", () => {
-    expect(installer).toContain(".qoder");
-    expect(installer).toContain("matcha-shield.js");
+  test("installs .qoder rules to .qoder/rules/ (official convention)", () => {
+    expect(installer).toContain(".qoder/rules/matcha.md");
   });
 
-  test("detects .qwen/ directory", () => {
-    expect(installer).toContain(".qwen");
+  test("installs official rule files for cursor, cline, windsurf", () => {
+    expect(installer).toContain(".cursor/rules/matcha.mdc");
+    expect(installer).toContain(".clinerules/matcha.md");
+    expect(installer).toContain(".windsurf/rules/matcha.md");
   });
 
-  test("installs on all 10 platforms", () => {
+  test("installs on all official project platforms", () => {
     expect(installer).toContain(".claude");
     expect(installer).toContain(".opencode");
     expect(installer).toContain(".cursor");
@@ -62,9 +63,12 @@ describe("install.sh — platform coverage", () => {
     expect(installer).toContain(".clinerules");
     expect(installer).toContain(".windsurf");
     expect(installer).toContain(".kiro");
-    expect(installer).toContain(".openclaw");
     expect(installer).toContain(".qoder");
-    expect(installer).toContain(".qwen");
+  });
+
+  test("GEMINI.md + AGENTS.md cover Antigravity and Qwen (root files)", () => {
+    expect(installer).toContain("GEMINI.md");
+    expect(installer).toContain("AGENTS.md");
   });
 });
 

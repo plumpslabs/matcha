@@ -361,16 +361,16 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   <h3>What Gets Installed</h3>
   <table>
     <tr><th>Target</th><th>Contents</th><th>For</th></tr>
-    <tr><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td>Primary rules files</td><td>Every agent</td></tr>
+    <tr><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td>Primary rules files</td><td>Every agent (incl. Antigravity, Qwen, Gemini, Copilot)</td></tr>
     <tr><td><code>.claude/</code></td><td>6 agents, 6 commands, skill + modules, hooks + settings.json</td><td>Claude Code</td></tr>
     <tr><td><code>.opencode/</code></td><td>6 agents, 6 commands, skill + modules</td><td>OpenCode</td></tr>
-    <tr><td><code>.agents/</code></td><td>6 agents, 6 commands, skill + modules</td><td>Universal / AGENTS-compatible tools</td></tr>
+    <tr><td><code>.cursor/rules/</code></td><td><code>matcha.mdc</code> rule</td><td>Cursor</td></tr>
+    <tr><td><code>.windsurf/</code></td><td><code>matcha.md</code> rule + <code>.windsurfrules</code></td><td>Windsurf</td></tr>
+    <tr><td><code>.clinerules/</code></td><td><code>matcha.md</code> rule</td><td>Cline</td></tr>
     <tr><td><code>.kiro/</code></td><td>3 steering files, skill + modules</td><td>Kiro Code</td></tr>
-    <tr><td><code>.openclaw/</code> / <code>.qwen/</code></td><td>Skill + modules</td><td>OpenClaw, Qwen Code</td></tr>
-    <tr><td><code>.qoder/</code></td><td>6 agents + shield hook</td><td>Qoder</td></tr>
-    <tr><td><code>.windsurfrules</code></td><td>Rules file</td><td>Windsurf</td></tr>
+    <tr><td><code>.qoder/rules/</code></td><td><code>matcha.md</code> rule</td><td>Qoder</td></tr>
+    <tr><td><code>.agents/</code></td><td>6 agents, 6 commands, skill + modules</td><td>Universal / AGENTS-compatible tools</td></tr>
     <tr><td><code>hooks/</code></td><td>Shield, post-write, stop, metrics, MCP server</td><td>Every agent (server-side safety)</td></tr>
-    <tr><td>Cursor / Cline</td><td>Covered via <code>AGENTS.md</code></td><td>Cursor, Cline/Roo</td></tr>
   </table>
 
   <div class="callout callout-info"><strong>Safety:</strong> matcha uses safe-merge for settings. It will NOT overwrite existing hooks from other tools (Kuma, Fennec, etc.).</div>

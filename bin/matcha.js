@@ -91,12 +91,14 @@ Docs: https://github.com/plumpslabs/matcha
 
 // ─── Init ────────────────────────────────────────────────────────────────────
 const PLATFORM_OPTIONS = [
-  { num: "1", dir: ".claude",   label: "Claude Code" },
-  { num: "2", dir: ".opencode", label: "OpenCode" },
-  { num: "3", dir: ".cursor",   label: "Cursor" },
-  { num: "4", dir: ".windsurf", label: "Windsurf" },
-  { num: "5", dir: ".kiro",     label: "Kiro Code" },
-  { num: "6", dir: ".agents",   label: "Universal (.agents)" },
+  { num: "1", dir: ".claude",    label: "Claude Code" },
+  { num: "2", dir: ".opencode",  label: "OpenCode" },
+  { num: "3", dir: ".cursor",    label: "Cursor" },
+  { num: "4", dir: ".windsurf",  label: "Windsurf" },
+  { num: "5", dir: ".clinerules", label: "Cline" },
+  { num: "6", dir: ".kiro",      label: "Kiro Code" },
+  { num: "7", dir: ".qoder",     label: "Qoder" },
+  { num: "8", dir: ".agents",    label: "Universal (.agents)" },
 ];
 
 function detectExistingPlatforms() {
@@ -131,6 +133,7 @@ async function cmdInit() {
       const mark = existing.includes(o.dir) ? " (detected)" : "";
       console.log(`  ${o.num}. ${o.label}${mark}`);
     }
+    console.log("  ℹ️  GEMINI.md + AGENTS.md (Antigravity, Qwen, Gemini, Copilot) are always installed.");
     console.log("  a. All platforms");
     console.log("  0. Auto (detected providers, or Universal if none) — default");
     console.log("");

@@ -254,7 +254,7 @@ tr:hover td{background:var(--bg-hover)}
   <h3>What's Inside</h3>
   <table>
     <tr><th>Component</th><th>Count</th><th>Description</th></tr>
-    <tr><td>Modules</td><td>11</td><td>Core, project, modes, risk, legacy, orchestration, context, metrics, tdd, loop, communication</td></tr>
+    <tr><td>Modules</td><td>5</td><td>Core, project, modes, risk, legacy</td></tr>
     <tr><td>Commands</td><td>8</td><td>why, review, audit, intensity, status, debt, markers, stats</td></tr>
     <tr><td>Agents</td><td>6</td><td>planner, finder, auditor, reviewer, cleaner, debugger</td></tr>
     <tr><td>Hooks</td><td>4</td><td>shield, post-write, stop, metrics</td></tr>
@@ -806,7 +806,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
 <!-- Modules Reference -->
 <div class="section" id="modules">
   <h1>Modules Reference</h1>
-  <p>11 focused modules loaded on-demand.</p>
+  <p>5 focused modules loaded on-demand.</p>
 
   <table>
     <tr><th>Module</th><th>When to Load</th><th>Content</th></tr>
@@ -815,12 +815,10 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <tr><td><code>modes.md</code></td><td>Always</td><td>Context-aware mode switching</td></tr>
     <tr><td><code>risk.md</code></td><td>During review</td><td>Risk-based review routing (L0-L3)</td></tr>
     <tr><td><code>legacy.md</code></td><td>Legacy codebases</td><td>Incremental batching, impact analysis</td></tr>
-    <tr><td><code>orchestration.md</code></td><td>Large tasks</td><td>Sub-agent chain (scout→plan→execute→review)</td></tr>
-    <tr><td><code>context.md</code></td><td>All sessions</td><td>Living context index</td></tr>
-    <tr><td><code>metrics.md</code></td><td>End of session</td><td>Metrics tracking</td></tr>
+
     <tr><td><code>tdd.md</code></td><td>TDD requested</td><td>Test-driven development flow</td></tr>
     <tr><td><code>loop.md</code></td><td>Complex tasks</td><td>Loop mode with retry/escalation</td></tr>
-    <tr><td><code>communication.md</code></td><td>Flagging issues</td><td>Format, tone, boundaries</td></tr>
+
   </table>
 </div>
 
@@ -838,7 +836,7 @@ node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
       <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">2</span>
       <span style="font-size:14px;font-weight:600">Skills + Modules</span>
-      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">11 load-on-demand modules</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">5 load-on-demand modules</span>
     </div>
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
       <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">3</span>

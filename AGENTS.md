@@ -107,6 +107,6 @@ Tools: `matcha_shield_check`, `matcha_post_write_scan`, `matcha_stop_tips`, `mat
 
 ## Full Philosophy
 
-See `skills/matcha/SKILL.md` for complete ruleset including TDD mode, loop mode, communication format, and boundaries.
+See `skills/matcha/SKILL.md` for complete ruleset including TDD mode, loop mode, issue format, and boundaries.
 
 [GitHub](https://github.com/plumpslabs/matcha) · [Kuma](https://github.com/plumpslabs/kuma) · [Fennec](https://github.com/plumpslabs/fennec)

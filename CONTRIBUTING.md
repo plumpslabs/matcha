@@ -48,12 +48,12 @@ matcha/
 ├── AGENTS.md                     # Primary cross-tool file
 ├── skills/matcha/
 │   ├── SKILL.md                  # Router (references modules)
-│   └── modules/                  # Modular skill components
-│       ├── core.md               # 6-checkpoint filter
+│   └── modules/                  # 5 modular skill components
+│       ├── core.md               # 6-checkpoint filter + TDD + loops + format
 │       ├── project.md            # Project constraints template
-│       ├── tdd.md                # TDD mode
-│       ├── loop.md               # Loop mode
-│       └── communication.md      # Format + boundaries
+│       ├── modes.md              # Context-aware mode switching
+│       ├── risk.md               # Risk-based review routing (L0-L3)
+│       └── legacy.md             # Legacy code protocol
 ├── hooks/                        # Lifecycle hooks
 │   ├── patterns.json             # Multi-language pattern registry
 │   ├── matcha-mcp-server.js      # MCP server

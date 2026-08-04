@@ -10,7 +10,7 @@
 
 <p align="center">
   <b>Engineering philosophy for AI coding agents.</b><br />
-  10 modules · 8 commands · 6 agents · 4 hooks · 1 MCP server
+  5 modules · 8 commands · 6 agents · 10 hooks · 1 MCP server
 </p>
 
 <p align="center">
@@ -249,12 +249,7 @@ Source of Truth:
 │       ├── modes.md             ← Context-aware mode switching
 │       ├── risk.md              ← Risk-based review routing (L0-L3)
 │       ├── legacy.md            ← Legacy code protocol
-│       ├── orchestration.md     ← Sub-agent chain
-│       ├── context.md           ← Living context index
-│       ├── metrics.md           ← Metrics & feedback loop
-│       ├── tdd.md               ← TDD mode
-│       ├── loop.md              ← Loop mode
-│       └── communication.md     ← Format + boundaries
+
 ├── hooks/
 │   ├── patterns.json            ← Multi-language pattern registry (13+)
 │   ├── matcha-trigger-packs.json ← Domain-specific risk signals

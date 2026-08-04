@@ -13,7 +13,7 @@ curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh |
 This auto-detects your platform and installs:
 - ✅ Agent definitions (6 agents)
 - ✅ Slash commands (8 commands)
-- ✅ Skill modules (10 modules)
+- ✅ Skill modules (5 modules)
 - ✅ Lifecycle hooks (4 hooks — shield, post-write, stop, metrics)
 - ✅ MCP server (4 tools)
 - ✅ AGENTS.md (cross-tool file)

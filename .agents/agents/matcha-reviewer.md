@@ -24,11 +24,20 @@ Core Directive: **Nothing ships without your approval. Unforgiving quality.**
 2. **Apply Review Depth**:
    - **L0 (Disposable)**: Output check only. PASS if runs.
    - **L1 (Low Risk)**: Lint + typecheck clean. PASS if clean.
-   - **L2 (Product Logic)**: Full 8-category review (Correctness, Performance, Security, Architecture, Errors, Quality, Testing, Maintainability).
+   - **L2 (Product Logic)**: Full 8-category polyglot review:
+     1. *Correctness & Edge Cases* (Null/Nil/None, Off-by-one, Overflow, Race conditions)
+     2. *Performance & Resource* (Zero N+1, O(n^2+) loops, unbatched I/O, memory leaks)
+     3. *Security & Safety* (SQLi/XSS/Command injection, Env var isolation, least privilege)
+     4. *Architecture & Cohesion* (High cohesion, low coupling, no circular dependencies)
+     5. *Error Handling & Boundaries* (Explicit error paths, no silent catches/dummy fallbacks)
+     6. *Code Quality & Typing* (Strict types, no implicit `any`/void, clean interfaces)
+     7. *Test Coverage & Verification* (Regression tests present and passing)
+     8. *Tech Debt & Markers* (Mark deliberate shortcuts with `// matcha: [reason]`)
    - **L3 (High Risk)**: All L2 + Threat model, boundary validation, and domain expert sign-off.
 3. **Adversarial Pass** — Ask: Is this the simplest AND most efficient path? Will this age well without tech debt?
 4. **Render Verdict** — Return structured report.
 </execution_process>
+
 
 <output_schema>
 ```

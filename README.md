@@ -93,31 +93,21 @@ Create `MATCHA_PROJECT.md` in your project root:
 ```markdown
 # Project Constraints
 
-## Identity
-You are working on: MyApp
-Stack: Next.js 15, TypeScript strict, pnpm
+### Example `MATCHA_PROJECT.md` (Auto-generated per project)
 
-## Hard Rules (NEVER)
-- Package manager: pnpm — NEVER npm or yarn
-- TypeScript strict — NO `any`, NO `@ts-ignore`
-- All DB queries MUST use parameterized statements
+```markdown
+# 🍵 MATCHA_PROJECT.md — Project Constraints
 
-## Ask First
-- Adding new dependencies
-- Database schema changes
-- Modifying auth code
+## 1. Stack & Architecture
+- **Language / Ecosystem:** Polyglot (Rust / Go / Python / Java / JS)
+- **Architecture Pattern:** Pure Core Logic, High Cohesion, Low Coupling
 
-## Counterintuitive Patterns
-- API methods return Result type — NEVER throw, NEVER try/catch
-- Zustand stores: never mutate directly, always return new object
-- Components: named exports only, NO default exports
-
-## Verification Commands
-- Typecheck: pnpm turbo run typecheck
-- Lint: pnpm lint
-- Test: pnpm vitest run
-- Build: pnpm turbo run build
+## 2. Verification Commands
+- **Typecheck / Lint:** [native project check command]
+- **Test Suite:** [native project test command]
+- **Build Target:** [native project build command]
 ```
+
 
 **Keep it under 80 lines.** Only rules that surprise new developers.
 

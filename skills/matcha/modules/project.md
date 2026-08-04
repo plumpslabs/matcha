@@ -14,7 +14,8 @@
 
 ## 2. Hard Rules (NEVER Violate)
 - **Package Manager:** [e.g., pnpm / cargo / poetry / go mod] — NEVER use unapproved managers.
-- **Type Safety:** [e.g., Strict types. NO `any`, NO `@ts-ignore`, NO unwrap on Option/Result without context].
+- **Type Safety:** [e.g., Strict types. NO `any`/`void*`/`interface{}`, NO `@ts-ignore`/`unsafe` blocks, NO unwrap on Option/Result without context].
+
 - **Error Boundary:** [e.g., Return explicit Result types. NEVER throw or swallow exceptions].
 - **Security:** All queries MUST be parameterized. Credentials isolation via env vars `[APPNAME]_VAR_NAME`.
 

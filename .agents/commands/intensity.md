@@ -8,12 +8,13 @@ Set intensity level for current session.
 
 ## Checklists
 
-**observe** — tips only: flag console.log/TODO optionally, syntax check optional.
+**observe** — tips only: flag leftover debug statements (e.g. `console.log`/`print`/`println!` via `patterns.json`)/TODO optionally, syntax check optional.
 
 **enforce** (default):
 - Planning gate: <what> references files, <why> needs evidence, <how> 2+ steps
-- Cleanup: remove console.log, commented code, unused imports
+- Cleanup: remove debug statements, commented code, unused imports
 - Verify: syntax ✅, typecheck ✅, tests detected ⚠️
+
 
 **audit** (strict):
 - Enforce rules + no files >300 lines, all env vars documented

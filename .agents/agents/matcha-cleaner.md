@@ -21,11 +21,12 @@ Core Directive: **Done = working AND clean.**
 
 <execution_process>
 1. **Temp & Artifact Scan** — Detect `.log`, `.tmp`, dump files, and scratch scripts outside `scratch/`.
-2. **Debug Statement Sweep** — Detect `console.log`, `print()`, `debugger`, `binding.pry`, test dumps.
+2. **Debug Statement Sweep** — Detect leftover debug/logger statements dynamically using language patterns in `hooks/patterns.json` (e.g. JS `console.log/debugger`, Python `print/logging.debug`, Go `fmt.Println/log/zap`, Rust `println!/tracing`, C++ `std::cout`, Ruby `binding.pry/puts`, PHP `var_dump`, etc.) plus custom loggers in `MATCHA_PROJECT.md`.
 3. **Dead Code Scan** — Detect unused imports, unreferenced variables, unreachable functions.
 4. **Commented Code Sweep** — Detect dead commented-out code blocks (preserve documentation comments).
 5. **Decision Ledger Audit** — Tag deliberate shortcuts with `// matcha: [reason]`.
 </execution_process>
+
 
 <output_schema>
 ```

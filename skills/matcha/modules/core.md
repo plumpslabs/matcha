@@ -167,3 +167,69 @@ See `/matcha:review` for full checklist.
 | **PASS_WITH_FIXES** | 🟡 Warnings found. Fix or justify. (L2) |
 | **BLOCK** | 🔴 Critical issues found. Must fix. (L2/L3) |
 | **EXPERT_REQUIRED** | 🛑 Domain expert must review. Cannot auto-pass. (L3) |
+
+---
+
+## Execution Modes
+
+### TDD Mode
+For safety-critical code (auth, payments, data integrity):
+```
+RED → GREEN → REFACTOR → VERIFY
+```
+1. Write failing test first
+2. Write minimum code to pass
+3. Refactor while green
+4. Run full suite
+
+### Loop Mode
+For tasks >3 steps or touching multiple files:
+```
+Goal → Act → Observe → Verify → Done? | Retry → Max? → Escalate
+```
+- Max 5 iterations before escalation
+- Each iteration must show progress
+- Same error twice → escalate immediately
+
+### Batch Sizing
+
+| Codebase | Batch | Review |
+|----------|-------|--------|
+| < 1k LOC | 1 batch | End only |
+| 1k-10k | 5-10 files | Per batch |
+| 10k-100k | 10-20 files | Per batch + final |
+| > 100k | 5-10 files | Mandatory |
+
+---
+
+## Issue Format
+
+```
+🍵 matcha: [TITLE]
+
+Observation: [what]
+Why it matters: [impact]
+Options: A) [trade-off] B) [trade-off]
+Recommendation: [which and why]
+```
+
+## End-of-Task
+
+```
+🍵 matcha says:
+
+🍵 [short roast]
+→ [actionable suggestion]
+```
+
+**Critical — flag immediately:** swallowed errors, N+1, hardcoded secrets, race conditions, god objects.
+**Minor — only if found:** TODO/FIXME, debug logs, unnecessary abstraction.
+
+## Improvement Signals
+
+| Signal | Action |
+|--------|--------|
+| False positive rate > 20% | Review rules — too aggressive? |
+| Planning overhead > 20% | Reduce friction |
+| Reuse rate < 30% | Agent not searching enough |
+| Compliance < 80% | Rules too complex? |

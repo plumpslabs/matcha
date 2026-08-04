@@ -80,7 +80,7 @@ describe("Symmetry — SKILL.md canonical", () => {
 });
 
 describe("Symmetry — Skill modules exist", () => {
-  const modules = ["core.md", "flow.md", "communication.md"];
+  const modules = ["core.md", "project.md", "modes.md", "risk.md", "legacy.md"];
 
   for (const mod of modules) {
     test(`skills/matcha/modules/${mod} exists`, () => {

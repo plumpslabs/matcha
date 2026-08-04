@@ -68,24 +68,23 @@ describe("Skill modules", () => {
     expect(content).toContain("audit");
   });
 
-  test("flow.md has Red-Green-Refactor (TDD)", () => {
-    const content = readProjectFile("skills/matcha/modules/flow.md");
-    expect(content).toContain("Red");
-    expect(content).toContain("Green");
-    expect(content).toContain("Refactor");
+  test("core.md has TDD mode (Red-Green-Refactor)", () => {
+    const content = readProjectFile("skills/matcha/modules/core.md");
+    expect(content).toContain("RED");
+    expect(content).toContain("GREEN");
+    expect(content).toContain("REFACTOR");
   });
 
-  test("flow.md has retry/escalation (Loop)", () => {
-    const content = readProjectFile("skills/matcha/modules/flow.md");
-    expect(content).toContain("Retry");
+  test("core.md has loop mode (retry/escalate)", () => {
+    const content = readProjectFile("skills/matcha/modules/core.md");
+    expect(content).toContain("Loop Mode");
     expect(content).toContain("Escalate");
   });
 
-  test("communication.md has boundaries", () => {
-    const content = readProjectFile("skills/matcha/modules/communication.md");
-    expect(content).toContain("Boundaries");
-    expect(content).toContain("matcha DOES");
-    expect(content).toContain("matcha does NOT");
+  test("core.md has issue format", () => {
+    const content = readProjectFile("skills/matcha/modules/core.md");
+    expect(content).toContain("Observation:");
+    expect(content).toContain("Why it matters:");
   });
 });
 

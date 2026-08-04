@@ -154,9 +154,69 @@ HOOKS_DIR="$TARGET/hooks"
 mkdir -p "$HOOKS_DIR"
 install_hooks "$HOOKS_DIR"
 echo ""
+
+# ─── Generate MATCHA_PROJECT.md if missing ───────────────────────────────────
+if [ ! -f "$TARGET/MATCHA_PROJECT.md" ]; then
+  STACK_NAME="Polyglot / Generic"
+  STACK_TEST="[your-test-command]"
+  STACK_CHECK="[your-lint-command]"
+  STACK_BUILD="[your-build-command]"
+
+  if [ -f "$TARGET/Cargo.toml" ]; then
+    STACK_NAME="Rust"; STACK_TEST="cargo test"; STACK_CHECK="cargo check"; STACK_BUILD="cargo build"
+  elif [ -f "$TARGET/go.mod" ]; then
+    STACK_NAME="Go"; STACK_TEST="go test ./..."; STACK_CHECK="go vet ./..."; STACK_BUILD="go build ./..."
+  elif [ -f "$TARGET/pyproject.toml" ] || [ -f "$TARGET/requirements.txt" ]; then
+    STACK_NAME="Python"; STACK_TEST="pytest"; STACK_CHECK="mypy ."; STACK_BUILD="python -m build"
+  elif [ -f "$TARGET/pom.xml" ] || [ -f "$TARGET/build.gradle" ]; then
+    STACK_NAME="Java/Kotlin"; STACK_TEST="./gradlew test"; STACK_CHECK="./gradlew check"; STACK_BUILD="./gradlew build"
+  elif [ -f "$TARGET/package.json" ]; then
+    RUNNER="npm"
+    [ -f "$TARGET/pnpm-lock.yaml" ] && RUNNER="pnpm"
+    [ -f "$TARGET/yarn.lock" ] && RUNNER="yarn"
+    [ -f "$TARGET/bun.lockb" ] && RUNNER="bun"
+    STACK_NAME="Node.js / JavaScript / TypeScript"; STACK_TEST="$RUNNER test"; STACK_CHECK="$RUNNER run typecheck"; STACK_BUILD="$RUNNER run build"
+  fi
+
+  cat > "$TARGET/MATCHA_PROJECT.md" <<MATCHA_PROJ_EOF
+# 🍵 MATCHA_PROJECT.md — Project Constraints
+
+## 1. Stack & Architecture
+- **Language / Ecosystem:** $STACK_NAME
+- **Architecture Pattern:** Pure Core Logic, High Cohesion, Low Coupling
+
+## 2. Verification Commands
+- **Typecheck / Lint:** $STACK_CHECK
+- **Test Suite:** $STACK_TEST
+- **Build Target:** $STACK_BUILD
+
+## 3. Hard Rules (NEVER Violate)
+- All code changes MUST pass empirical verification ($STACK_TEST).
+- Zero N+1 queries, zero unhandled errors, zero silent catches.
+- Strictly isolate credentials to environment variables.
+- Mark deliberate shortcuts with // matcha: [reason].
+
+## 4. Counterintuitive Patterns (Things that surprise new devs)
+- [e.g., API methods return Result types — NEVER throw in service layer]
+- [e.g., Named exports only, NO default exports]
+- [Run @matcha-planner to scan and populate project-specific patterns]
+
+## 5. Ask First (L3 High Risk Triggers)
+- Adding new external dependencies or libraries
+- Database schema changes or migrations
+- Modifying security, auth, or payment boundary code
+MATCHA_PROJ_EOF
+  echo "  ✅ MATCHA_PROJECT.md (Auto-detected $STACK_NAME stack)"
+
+else
+  echo "  ℹ️  MATCHA_PROJECT.md already exists — kept as-is"
+fi
+echo ""
+
 echo "  💡 MCP server available at: $HOOKS_DIR/matcha-mcp-server.js"
 echo "     Add to your MCP config:"
 echo '     { "mcpServers": { "matcha": { "command": "node", "args": ["hooks/matcha-mcp-server.js"] } } }'
+
 
 # ─── Safe merge settings (don't overwrite existing hooks) ─────────────────────
 # ─── Claude Code hooks: create or safe-merge settings.json ───────────────────

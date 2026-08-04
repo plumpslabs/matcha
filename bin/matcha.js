@@ -147,20 +147,32 @@ function ensureMatchaProjectMd(cwd) {
   const projectMdPath = join(cwd, "MATCHA_PROJECT.md");
   if (!existsSync(projectMdPath)) {
     const stack = detectPolyglotStack(cwd);
-    const content = `# MATCHA_PROJECT.md — Project Constraints
+    const content = `# 🍵 MATCHA_PROJECT.md — Project Constraints
 
-## Identity
-Stack: ${stack.name}
+## 1. Stack & Architecture
+- **Language / Ecosystem:** ${stack.name}
+- **Architecture Pattern:** Pure Core Logic, High Cohesion, Low Coupling
 
-## Verification Commands
-- Typecheck/Check: ${stack.check}
-- Test: ${stack.test}
-- Build: ${stack.build}
+## 2. Verification Commands
+- **Typecheck / Lint:** ${stack.check}
+- **Test Suite:** ${stack.test}
+- **Build Target:** ${stack.build}
 
-## Hard Rules
-- All code changes must pass empirical verification (${stack.test}).
+## 3. Hard Rules (NEVER Violate)
+- All code changes MUST pass empirical verification (${stack.test}).
 - Zero N+1 queries, zero unhandled errors, zero silent catches.
+- Strictly isolate credentials to environment variables.
 - Mark deliberate shortcuts with // matcha: [reason].
+
+## 4. Counterintuitive Patterns (Things that surprise new devs)
+- [e.g., API methods return Result types — NEVER throw in service layer]
+- [e.g., Named exports only, NO default exports]
+- [Run @matcha-planner to scan and populate project-specific patterns]
+
+## 5. Ask First (L3 High Risk Triggers)
+- Adding new external dependencies or libraries
+- Database schema changes or migrations
+- Modifying security, auth, or payment boundary code
 `;
     writeFileSync(projectMdPath, content, "utf-8");
     console.log(`  ✓ Generated MATCHA_PROJECT.md (Auto-detected ${stack.name} stack)`);
@@ -168,6 +180,8 @@ Stack: ${stack.name}
     console.log(`  ✓ MATCHA_PROJECT.md (exists, kept as-is)`);
   }
 }
+
+
 
 async function cmdInit() {
   console.log(`🍵 matcha init — installing to ${CWD}\n`);

@@ -225,6 +225,123 @@ Recommendation: [which and why]
 **Critical — flag immediately:** swallowed errors, N+1, hardcoded secrets, race conditions, god objects.
 **Minor — only if found:** TODO/FIXME, debug logs, unnecessary abstraction.
 
+## Implementation Decision Matrix
+
+**Before writing, compare approaches.** Don't just pick the first solution.
+
+### Approach Selection
+
+| Situation | Choose | Why |
+|-----------|--------|-----|
+| 1-2 uses | Inline it | Abstraction overhead not justified |
+| 3+ uses | Extract function | DRY principle kicks in |
+| < 300 LOC | Keep in one file | Splitting adds navigation cost |
+| > 300 LOC or >3 concerns | Split | Cognitive load too high |
+| Read-heavy data | Cache + invalidate | Recalculation waste |
+| Write-heavy data | Compute on write | Read latency critical |
+| Simple transform | `map`/`filter`/`reduce` | Declarative, testable |
+| Complex logic with side effects | `for` loop | Explicit control, debuggable |
+| < 3 params | Object/struct | Readability |
+| 4+ params | Object/struct | Prevents arg-order bugs |
+| Optional behavior | Strategy pattern | Open/closed principle |
+| One-off script | Top-level code | No abstraction needed |
+
+### Efficiency Comparison
+
+When two approaches are viable, compare:
+
+| Factor | Weight | Check |
+|--------|--------|-------|
+| **Correctness** | 100% | Does it handle all edge cases? |
+| **Readability** | 80% | Can a new dev understand in <30s? |
+| **Performance** | 60% | O(n) vs O(n²)? Memory? |
+| **Testability** | 50% | Can it be unit tested easily? |
+| **Reversibility** | 40% | Easy to change later? |
+
+**Rule:** Correctness always wins. After that, prioritize readability over performance unless profiling proves bottleneck.
+
+---
+
+## Anti-Pattern Detection
+
+**Reject these immediately.** Don't just flag — fix or explain why not.
+
+### SQL / Database
+| Anti-Pattern | Fix |
+|-------------|-----|
+| `SELECT *` | Select specific columns |
+| N+1 queries in loop | JOIN or batch query |
+| Missing WHERE on UPDATE/DELETE | Always add WHERE |
+| String concatenation in query | Parameterized queries |
+| No index on WHERE clause | Add index |
+| Unbounded result set | Add LIMIT |
+
+### JavaScript / TypeScript
+| Anti-Pattern | Fix |
+|-------------|-----|
+| `var` | Use `const`/`let` |
+| `==` / `!=` | Use `===` / `!==` |
+| Nested callbacks | Use async/await |
+| `for...in` on arrays | Use `for...of` or `.forEach()` |
+| `new Promise()` when async works | Use `async`/`await` |
+| `eval()` | Never. Use safe alternatives |
+
+### React
+| Anti-Pattern | Fix |
+|-------------|-----|
+| Object in JSX props | Memoize with `useMemo` |
+| New array in JSX props | Memoize with `useMemo` |
+| Missing `key` prop | Add stable key |
+| `useEffect` without deps array | Add deps or use `useCallback` |
+| State in URL when URL is source of truth | Use URL params |
+
+### General
+| Anti-Pattern | Fix |
+|-------------|-----|
+| Empty catch block | At minimum, log the error |
+| Hardcoded magic numbers | Extract to named constant |
+| God function (>50 lines) | Split by responsibility |
+| Deep nesting (>3 levels) | Extract early returns |
+| Long parameter list (>4) | Use options object |
+| Commented-out code | Delete. Git has history |
+| TODO without issue link | Create issue or remove |
+
+---
+
+## Debt Prevention
+
+**Prevent debt, don't just flag it.** Make the right choice the first time.
+
+| Debt Type | Prevention |
+|-----------|------------|
+| **Duplication** | Extract after 3rd copy, not after 10th |
+| **Over-abstraction** | Inline if used <3 times |
+| **Under-abstraction** | Extract if same pattern in 3+ places |
+| **Magic numbers** | Name them: `MAX_RETRIES = 3` |
+| **Dead code** | Delete now. Git remembers |
+| **Missing types** | Add types at boundaries first |
+| **Empty catches** | Log or re-throw. Never swallow |
+| **Deep nesting** | Early returns. Guard clauses |
+| **Long functions** | Split when >30 lines or >3 concerns |
+| **Hardcoded config** | Move to env vars or config file |
+
+---
+
+## Smart Review Checklist
+
+**When reviewing, ask these questions in order:**
+
+1. **Does it work?** — Run it. Test it. Edge cases.
+2. **Is it the simplest path?** — Can any code be removed?
+3. **Is it the most efficient path?** — O(n²) when O(n) exists?
+4. **Will it age well?** — Easy to modify in 6 months?
+5. **Is it safe?** — Secrets, injection, auth bypass?
+6. **Is it clean?** — No debt introduced?
+
+**If any answer is NO → fix before shipping.**
+
+---
+
 ## Improvement Signals
 
 | Signal | Action |

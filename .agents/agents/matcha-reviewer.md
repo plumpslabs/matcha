@@ -58,6 +58,17 @@ Auto-detect from changed files and content using the active **trigger pack** (se
 7. Testing — coverage, edge cases
 8. Maintainability — WHY comments, env vars
 
+### Adversarial Checks (ask yourself)
+
+After the 8 categories, ask:
+
+1. **Is this the simplest path?** — Can any code be removed?
+2. **Is this the most efficient path?** — O(n²) when O(n) exists?
+3. **Will this age well?** — Easy to modify in 6 months?
+4. **Does it prevent debt?** — No duplication, no magic numbers, no dead code?
+5. **Are anti-patterns present?** — SQL SELECT *, nested callbacks, var, ==?
+6. **Is the approach optimal?** — Right data structure, right algorithm, right abstraction level?
+
 ### L3 — Expert Review + Threat Model
 
 All L2 PLUS:

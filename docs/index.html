@@ -134,7 +134,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.4</span>
+    <span class="header-badge">v2.5.5</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -455,17 +455,35 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   </div>
 
   <h3>MCP Configuration</h3>
+  <p>OpenCode's <code>mcp</code> schema requires <code>command</code> to be an <strong>array</strong> (executable + args together).</p>
+
+  <h4>Per-project</h4>
   <div class="code-block"><pre><code>{
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "matcha": {
       "type": "local",
-      "command": "node",
-      "args": ["hooks/matcha-mcp-server.js"],
+      "command": ["node", "hooks/matcha-mcp-server.js"],
       "enabled": true
     }
   }
 }</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
-  <p>Place in <code>opencode.json</code> (per-project) or <code>~/.config/opencode/opencode.json</code> (global).</p>
+  <p>Place in <code>opencode.json</code> / <code>opencode.jsonc</code> in the project root.</p>
+
+  <h4>Global (all projects) — no absolute path needed</h4>
+  <div class="code-block"><pre><code>npm install -g @plumpslabs/matcha
+# Then in ~/.config/opencode/opencode.json:
+{
+  "mcp": {
+    "matcha": {
+      "type": "local",
+      "command": ["matcha", "mcp"],
+      "enabled": true
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p><code>matcha mcp</code> resolves via your global PATH — works from <strong>any project</strong>, nothing to update when you switch directories. (Fallback: absolute path <code>["node", "/path/to/matcha/hooks/matcha-mcp-server.js"]</code> if the CLI isn't installed globally.)</p>
+  <div class="callout callout-warn"><strong>Don't:</strong> <code>"command": "node", "args": [...]</code> — OpenCode rejects this with <code>Expected "array". Property args is not allowed</code>. Put everything inside <code>command</code>.</div>
 </div>
 
 <!-- Provider Setup: Cursor -->
@@ -611,14 +629,31 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
     <tr><td><code>matcha_plan_validate</code></td><td>Validate a 5W1H plan</td></tr>
   </table>
 
+  <h3>What Is This For?</h3>
+  <p>MCP (Model Context Protocol) lets any AI agent call matcha's checks <strong>as tools</strong> — deterministic enforcement that doesn't depend on the agent reading rules. It's <strong>optional</strong>: the rules files (AGENTS.md, skills, commands) work without it. MCP adds a second, programmatic layer for agents that support tool calls (Claude, Cursor, Windsurf, AGY, OpenCode, ...).</p>
+
   <h3>Start the Server</h3>
+  <p>Locally (project hooks dir):</p>
   <div class="code-block"><pre><code>node hooks/matcha-mcp-server.js
 # Runs via stdio JSON-RPC</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Or via the globally installed CLI (works from <strong>any</strong> project):</p>
+  <div class="code-block"><pre><code>npm install -g @plumpslabs/matcha
+matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
 
   <h3>Client Configuration</h3>
-  <p>Each client has a different config format. See provider-specific sections above.</p>
+  <p>Each client has a different config format:</p>
+  <table>
+    <tr><th>Client</th><th>Config file</th><th>Format</th></tr>
+    <tr><td>Claude Code</td><td><code>.mcp.json</code> (project) / <code>~/.claude.json</code> (global)</td><td><code>"mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }</code></td></tr>
+    <tr><td>OpenCode</td><td><code>opencode.json</code> (project) / <code>~/.config/opencode/opencode.json</code> (global)</td><td><code>"mcp": { "matcha": { "type": "local", "command": ["matcha", "mcp"], "enabled": true } }</code></td></tr>
+    <tr><td>Cursor</td><td><code>.cursor/mcp.json</code> (project) / <code>~/.cursor/mcp.json</code> (global)</td><td><code>"mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }</code></td></tr>
+    <tr><td>Windsurf</td><td><code>~/.codeium/windsurf/mcp_config.json</code> (global only)</td><td><code>"mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }</code></td></tr>
+    <tr><td>AGY / Antigravity</td><td><code>mcp_config.json</code> (auto via plugin) or <code>~/.gemini/config/mcp_config.json</code></td><td><code>"mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }</code></td></tr>
+    <tr><td>Cline / Roo</td><td><code>~/.cline/mcp.json</code> / <code>.roo/mcp.json</code></td><td><code>"mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }</code></td></tr>
+  </table>
+  <p><strong>Global config tip:</strong> use <code>"command": "matcha", "args": ["mcp"]</code> (global CLI) — no absolute path, works after switching projects. Absolute path to <code>hooks/matcha-mcp-server.js</code> is only needed if the CLI isn't installed globally.</p>
 
-  <div class="callout callout-info"><strong>Global vs Per-Project:</strong> We recommend per-project MCP config (<code>.mcp.json</code>) — safer, easier to remove, can be committed to repo.</div>
+  <div class="callout callout-info"><strong>Global vs Per-Project:</strong> We recommend per-project MCP config (<code>.mcp.json</code>) — safer, easier to remove, can be committed to repo. Use the global CLI form if you want it everywhere.</div>
 </div>
 
 <!-- Philosophy -->

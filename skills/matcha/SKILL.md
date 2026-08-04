@@ -1,6 +1,6 @@
 ---
 name: matcha
-version: 2.5.4
+version: 2.5.5
 description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.

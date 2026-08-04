@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.4-purple" alt="v2.5.4" />
+  <img src="https://img.shields.io/badge/version-2.5.5-purple" alt="v2.5.5" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -171,11 +171,11 @@ Ship          → /matcha:review (blocking gate)
 
 ## MCP Server
 
-matcha ships an MCP server for cross-platform use.
+matcha ships an MCP server for cross-platform use. It exposes matcha's checks as **tools** any MCP-capable agent can call (Claude, Cursor, Windsurf, AGY, OpenCode, Cline, Roo). **Optional** — the rules files work without it; MCP adds deterministic, programmatic enforcement.
 
-### Setup
+### Setup (per-project)
 
-Add to your MCP client config:
+Add to your MCP client config (Claude/Cursor/Windsurf/AGY format):
 
 ```json
 {
@@ -186,6 +186,32 @@ Add to your MCP client config:
     }
   }
 }
+```
+
+OpenCode uses a different schema — `command` must be an array:
+
+```json
+{
+  "mcp": {
+    "matcha": {
+      "type": "local",
+      "command": ["node", "hooks/matcha-mcp-server.js"],
+      "enabled": true
+    }
+  }
+}
+```
+
+### Setup (global, no absolute path)
+
+Install the CLI once, then reference it — works from any project:
+
+```bash
+npm install -g @plumpslabs/matcha
+# Claude/Cursor/Windsurf/AGY:
+#   "mcpServers": { "matcha": { "command": "matcha", "args": ["mcp"] } }
+# OpenCode:
+#   "mcp": { "matcha": { "type": "local", "command": ["matcha", "mcp"], "enabled": true } }
 ```
 
 ### Tools

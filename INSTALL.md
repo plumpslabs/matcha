@@ -52,20 +52,21 @@ Create `.mcp.json` in your project root:
 }
 ```
 
-**Or global** (all projects):
+**Or global** (all projects) — **recommended: use the global CLI, no absolute paths**:
+
 ```bash
-# Add to ~/.claude.json
-cat >> ~/.claude.json << 'EOF'
-{
-  "mcpServers": {
-    "matcha": {
-      "command": "node",
-      "args": ["/absolute/path/to/matcha/hooks/matcha-mcp-server.js"]
-    }
-  }
-}
-EOF
+npm install -g @plumpslabs/matcha
+# Then add to ~/.claude.json:
+# {
+#   "mcpServers": {
+#     "matcha": { "command": "matcha", "args": ["mcp"] }
+#   }
+# }
 ```
+
+> ✅ **Why this is better:** `matcha mcp` resolves via your global PATH — it works from ANY project, no absolute path to update when you switch directories. The server reads its own location automatically.
+>
+> ⚠️ Absolute path fallback: `"args": ["/absolute/path/to/matcha/hooks/matcha-mcp-server.js"]` only if you did NOT install the CLI globally.
 
 ---
 
@@ -83,26 +84,44 @@ curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh |
 - `.opencode/plugins/matcha.mjs` — OpenCode plugin
 - `hooks/*.js` — lifecycle hooks
 
-**MCP Setup:** Per-project (in project root)
+**MCP Setup:** Per-project or global
 
-Add to `opencode.json` in your project root:
+> ⚠️ OpenCode's `mcp` schema requires `command` to be an **array** (executable + args together).
+> Do NOT use `"command": "node"` + `"args": [...]` — OpenCode rejects it with `Expected "array". Property args is not allowed`.
+
+Per-project — add to `opencode.json` / `opencode.jsonc` in project root:
 ```json
 {
+  "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "matcha": {
       "type": "local",
-      "command": "node",
-      "args": ["hooks/matcha-mcp-server.js"],
+      "command": ["node", "hooks/matcha-mcp-server.js"],
       "enabled": true
     }
   }
 }
 ```
 
-**Or global** (all projects):
+Global — add to `~/.config/opencode/opencode.json` (**recommended: global CLI, no absolute path**):
+
 ```bash
-# Add to ~/.config/opencode/opencode.json
+npm install -g @plumpslabs/matcha
+# Then add to ~/.config/opencode/opencode.json:
+# {
+#   "mcp": {
+#     "matcha": {
+#       "type": "local",
+#       "command": ["matcha", "mcp"],
+#       "enabled": true
+#     }
+#   }
+# }
 ```
+
+> ✅ `matcha mcp` resolves via global PATH — works from ANY project, no absolute path to maintain when switching directories.
+>
+> ⚠️ Absolute path fallback: `"command": ["node", "/absolute/path/to/matcha/hooks/matcha-mcp-server.js"]` if the CLI is not installed globally.
 
 ---
 
@@ -295,7 +314,7 @@ Roo Code — `.roo/mcp.json` (per-project):
 node bin/matcha.js status
 
 # Should show:
-# Version: v2.5.4
+# Version: v2.5.5
 # Platform: [your platform]
 # AGENTS.md: ✅
 # Shield: ✅ active

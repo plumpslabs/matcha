@@ -1,5 +1,6 @@
 ---
-description: Stack health check — find overlaps, waste, and risks before they become problems
+description: "🍵 Stack health check — find overlaps, waste, and risks before they become problems"
+alias: ["matcha:audit", "audit"]
 ---
 # /matcha:audit
 

@@ -798,56 +798,52 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 
 <!-- Workflow Guide -->
 <div class="section" id="workflow">
-  <h1>Workflow Guide</h1>
+  <h1>Workflow Guide (The 4-Phase Lifecycle)</h1>
   <p>How to actually use matcha day-to-day: which agent or command to call, when, and in what order — from a blank task to a reviewed, shippable change.</p>
 
-  <div class="callout callout-info"><strong>Keep it simple.</strong> Most of the pipeline runs automatically (planning gate, shield, verify). You don't need to invoke everything — the only step you should <em>never</em> skip is the review gate before saying "done".</div>
+  <div class="callout callout-info"><strong>The 4-Phase Lifecycle:</strong> Every feature or bugfix flows through 4 distinct phases (Plan → Search → Code → Ship) to eliminate technical debt before it reaches production.</div>
 
-  <h3>End-to-End Flow</h3>
+  <h3>End-to-End Flow Diagram</h3>
 
-  <div class="step">
-    <div class="step-num">0</div>
-    <div class="step-body">
-      <h4>Set intensity (one-time per session)</h4>
-      <p><code>/matcha:intensity</code> — <strong>enforce</strong> is the default for normal work. Switch to <strong>observe</strong> while exploring or prototyping (tips only, no blocking). Switch to <strong>audit</strong> for critical paths (auth, payments, DB, legacy refactors).</p>
-    </div>
-  </div>
+  <pre><code>┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Phase 1: PLAN  │ →  │ Phase 2: SEARCH │ →  │ Phase 3: CODE   │ →  │  Phase 4: SHIP  │
+│  @matcha-planner│    │  @matcha-finder │    │ @matcha-debugger│    │ /matcha:review  │
+│  (/matcha:why)  │    │  (Reuse Check)  │    │ (Systematic Fix)│    │ @matcha-cleaner │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘</code></pre>
 
   <div class="step">
     <div class="step-num">1</div>
     <div class="step-body">
-      <h4>Plan before code</h4>
-      <p><code>/matcha:why</code> or <code>@matcha-planner</code>. In enforce mode the planning gate runs automatically — the agent must state What / Why / How before touching any file. No blind implementation.</p>
+      <h4>Phase 1: Plan & Intent</h4>
+      <p><code>/matcha:why</code> or <code>@matcha-planner</code>. In enforce mode the planning gate runs automatically — the agent must state What / Why / How with empirical evidence before touching any file. No blind implementation.</p>
     </div>
   </div>
 
   <div class="step">
     <div class="step-num">2</div>
     <div class="step-body">
-      <h4>Reuse before write</h4>
-      <p><code>@matcha-finder</code>: <em>"Check if there's existing code for X."</em> Reuse over rewrite — never duplicate what already exists.</p>
+      <h4>Phase 2: Search & Reuse</h4>
+      <p><code>@matcha-finder</code>: <em>"Check if there's existing code for X."</em> Search codebase for exact or partial matches (`file:line`). Mandate reuse over rewrite — never duplicate what already exists.</p>
     </div>
   </div>
 
   <div class="step">
     <div class="step-num">3</div>
     <div class="step-body">
-      <h4>Audit the stack (optional)</h4>
-      <p><code>/matcha:audit</code> or <code>@matcha-auditor</code>. For large or legacy projects, run this first to know overlaps, waste, and security issues before you start.</p>
+      <h4>Phase 3: Code & Debug</h4>
+      <p>Implement according to <strong>8-Pillar Engineering Directives</strong> (Type-Safe, Boundary Guard, Pure Core, Security, Resource & Memory Awareness). If an error occurs, invoke <code>@matcha-debugger</code> for systematic 1-hypothesis-at-a-time investigation with log evidence.</p>
     </div>
   </div>
 
   <div class="step">
     <div class="step-num">4</div>
     <div class="step-body">
-      <h4>Implement</h4>
-      <p>The agent writes code per core rules: no hardcoded values, one responsibility per function, the most efficient simple path — not just "it works". If a better approach appears mid-task, the agent pauses and confirms with you instead of forcing through.</p>
+      <h4>Phase 4: Review & Ship (Blocking Gate)</h4>
+      <p><code>/matcha:review</code> & <code>@matcha-cleaner</code>. Run full risk-based review (L0-L3). Nothing ships without PASS. Run <code>@matcha-cleaner</code> to remove debug logs and mark intentional shortcuts with <code>// matcha: [reason]</code>.</p>
     </div>
   </div>
+</div>
 
-  <div class="step">
-    <div class="step-num">5</div>
-    <div class="step-body">
       <h4>Verify (automatic)</h4>
       <p>Tests + typecheck + lint run automatically (framework auto-detected). Red tests → stop and fix, never continue.</p>
     </div>

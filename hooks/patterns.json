@@ -1,6 +1,7 @@
 {
-  "version": "2.5.6",
+  "version": "2.5.7",
   "description": "Multi-language pattern registry for matcha checks",
+
   "changelog": {
     "4.0.0": "Added severity/description per pattern, ignoreContext, extensions for sql/commit, new languages (c, cpp, csharp, php, kotlin, dart), new checks (unusedImport, magicNumber, insecureRandom, sqlInjectionRisk, longLine), fixed emptyCatch/hardcodedSecret false positives, deduped printStatement into debugLog"
   },

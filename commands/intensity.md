@@ -1,5 +1,6 @@
 ---
-description: Set matcha intensity level for the current session (observe, enforce, or audit)
+description: "🍵 Set matcha intensity level: observe, enforce, or audit"
+alias: ["matcha:intensity", "intensity"]
 ---
 # /matcha observe|enforce|audit
 

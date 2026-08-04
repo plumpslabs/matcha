@@ -41,8 +41,11 @@ const DANGER_PATTERNS = [
   { pattern: /^rm\s+-rf?\s+\.\s*$/, msg: "rm -rf . would delete current directory." },
   { pattern: /^chmod\s+777(\s|$)/, msg: "chmod 777 opens full permissions." },
   { pattern: />\s+\/dev\/(sda|sdb|sdc|nvme|hd[a-z])/, msg: "Writing to block device." },
-  { pattern: /^git\s+push\s+--force(\s|$)/, msg: "git push --force rewrites remote history." },
+  { pattern: /^git\s+push\s+--force(\s|$)/, msg: "git push --force rewrites remote history. Use --force-with-lease." },
+  { pattern: /^git\s+reset\s+--hard(\s|$)/, msg: "git reset --hard discards uncommitted work permanently. Run 'git stash' first to safeguard changes." },
+  { pattern: /^git\s+clean\s+-[a-zA-Z]*f[a-zA-Z]*/, msg: "git clean -f permanently removes untracked files. Use 'git clean -n' (dry run) or stash files first." },
   { pattern: /\bdrop\s+database\b/i, msg: "DROP DATABASE is destructive." },
+
   { pattern: /\btruncate\s+table\b/i, msg: "TRUNCATE deletes all rows." },
   { pattern: /^(curl|wget)\s+.*\|\s*(bash|sh)\s*$/, msg: "Piping curl/wget to shell executes remote code." },
   { pattern: /^shutdown\s/, msg: "shutdown stops the system." },

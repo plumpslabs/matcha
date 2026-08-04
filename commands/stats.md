@@ -1,5 +1,6 @@
 ---
-description: Session health dashboard — quick overview of what happened and what's left
+description: "🍵 Show session health statistics, metrics, and duration"
+alias: ["matcha:stats", "stats"]
 ---
 # /matcha:stats
 

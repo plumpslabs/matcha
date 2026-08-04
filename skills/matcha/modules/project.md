@@ -1,80 +1,43 @@
-# 🍵 matcha — Project Constraints
+# 🍵 matcha — Project Constraints (`MATCHA_PROJECT.md`)
 
-> Fill this in ONCE per project. Agent reads this automatically.
-> Keep it COMPACT — only rules that can't be inferred from reading code.
-
-## Identity
-
-**Who are you in this project?**
-
-```
-You are working on: [project name]
-Your role: [what the agent should focus on]
-Stack: [languages, frameworks, runtime versions]
-```
-
-## Hard Rules (NEVER violate)
+> **Single Source of Truth for Project Rules.** Auto-read by AI Agents.
+> Keep it **COMPACT & ACTIONABLE** (under 60 lines) — only rules that cannot be inferred from code.
 
 ```markdown
-- [e.g., Package manager: pnpm — NEVER npm or yarn]
-- [e.g., TypeScript strict mode — NO `any`, NO `@ts-ignore`]
-- [e.g., API methods return Result type — NEVER throw, NEVER try/catch around API calls]
-- [e.g., All DB queries MUST use parameterized statements]
-```
+# 🍵 MATCHA_PROJECT.md — Project Constraints
 
-## Ask First (before doing)
+## 1. Stack & Architecture
+- **Ecosystem & Language:** [e.g., Rust / TypeScript / Go / Python]
+- **Framework & Runtime:** [e.g., Next.js / Axum / Gin / FastAPI]
+- **Database / Storage:** [e.g., PostgreSQL / Redis / SQLite]
+- **State & Architecture:** [e.g., Pure Domain Core, Layered Architecture]
 
-```markdown
-- [e.g., Adding new dependencies]
-- [e.g., Database schema changes]
-- [e.g., Modifying security-sensitive code — whatever your trigger pack defines as L3]
-- [e.g., Changing API contracts]
-```
+## 2. Hard Rules (NEVER Violate)
+- **Package Manager:** [e.g., pnpm / cargo / poetry / go mod] — NEVER use unapproved managers.
+- **Type Safety:** [e.g., Strict types. NO `any`, NO `@ts-ignore`, NO unwrap on Option/Result without context].
+- **Error Boundary:** [e.g., Return explicit Result types. NEVER throw or swallow exceptions].
+- **Security:** All queries MUST be parameterized. Credentials isolation via env vars `[APPNAME]_VAR_NAME`.
 
-## Counterintuitive Patterns
+## 3. Verification Commands
+- **Typecheck / Lint:** [e.g., pnpm typecheck / cargo check / mypy .]
+- **Test Suite:** [e.g., pnpm test / cargo test / pytest]
+- **Build Target:** [e.g., pnpm build / cargo build / python -m build]
 
-> Things that surprise new developers. If the agent does the "obvious" thing, it's wrong.
+## 4. Counterintuitive Patterns (Things that surprise new devs)
+- [e.g., API methods return Result<T, E> — NEVER throw in service layer]
+- [e.g., React components: named exports only, NO default exports]
+- [e.g., State stores: never mutate state directly, always return new immutable object]
 
-```markdown
-- [e.g., Zustand stores: never mutate state directly, always return new object]
-- [e.g., Error handling: use Result<T> pattern, never throw in service layer]
-- [e.g., Components: named exports only, NO default exports]
-- [e.g., Testing: mock at service boundary, never mock internals]
-```
-
-## File Conventions
-
-```markdown
-- [e.g., max-lines: 200 per file]
-- [e.g., one component per file, filename = component name]
-- [e.g., tests live next to source: foo.ts → foo.test.ts]
-- [e.g., env vars: PROJECT_VAR_NAME format]
-```
-
-## Verification Commands
-
-```markdown
-- Typecheck: [command]
-- Lint: [command]
-- Test: [command]
-- Build: [command]
-```
-
-## Agent Behavior
-
-```markdown
-- [e.g., Prefer stdlib over new dependency]
-- [e.g., Max 2 new dependencies per task]
-- [e.g., Always run typecheck before declaring done]
-- [e.g., Log decisions with // matcha: [reason]]
+## 5. Ask First (L3 High Risk Triggers)
+- Adding new external dependencies or libraries
+- Database schema changes or migrations
+- Modifying security, auth, or payment boundary code
 ```
 
 ---
 
-## How to Use
+## 💡 How to Have AI Auto-Populate This File
 
-1. Copy this file to your project root as `MATCHA_PROJECT.md`
-2. Fill in the sections above
-3. Agent reads it automatically via matcha hooks
+You can instruct your AI Agent:
+> *"@matcha-planner scan the codebase and fill in MATCHA_PROJECT.md based on our current stack, conventions, and test commands."*
 
-**Keep it under 80 lines.** If it's longer, you're over-specifying.

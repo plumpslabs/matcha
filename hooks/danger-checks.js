@@ -25,8 +25,11 @@ export const DANGER_PATTERNS = [
 
   // Git destructive
   { pattern: /^git\s+push\s+--force(\s|$)/, msg: "git push --force rewrites remote history. Use --force-with-lease." },
+  { pattern: /^git\s+reset\s+--hard(\s|$)/, msg: "git reset --hard discards uncommitted work permanently. Run 'git stash' first to safeguard changes." },
+  { pattern: /^git\s+clean\s+-[a-zA-Z]*f[a-zA-Z]*/, msg: "git clean -f permanently removes untracked files. Use 'git clean -n' (dry run) or stash files first." },
 
   // Production database
+
   { pattern: /\bdrop\s+database\b/i, msg: "DROP DATABASE is destructive. Only run on verified local/test DBs." },
   { pattern: /\btruncate\s+table\b/i, msg: "TRUNCATE deletes all rows. Use DELETE with WHERE if possible." },
 

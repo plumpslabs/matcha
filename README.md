@@ -125,19 +125,21 @@ Stack: Next.js 15, TypeScript strict, pnpm
 
 ## Usage
 
-### Daily Flow
+### Daily Flow (The 4-Phase Lifecycle)
 
 ```
-0. Setup      → /matcha:intensity enforce    (default; observe/audit per task)
-1. Plan       → /matcha:why or @matcha-planner (planning gate auto-runs)
-2. Reuse      → @matcha-finder "existing code for X?" (reuse > rewrite)
-3. Audit      → /matcha:audit                (optional — large/legacy projects)
-4. Implement  → core rules; "matcha pause" if a better path appears
-5. Verify     → tests + typecheck + lint     (auto-detect)
-6. Review     → /matcha:review               (BLOCKING gate — before "done")
-7. Cleanup    → @matcha-cleaner + /matcha:debt
-8. Report     → /matcha:status + /matcha:stats
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Phase 1: PLAN  │ →  │ Phase 2: SEARCH │ →  │ Phase 3: CODE   │ →  │  Phase 4: SHIP  │
+│  @matcha-planner│    │  @matcha-finder │    │ @matcha-debugger│    │ /matcha:review  │
+│  (/matcha:why)  │    │  (Reuse Check)  │    │ (Systematic Fix)│    │ @matcha-cleaner │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+1. **Phase 1: Plan & Intent** — `@matcha-planner` or `/matcha:why` (5W1H evidence gate)
+2. **Phase 2: Search & Reuse** — `@matcha-finder` (hunt existing code `file:line`)
+3. **Phase 3: Code & Debug** — Follow 8-Pillar Directives + `@matcha-debugger` if stuck
+4. **Phase 4: Review & Ship** — `/matcha:review` (blocking L0-L3 gate) + `@matcha-cleaner`
+
 
 Minimal cheat-sheet: **plan → reuse → implement → review**. Everything else is automatic or optional. Full step-by-step guide with example prompts lives in the [Workflow Guide](docs/index.html#workflow).
 

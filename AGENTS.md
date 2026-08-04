@@ -37,13 +37,16 @@ npm run mcp           # Start MCP server
 
 ## Core Principles
 
-- **Type-safe by default** — No escape hatches.
-- **Validate at boundaries** — Fail before mutation.
-- **Pure functions first** — Testable without mocks.
-- **Fail fast** — Validate config at startup.
-- **Idempotency** — Retry-safe mutations.
-- **Performance awareness** — N+1, O(n²+), re-render loops.
-- **Error handling** — No empty catches, explicit paths.
+- **Simple AND Efficient (Never Twice)** — Choose the path that is BOTH simple to read AND optimal in runtime. Naive code causing future refactoring is a failure.
+- **DRY & Reuse First** — Search codebase before writing (`file:line` evidence required). Never duplicate.
+- **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate schemas & inputs at API/function entry points (fail fast).
+- **Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.
+- **Performance & Resource Awareness** — Zero N+1/unbatched IO, avoid O(n²+) time/space complexity, prevent memory leaks, limit payload sizes (pagination/stream).
+- **Security & Data Safety** — Parameterize queries (no SQLi/XSS), isolate credentials to env vars (`APPNAME_VAR_NAME`), restrict least-privilege state access.
+- **Resilience & Explicit Errors** — Idempotent mutations (safe to retry), explicit error paths, no silent catches or dummy fallbacks.
+- **Zero Tech Debt Leakage** — Mark deliberate shortcuts with `// matcha: [reason]`.
+- **Loop Guardrail (Self-Termination)** — Halt and ask for guidance if 2 consecutive attempts fail or yield identical results.
+- **Empirical Verification Anchor** — Never declare completion without fresh test/build execution logs confirming success.
 
 ## Intensity Levels
 

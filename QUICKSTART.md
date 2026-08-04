@@ -92,15 +92,23 @@ This enables matcha enforcement on any MCP-compatible agent.
 
 ---
 
-## 5. Daily Flow
+## 5. Daily Flow (The 4-Phase Lifecycle)
+
+Follow this 4-phase lifecycle for every feature or bugfix:
 
 ```
-Start task    → @matcha-planner (plan first)
-Before code   → @matcha-finder (find existing)
-While coding  → @matcha-debugger (if stuck)
-After coding  → /matcha:review + @matcha-cleaner
-Ship          → /matcha:review (blocking gate)
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  Phase 1: PLAN  │ →  │ Phase 2: SEARCH │ →  │ Phase 3: CODE   │ →  │  Phase 4: SHIP  │
+│  @matcha-planner│    │  @matcha-finder │    │ @matcha-debugger│    │ /matcha:review  │
+│  (/matcha:why)  │    │  (Reuse Check)  │    │ (Systematic Fix)│    │ @matcha-cleaner │
+└─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
+
+1. **Phase 1: Plan & Intent** — Call `@matcha-planner` or run `/matcha:why` to complete 5W1H evidence check before touching code.
+2. **Phase 2: Search & Reuse** — Call `@matcha-finder` to hunt existing functions/utilities (`file:line`) before writing new code.
+3. **Phase 3: Code & Debug** — Write code following 8-Pillar Engineering Directives. If stuck on an error, call `@matcha-debugger` for 1-hypothesis-at-a-time investigation.
+4. **Phase 4: Review & Ship** — Run `/matcha:review` to pass risk-based gate (L0-L3) and call `@matcha-cleaner` to remove debug logs.
+
 
 ---
 

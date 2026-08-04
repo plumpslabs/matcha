@@ -1,5 +1,6 @@
 ---
-description: Session health dashboard — quick overview of what happened and what's left
+description: "🍵 Show session health statistics, metrics, and duration"
+alias: ["matcha:stats", "stats"]
 ---
 # /matcha:stats
 
@@ -26,7 +27,6 @@ description: Session health dashboard — quick overview of what happened and wh
 📊 Changes:  N files (+X / -Y lines)
 🧪 Tests:    N passed / N failed
 📝 Decisions: N logged
-🔖 Markers:  N total (HIGH: N, MEDIUM: N)
-⏱️
+🔖 Markers:  N total (HIGH:
 ...
 See commands/stats.md for full

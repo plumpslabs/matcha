@@ -1,36 +1,30 @@
 ---
-description: Technical debt ledger — harvest all `// matcha:` markers into an actionable report
+description: "🍵 Technical debt & marker ledger — harvest all // matcha: comments into an actionable report"
+alias: ["matcha:debt", "debt", "matcha:markers", "markers"]
 ---
 # /matcha:debt
 
-**Technical debt ledger.** Harvest all `// matcha:` markers into actionable report.
+**Technical debt & marker ledger.** Harvest all `// matcha:` markers into an actionable report.
 
-## Marker Levels
+## Marker Severity Levels
 
 | Marker | Level | Action |
 |--------|-------|--------|
-| `// matcha:explain [reason]` | LOW | Logged. No action needed. Justification documented. |
-| `// matcha:todo [task]` | MEDIUM | Future task. Schedule or create issue. |
-| `// matcha:debt [reason], [fix when]` | HIGH | Must resolve. Set deadline or create issue. |
-| `// matcha:adr [ADR-NUMBER]` | INFO | Architecture Decision Record reference. |
+| `// matcha:explain [reason]` | LOW | Logged justification — documented shortcut |
+| `// matcha:todo [task]` | MEDIUM | Future task — schedule or track |
+| `// matcha:debt [reason], [fix when]` | HIGH | Technical debt — must resolve before release |
+| `// matcha:adr [ADR-NUMBER]` | INFO | Architecture Decision Record reference |
 
 ## Process
 
-1. Scan codebase for `// matcha:` comments — all levels
-2. Extract: file, line, level, message
-3. Group by level
-4. Calculate debt ratio (HIGH / total)
-5. Prioritize resolution
+1. Scan codebase for `// matcha:` comments across all files using grep.
+2. Extract: `file:line`, severity level, message.
+3. Group items by severity level and compute debt ratio (HIGH / TOTAL).
+4. Highlight HIGH items requiring immediate resolution.
 
 ## Report Format
 
 ```
-🍵 matcha: debt
-
-Total markers: N
-  explain: N (LOW) — documented shortcuts
-  todo:    N (MEDIUM) — future tasks
-  debt:    N (HIGH) ← action needed
-  adr:     
+🍵 matcha
 ...
 See commands/debt.md for full

@@ -76,7 +76,11 @@ export function simulateShield(cmd) {
     { pattern: /^chmod\s+777(\s|$)/, msg: "chmod 777" },
     { pattern: />\s+\/dev\/(sda|sdb|sdc|nvme|hd[a-z])/, msg: "write to block device" },
     { pattern: /^git\s+push\s+--force(\s|$)/, msg: "git push --force" },
+
+    { pattern: /^git\s+reset\s+--hard(\s|$)/, msg: "git reset --hard" },
+    { pattern: /^git\s+clean\s+-[a-zA-Z]*f[a-zA-Z]*/, msg: "git clean -f" },
     { pattern: /\bdrop\s+database\b/i, msg: "DROP DATABASE" },
+
     { pattern: /\btruncate\s+table\b/i, msg: "TRUNCATE TABLE" },
     { pattern: /^(curl|wget)\s+.*\|\s*(bash|sh)\s*$/, msg: "curl | bash" },
     { pattern: /^shutdown\s/, msg: "shutdown" },

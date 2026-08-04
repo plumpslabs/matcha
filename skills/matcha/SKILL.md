@@ -31,11 +31,13 @@ This skill is split into focused modules. Load the relevant module for the task:
 
 **Stack Audit** — Scan manifests for overlap. Overlap? → STOP.
 
-**Implementation** — No hardcode. Explicit errors. One function. "Is there a simpler path?"
+**Implementation** — Simple AND efficient (Never twice). Strict types, boundary guard, pure core, security parameterized, resource & memory aware, explicit errors.
 
 **Cleanup** — Done = working AND clean. Decision log: `// matcha: [reason]`
 
-**Verify** — Auto-detect test framework, run tests + typecheck + lint.
+**Verify** — Run test + typecheck + lint. Never claim success without fresh green logs.
+
+**Loop Guardrail** — Halt & ask if 2 consecutive edit attempts fail or repeat.
 
 ## Intensity
 

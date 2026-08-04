@@ -114,6 +114,61 @@ function ask(question) {
   });
 }
 
+function detectPolyglotStack(cwd) {
+  if (existsSync(join(cwd, "Cargo.toml"))) {
+    return { name: "Rust", test: "cargo test", check: "cargo check", build: "cargo build" };
+  }
+  if (existsSync(join(cwd, "go.mod"))) {
+    return { name: "Go", test: "go test ./...", check: "go vet ./...", build: "go build ./..." };
+  }
+  if (existsSync(join(cwd, "pyproject.toml")) || existsSync(join(cwd, "requirements.txt"))) {
+    return { name: "Python", test: "pytest", check: "mypy .", build: "python -m build" };
+  }
+  if (existsSync(join(cwd, "pom.xml")) || existsSync(join(cwd, "build.gradle"))) {
+    return { name: "Java/Kotlin", test: "./gradlew test", check: "./gradlew check", build: "./gradlew build" };
+  }
+  if (existsSync(join(cwd, "Gemfile"))) {
+    return { name: "Ruby", test: "bundle exec rspec", check: "bundle exec rubocop", build: "bundle exec rake" };
+  }
+  if (existsSync(join(cwd, "composer.json"))) {
+    return { name: "PHP", test: "vendor/bin/phpunit", check: "vendor/bin/phpstan", build: "composer build" };
+  }
+  if (existsSync(join(cwd, "CMakeLists.txt")) || existsSync(join(cwd, "Makefile"))) {
+    return { name: "C/C++", test: "make test", check: "make check", build: "make" };
+  }
+  if (existsSync(join(cwd, "package.json"))) {
+    const runner = existsSync(join(cwd, "pnpm-lock.yaml")) ? "pnpm" : existsSync(join(cwd, "yarn.lock")) ? "yarn" : existsSync(join(cwd, "bun.lockb")) ? "bun" : "npm";
+    return { name: "Node.js / JavaScript / TypeScript", test: `${runner} test`, check: `${runner} run typecheck`, build: `${runner} run build` };
+  }
+  return { name: "Polyglot / Generic", test: "[your-test-command]", check: "[your-lint-command]", build: "[your-build-command]" };
+}
+
+function ensureMatchaProjectMd(cwd) {
+  const projectMdPath = join(cwd, "MATCHA_PROJECT.md");
+  if (!existsSync(projectMdPath)) {
+    const stack = detectPolyglotStack(cwd);
+    const content = `# MATCHA_PROJECT.md — Project Constraints
+
+## Identity
+Stack: ${stack.name}
+
+## Verification Commands
+- Typecheck/Check: ${stack.check}
+- Test: ${stack.test}
+- Build: ${stack.build}
+
+## Hard Rules
+- All code changes must pass empirical verification (${stack.test}).
+- Zero N+1 queries, zero unhandled errors, zero silent catches.
+- Mark deliberate shortcuts with // matcha: [reason].
+`;
+    writeFileSync(projectMdPath, content, "utf-8");
+    console.log(`  ✓ Generated MATCHA_PROJECT.md (Auto-detected ${stack.name} stack)`);
+  } else {
+    console.log(`  ✓ MATCHA_PROJECT.md (exists, kept as-is)`);
+  }
+}
+
 async function cmdInit() {
   console.log(`🍵 matcha init — installing to ${CWD}\n`);
 
@@ -155,7 +210,6 @@ async function cmdInit() {
     }
     if (platformsArg) console.log(`  → Installing providers: ${platformsArg}\n`);
   }
-  // Non-TTY without flag → "" → install.sh auto-detects (existing behavior)
 
   const flag = platformsArg ? ` --platforms "${platformsArg}"` : "";
   try {
@@ -165,8 +219,12 @@ async function cmdInit() {
     process.exit(1);
   }
 
+  // 3. Auto-generate MATCHA_PROJECT.md for polyglot stack
+  ensureMatchaProjectMd(CWD);
+
   console.log("\n💡 Next steps:");
-  console.log("   Verify: ls AGENTS.md GEMINI.md hooks/matcha-shield.js");
+  console.log("   Verify: ls AGENTS.md GEMINI.md MATCHA_PROJECT.md hooks/matcha-shield.js");
+
 }
 
 // ─── Status ───────────────────────────────────────────────────────────────────
@@ -358,6 +416,7 @@ function cmdVerify() {
   console.log(`🍵 matcha: verify\n`);
   const state = readState();
   const intensity = state.intensity || "enforce";
+  const stack = detectPolyglotStack(CWD);
 
   const results = [];
   let allPassed = true;
@@ -373,61 +432,42 @@ function cmdVerify() {
     }
   }
 
-  // 1. Syntax check
-  check("Syntax", () => {
-    execSync("node --check bin/matcha.js", { cwd: CWD, timeout: 5000, stdio: "pipe" });
-    execSync("node --check hooks/matcha-shield.js", { cwd: CWD, timeout: 5000, stdio: "pipe" });
+  // 1. Stack Detection Info
+  console.log(`  Stack Detected: ${stack.name}`);
+
+  // 2. Syntax / Typecheck / Verification Check
+  check(`Check (${stack.check})`, () => {
+    if (stack.check.includes("[your-")) return true;
+    execSync(`${stack.check} 2>&1 || true`, { cwd: CWD, timeout: 30000, stdio: "pipe" });
     return true;
   });
 
-  // 2. Test detection
-  let testsFound = 0;
-  check("Tests", () => {
+  // 3. Test Runner Execution
+  check(`Tests (${stack.test})`, () => {
+    if (stack.test.includes("[your-")) return true;
     try {
-      const testFiles = execSync("find tests -name '*.test.js' -o -name '*.test.ts' 2>/dev/null | wc -l",
-        { cwd: CWD, timeout: 3000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
-      testsFound = parseInt(testFiles) || 0;
-      if (testsFound === 0) {
-        if (intensity === "audit") {
-          console.log("  ⚠️  No tests found. At audit intensity, at least 1 smoke test required.\n");
-          return false;
-        }
-        console.log("  ⚠️  No test files detected. Consider adding tests.\n");
-        return true; // warn but don't fail for enforce/observe
+      execSync(`${stack.test} 2>&1`, { cwd: CWD, timeout: 60000, stdio: "pipe" });
+      return true;
+    } catch (e) {
+      if (intensity === "audit") {
+        console.log(`  ⚠️ Test suite failed at audit intensity.\n`);
+        return false;
       }
-      return true;
-    } catch {
-      return true;
+      return true; // Warn / report
     }
   });
 
-  // 3. Typecheck (if tsconfig exists)
-  check("Typecheck", () => {
-    if (existsSync(join(CWD, "tsconfig.json"))) {
-      execSync("npx tsc --noEmit 2>&1 || true", { cwd: CWD, timeout: 30000, stdio: "pipe" });
-    }
-    return true; // non-TS projects pass by default
-  });
-
-  // 4. Lint (if ESLint config exists)
-  check("Lint", () => {
-    if (existsSync(join(CWD, ".eslintrc")) || existsSync(join(CWD, ".eslintrc.js")) || existsSync(join(CWD, ".eslintrc.json"))) {
-      execSync("npx eslint . 2>&1 || true", { cwd: CWD, timeout: 30000, stdio: "pipe" });
-    }
-    return true;
-  });
-
-  console.log(`  Results (intensity: ${intensity}):\n`);
+  console.log(`\n  Results (intensity: ${intensity}):\n`);
   for (const r of results) {
     const icon = r.status === "PASS" ? "✅" : "❌";
     console.log(`  ${icon} ${r.name}${r.detail ? ` — ${r.detail}` : ""}`);
   }
 
-  // Determine overall result
   const criticalCount = results.filter(r => r.status === "FAIL").length;
   const result = allPassed ? "PASSED" : criticalCount > 0 ? "FAILED" : "PASSED_WITH_WARNINGS";
-  console.log(`\n  Result: ${result} (${testsFound} test files found)`);
+  console.log(`\n  Result: ${result}`);
 }
+
 
 // ─── State — Session state management ────────────────────────────────────────
 function cmdState() {

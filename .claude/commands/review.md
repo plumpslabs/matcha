@@ -1,5 +1,6 @@
 ---
-description: Review gate — risk-based code review (L0-L3). Nothing ships until this passes
+description: "🍵 Review gate — risk-based code review (L0-L3). Nothing ships until this passes"
+alias: ["matcha:review", "review"]
 ---
 # /matcha:review
 
@@ -25,7 +26,6 @@ Default signals (no pack loaded):
 | Signal | Tier |
 |--------|------|
 | Files in security-sensitive paths | L3 (use trigger pack for specifics) |
-| Keywords: credentials, tokens, secrets | L3 |
-| Database schema changes | L3 |
+| Keywords: credentials, tokens, secrets
 ...
 See commands/review.md for full

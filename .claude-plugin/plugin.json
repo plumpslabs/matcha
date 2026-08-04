@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.5.3",
+  "version": "2.5.4",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces 5W1H thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",

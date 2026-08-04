@@ -142,7 +142,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.3");
+    expect(mcp).toContain("2.5.4");
   });
 
   test("has shield check tool", () => {

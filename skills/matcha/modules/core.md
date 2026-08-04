@@ -266,45 +266,41 @@ When two approaches are viable, compare:
 
 **Reject these immediately.** Don't just flag — fix or explain why not.
 
-### SQL / Database
+### Database / Queries
 | Anti-Pattern | Fix |
 |-------------|-----|
-| `SELECT *` | Select specific columns |
+| Fetching all columns when few needed | Select specific columns |
 | N+1 queries in loop | JOIN or batch query |
-| Missing WHERE on UPDATE/DELETE | Always add WHERE |
-| String concatenation in query | Parameterized queries |
-| No index on WHERE clause | Add index |
+| Missing WHERE on mutations | Always add WHERE |
+| String interpolation in queries | Parameterized queries |
+| No index on filtered columns | Add index |
 | Unbounded result set | Add LIMIT |
 
-### JavaScript / TypeScript
-| Anti-Pattern | Fix |
-|-------------|-----|
-| `var` | Use `const`/`let` |
-| `==` / `!=` | Use `===` / `!==` |
-| Nested callbacks | Use async/await |
-| `for...in` on arrays | Use `for...of` or `.forEach()` |
-| `new Promise()` when async works | Use `async`/`await` |
-| `eval()` | Never. Use safe alternatives |
-
-### React
-| Anti-Pattern | Fix |
-|-------------|-----|
-| Object in JSX props | Memoize with `useMemo` |
-| New array in JSX props | Memoize with `useMemo` |
-| Missing `key` prop | Add stable key |
-| `useEffect` without deps array | Add deps or use `useCallback` |
-| State in URL when URL is source of truth | Use URL params |
-
-### General
+### Error Handling
 | Anti-Pattern | Fix |
 |-------------|-----|
 | Empty catch block | At minimum, log the error |
-| Hardcoded magic numbers | Extract to named constant |
+| Swallowed exceptions | Re-throw or handle explicitly |
+| Generic error messages | Include context (what, where, why) |
+| Catch-all without specificity | Catch specific error types |
+
+### Code Structure
+| Anti-Pattern | Fix |
+|-------------|-----|
 | God function (>50 lines) | Split by responsibility |
 | Deep nesting (>3 levels) | Extract early returns |
-| Long parameter list (>4) | Use options object |
+| Long parameter list (>4) | Use options object/struct |
 | Commented-out code | Delete. Git has history |
 | TODO without issue link | Create issue or remove |
+| Dead code paths | Remove. Git remembers |
+
+### Naming & Constants
+| Anti-Pattern | Fix |
+|-------------|-----|
+| Hardcoded magic numbers | Extract to named constant |
+| Unclear variable names | Use descriptive names |
+| Abbreviations in names | Spell out (unless domain-standard) |
+| Boolean traps (arg, true) | Use named options or enums |
 
 ---
 

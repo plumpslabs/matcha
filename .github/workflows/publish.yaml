@@ -72,6 +72,20 @@ jobs:
       - name: Build adapters
         run: pnpm run build
 
+      - name: Ensure NPM_TOKEN is configured
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "::error::NPM_TOKEN secret is NOT set in this repository."
+            echo "Fix: npmjs.com → Access Tokens → Generate New Token (Automation) → "
+            echo "     GitHub repo → Settings → Secrets and variables → Actions →"
+            echo "     New repository secret → name: NPM_TOKEN → paste token."
+            echo "Then re-run this workflow (Actions → Publish Package → Run workflow)."
+            exit 1
+          fi
+          echo "NPM_TOKEN is set ✓"
+
       - name: Publish to npm
         run: |
           FLAGS="--access public --no-git-checks"

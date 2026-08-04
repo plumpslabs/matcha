@@ -1,3 +1,6 @@
+---
+description: Technical debt ledger — harvest all `// matcha:` markers into an actionable report
+---
 # /matcha:debt
 
 **Technical debt ledger.** Harvest all `// matcha:` markers into actionable report.

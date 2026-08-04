@@ -1,3 +1,6 @@
+---
+description: 5W1H gate — answer all 6 questions before touching any code
+---
 # /matcha:why
 
 **5W1H gate.** Answer all 6 before touching any code. Can't answer Why or How? → STOP.
@@ -21,13 +24,6 @@ Answer each question with **evidence**, not assumptions:
 |------------|--------|
 | **HIGH** on all | ✅ Proceed |
 | **MEDIUM** on Why or How | ⚠️ Ask user to clarify |
-| **LOW** on any | 🛑 STOP. Don't guess. |
-
-## Report Format
-
-```
-🍵 matcha: 5W1H
-
-Task: [what was re
+| **LOW** on any | �
 ...
 See commands/why.md for full

@@ -1,3 +1,6 @@
+---
+description: Technical debt ledger — harvest all `// matcha:` markers into an actionable report
+---
 # /matcha:debt
 
 **Technical debt ledger.** Harvest all `// matcha:` markers into actionable report.
@@ -28,11 +31,6 @@ Total markers: N
   explain: N (LOW) — documented shortcuts
   todo:    N (MEDIUM) — future tasks
   debt:    N (HIGH) ← action needed
-  adr:     N (INFO) — architecture decisions
-
-Debt ratio: HIGH/TOTAL = X%
-
-HIGH items (resolve next sprint):
-  file
+  adr:     
 ...
 See commands/debt.md for full

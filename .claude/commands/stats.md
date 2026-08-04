@@ -1,3 +1,6 @@
+---
+description: Session health dashboard — quick overview of what happened and what's left
+---
 # /matcha:stats
 
 **Session health dashboard.** Quick overview of what happened and what's left.
@@ -24,8 +27,6 @@
 🧪 Tests:    N passed / N failed
 📝 Decisions: N logged
 🔖 Markers:  N total (HIGH: N, MEDIUM: N)
-⏱️ Duration:  Xh Ym
-🎯 Intensity: [observe|enforce|audit]
-📋 Plan:     [exists/missing] [valid/inv
+⏱️
 ...
 See commands/stats.md for full

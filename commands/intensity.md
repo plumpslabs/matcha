@@ -1,3 +1,6 @@
+---
+description: Set matcha intensity level for the current session (observe, enforce, or audit)
+---
 # /matcha observe|enforce|audit
 
 Set intensity level for current session.

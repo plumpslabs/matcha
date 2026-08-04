@@ -1,3 +1,6 @@
+---
+description: Scan for `// matcha:` markers and group by severity level
+---
 # /matcha:markers
 
 **Scan for `// matcha:` markers** and group by severity level.

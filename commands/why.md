@@ -1,3 +1,6 @@
+---
+description: 5W1H gate — answer all 6 questions before touching any code
+---
 # /matcha:why
 
 **5W1H gate.** Answer all 6 before touching any code. Can't answer Why or How? → STOP.

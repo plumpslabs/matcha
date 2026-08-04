@@ -1,3 +1,6 @@
+---
+description: Review gate — risk-based code review (L0-L3). Nothing ships until this passes
+---
 # /matcha:review
 
 **The gate between code and "done".** Nothing ships until this passes.
@@ -24,8 +27,5 @@ Default signals (no pack loaded):
 | Files in security-sensitive paths | L3 (use trigger pack for specifics) |
 | Keywords: credentials, tokens, secrets | L3 |
 | Database schema changes | L3 |
-| New public API endpoints | L2 |
-| Test files, fixtures, mocks | L1 |
-| Documentation, comments |
 ...
 See commands/review.md for full

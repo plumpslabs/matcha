@@ -22,9 +22,16 @@ describe("Commands — synced across platforms", () => {
           expect(target).toContain(cmd);
         } else {
           const content = readFileSync(path, "utf-8");
-          expect(content).toMatch(/^# \/matcha[: ]/);
+          // Optional YAML frontmatter (description) — strip it before validating body
+          const body = content.replace(/^---\n[\s\S]*?\n---\n/, "");
+          expect(body).toMatch(/^# \/matcha[: ]/);
           expect(content).toContain(cmd);
         }
+      });
+
+      test(`commands/${cmd}.md has description frontmatter`, () => {
+        expect(canonical).toMatch(/^---\n/);
+        expect(canonical).toMatch(/description: .+/);
       });
 
       test(`.agents/commands/${cmd}.md matches canonical`, () => {

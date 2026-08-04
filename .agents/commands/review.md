@@ -1,3 +1,6 @@
+---
+description: Review gate — risk-based code review (L0-L3). Nothing ships until this passes
+---
 # /matcha:review
 
 **The gate between code and "done".** Nothing ships until this passes.

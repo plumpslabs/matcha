@@ -1,3 +1,6 @@
+---
+description: Stack health check — find overlaps, waste, and risks before they become problems
+---
 # /matcha:audit
 
 **Stack health check.** Find overlaps, waste, and risks before they become problems.

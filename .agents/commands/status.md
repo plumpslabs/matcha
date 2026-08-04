@@ -1,3 +1,6 @@
+---
+description: Show current matcha session status
+---
 # /matcha:status
 
 Show current matcha session status.

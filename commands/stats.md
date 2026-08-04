@@ -1,3 +1,6 @@
+---
+description: Session health dashboard — quick overview of what happened and what's left
+---
 # /matcha:stats
 
 **Session health dashboard.** Quick overview of what happened and what's left.

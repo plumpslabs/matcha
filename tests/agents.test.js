@@ -13,6 +13,18 @@ describe("Agent files exist across platforms", () => {
   }
 });
 
+describe("Command YAML frontmatter validation", () => {
+  const commandFiles = ["why", "review", "audit", "intensity", "status", "debt", "markers", "stats"];
+
+  for (const cmd of commandFiles) {
+    test(`commands/${cmd}.md has description frontmatter`, () => {
+      const content = readProjectFile(`commands/${cmd}.md`);
+      expect(content).toMatch(/^---\n/);
+      expect(content).toMatch(/description: .+/);
+    });
+  }
+});
+
 describe("Agent YAML frontmatter validation", () => {
   for (const agent of AGENT_NAMES) {
     describe(agent, () => {

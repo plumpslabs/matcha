@@ -47,6 +47,14 @@ install_symlink() {
 }
 
 install_context() { install_file "$1/AGENTS.md" "AGENTS.md"; }
+install_file_if_missing() {
+  local dst="$1" src="$2"
+  if [ -f "$dst" ]; then
+    echo "  ℹ️  $dst already exists — skipped"
+  else
+    install_file "$dst" "$src"
+  fi
+}
 install_skill() {
   local dst="$1"
   mkdir -p "$dst/modules"
@@ -88,16 +96,17 @@ if [ -n "$PLATFORM_ARG" ]; then
     PLATFORMS="$PLATFORMS $p"
   done
 else
-  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder; do
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae; do
     [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
   done
   [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
 fi
 
 # ─── Install to each platform ─────────────────────────────────────────────────
-# ─── AGENTS.md + GEMINI.md: always installed (read by every modern agent) ──
+# ─── AGENTS.md + GEMINI.md + Copilot: always installed (read by every modern agent) ──
 install_context "$TARGET"
 install_file "$TARGET/GEMINI.md" "GEMINI.md"
+install_file_if_missing "$TARGET/.github/copilot-instructions.md" ".github/copilot-instructions.md"
 
 # ─── Install to each platform ─────────────────────────────────────────────────
 for p in $PLATFORMS; do
@@ -107,6 +116,13 @@ for p in $PLATFORMS; do
       install_agents "$TARGET/$p/agents"
       install_commands "$TARGET/$p/commands"
       install_skill "$TARGET/$p/skills/matcha"
+      [ "$p" = ".agents" ] && install_file "$TARGET/.agents/rules/matcha.md" ".agents/rules/matcha.md"
+      ;;
+    .roo)
+      install_file "$TARGET/.roo/rules/matcha.md" ".roo/rules/matcha.md"
+      ;;
+    .trae)
+      install_file "$TARGET/.trae/rules/matcha.md" ".trae/rules/matcha.md"
       ;;
     .cursor)
       install_file "$TARGET/.cursor/rules/matcha.mdc" ".cursor/rules/matcha.mdc"

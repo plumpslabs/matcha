@@ -96,9 +96,11 @@ const PLATFORM_OPTIONS = [
   { num: "3", dir: ".cursor",    label: "Cursor" },
   { num: "4", dir: ".windsurf",  label: "Windsurf" },
   { num: "5", dir: ".clinerules", label: "Cline" },
-  { num: "6", dir: ".kiro",      label: "Kiro Code" },
-  { num: "7", dir: ".qoder",     label: "Qoder" },
-  { num: "8", dir: ".agents",    label: "Universal (.agents)" },
+  { num: "6", dir: ".roo",       label: "Roo Code" },
+  { num: "7", dir: ".kiro",      label: "Kiro Code" },
+  { num: "8", dir: ".qoder",     label: "Qoder" },
+  { num: "9", dir: ".trae",      label: "Trae" },
+  { num: "10", dir: ".agents",   label: "Universal (.agents)" },
 ];
 
 function detectExistingPlatforms() {
@@ -133,7 +135,7 @@ async function cmdInit() {
       const mark = existing.includes(o.dir) ? " (detected)" : "";
       console.log(`  ${o.num}. ${o.label}${mark}`);
     }
-    console.log("  ℹ️  GEMINI.md + AGENTS.md (Antigravity, Qwen, Gemini, Copilot) are always installed.");
+    console.log("  ℹ️  GEMINI.md + AGENTS.md + Copilot instructions are always installed (Antigravity, Qwen, Gemini, Copilot, Codex, Zed).");
     console.log("  a. All platforms");
     console.log("  0. Auto (detected providers, or Universal if none) — default");
     console.log("");

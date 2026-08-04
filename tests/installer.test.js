@@ -49,10 +49,21 @@ describe("install.sh — platform coverage", () => {
     expect(installer).toContain(".qoder/rules/matcha.md");
   });
 
-  test("installs official rule files for cursor, cline, windsurf", () => {
+  test("installs official rule files for cursor, cline, windsurf, roo, trae", () => {
     expect(installer).toContain(".cursor/rules/matcha.mdc");
     expect(installer).toContain(".clinerules/matcha.md");
     expect(installer).toContain(".windsurf/rules/matcha.md");
+    expect(installer).toContain(".roo/rules/matcha.md");
+    expect(installer).toContain(".trae/rules/matcha.md");
+  });
+
+  test("installs Antigravity rules at .agents/rules/ (official convention)", () => {
+    expect(installer).toContain(".agents/rules/matcha.md");
+  });
+
+  test("installs GitHub Copilot instructions (skip if exists)", () => {
+    expect(installer).toContain(".github/copilot-instructions.md");
+    expect(installer).toContain("already exists — skipped");
   });
 
   test("installs on all official project platforms", () => {
@@ -64,6 +75,8 @@ describe("install.sh — platform coverage", () => {
     expect(installer).toContain(".windsurf");
     expect(installer).toContain(".kiro");
     expect(installer).toContain(".qoder");
+    expect(installer).toContain(".roo");
+    expect(installer).toContain(".trae");
   });
 
   test("GEMINI.md + AGENTS.md cover Antigravity and Qwen (root files)", () => {

@@ -1,7 +1,7 @@
 {
   "name": "matcha",
-  "version": "2.3.2",
-  "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. For all AI coding agents.",
+  "version": "2.5.0",
+  "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
   "type": "module",
   "main": "hooks/inject-rules.js",
   "bin": {
@@ -9,7 +9,7 @@
   },
   "scripts": {
     "check": "node scripts/check-rule-copies.js",
-    "build": "node scripts/build-openclaw-skills.js",
+    "build": "node scripts/build-adapters.js",
     "build:check": "npm run build && npm run check",
     "test": "vitest run --reporter verbose",
     "test:watch": "vitest",
@@ -18,7 +18,8 @@
     "benchmark:json": "node benchmark/matcha-bench.js --json",
     "benchmark:agentic": "node benchmark/matcha-bench.js --agentic --iters 4",
     "benchmark:eval": "promptfoo eval",
-    "benchmark:podman": "podman build -t matcha-bench -f Dockerfile.bench . && podman run --rm -v \"$PWD:/app\" matcha-bench node benchmark/matcha-bench.js --agentic --json"
+    "benchmark:podman": "podman build -t matcha-bench -f Dockerfile.bench . && podman run --rm -v \"$PWD:/app\" matcha-bench node benchmark/matcha-bench.js --agentic --json",
+    "mcp": "node hooks/matcha-mcp-server.js"
   },
   "keywords": [
     "ai-agent",
@@ -31,9 +32,12 @@
     "opencode",
     "codex",
     "kiro",
+    "mcp",
+    "model-context-protocol",
     "coding-standards",
     "matcha",
-    "plugin"
+    "plugin",
+    "language-agnostic"
   ],
   "files": [
     "skills/",
@@ -47,8 +51,14 @@
     ".kiro/",
     "gemini-extension.json",
     "AGENTS.md",
-    "README.md"
+    "CLAUDE.md",
+    "GEMINI.md",
+    "README.md",
+    "install.sh"
   ],
+  "publishConfig": {
+    "access": "public"
+  },
   "license": "MIT",
   "engines": {
     "node": ">=18.0.0"
@@ -61,6 +71,15 @@
     "url": "https://github.com/plumpslabs/matcha/issues"
   },
   "homepage": "https://github.com/plumpslabs/matcha#readme",
+  "mcp": {
+    "server": "hooks/matcha-mcp-server.js",
+    "tools": [
+      "matcha_shield_check",
+      "matcha_post_write_scan",
+      "matcha_stop_tips",
+      "matcha_plan_validate"
+    ]
+  },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.1.9",
     "vitest": "^4.1.9"

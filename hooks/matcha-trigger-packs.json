@@ -1,0 +1,189 @@
+{
+  "version": "1.0.0",
+  "description": "Domain-specific trigger packs for matcha risk routing. Load one or more packs depending on project type. See skills/matcha/modules/risk.md for the base framework these plug into.",
+  "packs": {
+    "web-saas": {
+      "packName": "web-saas",
+      "description": "Typical web app / SaaS backend with auth, payments, user data",
+      "l3Signals": [
+        { "type": "pathPattern", "value": "(^|/)(auth|payment|crypto|security|migration)s?/" },
+        { "type": "keyword", "value": "\\b(password|token|secret|encrypt|hash|session|jwt|oauth)\\b" },
+        { "type": "keyword", "value": "\\b(charge|refund|invoice|billing|subscription)\\b" },
+        { "type": "keyword", "value": "\\b(login|logout|authenticate|authorize|permission)\\b" },
+        { "type": "changeType", "value": "schema_change" },
+        { "type": "keyword", "value": "\\b(ALTER TABLE|DROP TABLE|TRUNCATE)\\b" }
+      ],
+      "l2Signals": [
+        { "type": "changeType", "value": "new_public_api" },
+        { "type": "keyword", "value": "\\b(router\\.(get|post|put|delete)|@app\\.route|app\\.(get|post|put|delete))\\b" },
+        { "type": "changeType", "value": "dependency_added" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(test|tests|__tests__|spec|fixtures|mocks)/" },
+        { "type": "pathPattern", "value": "\\.(md|txt)$" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(tmp|temp|scratch|debug)/" },
+        { "type": "pathPattern", "value": "(^|/)(test|debug|scratch)-.*\\.(js|ts|py)$" }
+      ],
+      "l3ChecklistAdditions": [
+        "Threat model documented",
+        "Input validation at every boundary",
+        "Auth checks enforced alongside authN",
+        "No secrets in code, logs, or error responses",
+        "Parameterized queries only",
+        "Rate limiting considered",
+        "Audit trail for sensitive operations",
+        "Rollback plan for DB changes",
+        "Security team sign-off required"
+      ]
+    },
+    "ml-pipeline": {
+      "packName": "ml-pipeline",
+      "description": "ML/data pipeline: training code, feature engineering, model serving",
+      "l3Signals": [
+        { "type": "pathPattern", "value": "(^|/)(train|training|inference|serving)/" },
+        { "type": "keyword", "value": "\\b(training_data|test_data|holdout|labels?)\\b.*\\b(leak|shuffle|split)\\b" },
+        { "type": "keyword", "value": "\\b(pii|personally identifiable|user_id.*export|gdpr)\\b" },
+        { "type": "changeType", "value": "schema_change" },
+        { "type": "keyword", "value": "\\bmodel\\.(save|deploy|promote)\\(" }
+      ],
+      "l2Signals": [
+        { "type": "pathPattern", "value": "(^|/)(features?|preprocessing|pipeline)/" },
+        { "type": "keyword", "value": "\\b(loss_fn|hyperparam|learning_rate|batch_size)\\b" },
+        { "type": "changeType", "value": "dependency_added" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(test|tests|notebooks?/exploratory)/" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(scratch|experiments|sandbox)/" },
+        { "type": "pathPattern", "value": "\\.ipynb$" }
+      ],
+      "l3ChecklistAdditions": [
+        "Train/test/validation split verified free of leakage",
+        "No PII in training data or logs without explicit consent basis",
+        "Model performance regression tested against baseline",
+        "Bias/fairness check on sensitive attributes if applicable",
+        "Rollback plan if new model underperforms in production",
+        "Data lineage documented"
+      ]
+    },
+    "infra-iac": {
+      "packName": "infra-iac",
+      "description": "Infrastructure as code: Terraform, CloudFormation, Kubernetes manifests, CI/CD config",
+      "l3Signals": [
+        { "type": "keyword", "value": "\\b(terraform destroy|force_destroy|prevent_destroy\\s*=\\s*false)\\b" },
+        { "type": "pathPattern", "value": "(^|/)(prod|production)/" },
+        { "type": "keyword", "value": "\\b(IAMPolicy|iam_role|iam_policy|0\\.0\\.0\\.0/0)\\b" },
+        { "type": "changeType", "value": "permission_change" },
+        { "type": "keyword", "value": "\\b(kind:\\s*Secret|kind:\\s*ClusterRoleBinding)\\b" }
+      ],
+      "l2Signals": [
+        { "type": "pathPattern", "value": "\\.(tf|yaml|yml)$" },
+        { "type": "changeType", "value": "new_public_api" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(staging|dev|test)/" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(sandbox|scratch)/" }
+      ],
+      "l3ChecklistAdditions": [
+        "Blast radius identified — what breaks if this is wrong",
+        "Dry-run / plan output reviewed before apply",
+        "Rollback/revert procedure documented",
+        "No overly permissive IAM/network rules introduced",
+        "Change window and on-call notified for prod changes"
+      ]
+    },
+    "mobile": {
+      "packName": "mobile",
+      "description": "iOS/Android app code",
+      "l3Signals": [
+        { "type": "keyword", "value": "\\b(Keychain|KeyStore|biometric|FaceID|TouchID)\\b" },
+        { "type": "keyword", "value": "\\b(requestPermission|ACCESS_FINE_LOCATION|CAMERA|CONTACTS)\\b" },
+        { "type": "pathPattern", "value": "(^|/)(auth|payment|iap|in-app-purchase)/" }
+      ],
+      "l2Signals": [
+        { "type": "pathPattern", "value": "(^|/)(viewmodels?|controllers?|services?)/" },
+        { "type": "changeType", "value": "new_public_api" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(views?|screens?|components?)/.*\\b(copy|strings?)\\b" },
+        { "type": "pathPattern", "value": "\\.(strings|xml)$" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(scratch|debug)/" }
+      ],
+      "l3ChecklistAdditions": [
+        "Sensitive data stored in Keychain/KeyStore, not plaintext prefs",
+        "Permission requests have clear user-facing justification",
+        "Works correctly with permission denied/revoked",
+        "No sensitive data in crash logs or analytics events"
+      ]
+    },
+    "embedded": {
+      "packName": "embedded",
+      "description": "Firmware / embedded systems code",
+      "l3Signals": [
+        { "type": "keyword", "value": "\\b(malloc|free|memcpy|memmove)\\b" },
+        { "type": "keyword", "value": "\\b(interrupt|ISR|volatile)\\b" },
+        { "type": "keyword", "value": "\\b(watchdog|bootloader|OTA|firmware_update)\\b" },
+        { "type": "changeType", "value": "permission_change" }
+      ],
+      "l2Signals": [
+        { "type": "pathPattern", "value": "(^|/)(drivers?|hal)/" },
+        { "type": "changeType", "value": "dependency_added" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(test|tests|sim)/" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(scratch|bench)/" }
+      ],
+      "l3ChecklistAdditions": [
+        "No unbounded memory allocation on constrained hardware",
+        "Interrupt handlers are short and non-blocking",
+        "Failure mode considered (power loss mid-write, watchdog reset)",
+        "OTA/firmware update path has rollback on failure"
+      ]
+    },
+    "cli-tool": {
+      "packName": "cli-tool",
+      "description": "Command-line tools / developer utilities with no persistent user data or network exposure",
+      "l3Signals": [
+        { "type": "keyword", "value": "\\b(rm -rf|os\\.remove|shutil\\.rmtree|fs\\.rmSync)\\b" },
+        { "type": "keyword", "value": "\\b(sudo|chmod 777|exec\\(|eval\\()\\b" }
+      ],
+      "l2Signals": [
+        { "type": "changeType", "value": "new_public_api" },
+        { "type": "pathPattern", "value": "(^|/)(commands?|cli)/" }
+      ],
+      "l1Signals": [
+        { "type": "pathPattern", "value": "(^|/)(test|tests)/" }
+      ],
+      "l0Signals": [
+        { "type": "pathPattern", "value": "(^|/)(scratch|tmp)/" }
+      ],
+      "l3ChecklistAdditions": [
+        "Destructive operations require explicit confirmation or --force flag",
+        "No arbitrary code execution from unvalidated input",
+        "Dry-run mode available for destructive commands"
+      ]
+    }
+  },
+  "customPackTemplate": {
+    "packName": "your-domain",
+    "description": "One line on what kind of project this is for",
+    "l3Signals": [
+      { "type": "pathPattern", "value": "regex-or-glob" },
+      { "type": "keyword", "value": "regex" },
+      { "type": "changeType", "value": "schema_change | new_public_api | deleted_file | permission_change | dependency_added" }
+    ],
+    "l2Signals": [],
+    "l1Signals": [],
+    "l0Signals": [],
+    "l3ChecklistAdditions": []
+  }
+}

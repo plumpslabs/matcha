@@ -5,11 +5,12 @@ const HOOKS = [
   "hooks/matcha-shield.js",
   "hooks/matcha-post-write.js",
   "hooks/matcha-stop.js",
+  "hooks/matcha-mcp-server.js",
 ];
 
 describe("Hook syntax", () => {
   test.each(HOOKS)("%s exists", (f) => assertFile(f));
-  test.each(HOOKS)("%s valid Node syntax", (f) => assertValidSyntax(f));
+  test.each(HOOKS)(`%s valid Node syntax`, (f) => assertValidSyntax(f));
 });
 
 test("matcha-shield.js has danger patterns", () => {
@@ -20,28 +21,59 @@ test("matcha-shield.js has danger patterns", () => {
 describe("matcha-post-write.js", () => {
   const content = readProjectFile("hooks/matcha-post-write.js");
 
-  test("has WRITING_CHECKS", () => {
-    expect(content).toContain("WRITING_CHECKS");
+  test("uses patterns.json registry", () => {
+    expect(content).toContain("patterns.json");
   });
 
-  test("detects filler phrases", () => {
-    expect(content).toContain("filler-phrases");
+  test("has loadPatterns function", () => {
+    expect(content).toContain("loadPatterns");
   });
 
-  test("detects passive voice", () => {
-    expect(content).toContain("passive-voice");
+  test("has detectLanguage function", () => {
+    expect(content).toContain("detectLanguage");
   });
 
-  test("detects dead buzzwords", () => {
-    expect(content).toContain("dead-words");
+  test("has scanFile function", () => {
+    expect(content).toContain("scanFile");
   });
 
-  test("detects vague commit messages", () => {
-    expect(content).toContain("vague-commit");
+  test("supports multi-language detection via patterns.json", () => {
+    expect(content).toContain("detectLanguage");
+    expect(content).toContain("loadPatterns");
   });
 
-  test("has filename scope matching", () => {
-    expect(content).toContain("matchesScope");
+  test("has postToolUse export", () => {
+    expect(content).toContain("postToolUse");
+  });
+
+  test("has CLI mode", () => {
+    expect(content).toContain("isDirectInvocation");
+  });
+});
+
+describe("matcha-mcp-server.js", () => {
+  const content = readProjectFile("hooks/matcha-mcp-server.js");
+
+  test("has MCP protocol handling", () => {
+    expect(content).toContain("jsonrpc");
+    expect(content).toContain("tools/list");
+    expect(content).toContain("tools/call");
+  });
+
+  test("has 4 tools defined", () => {
+    expect(content).toContain("matcha_shield_check");
+    expect(content).toContain("matcha_post_write_scan");
+    expect(content).toContain("matcha_stop_tips");
+    expect(content).toContain("matcha_plan_validate");
+  });
+
+  test("has DANGER_PATTERNS", () => {
+    expect(content).toContain("DANGER_PATTERNS");
+  });
+
+  test("has plan validation", () => {
+    expect(content).toContain("validatePlan");
+    expect(content).toContain("matcha_gate");
   });
 });
 

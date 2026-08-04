@@ -1,25 +1,33 @@
 # /matcha:why
 
-Run a 5W1H check on the current or proposed task before proceeding.
+**5W1H gate.** Answer all 6 before touching any code. Can't answer Why or How? → STOP.
 
-## Instructions for agent
+## Process
 
-Ask and answer all 6 questions about the current task.
-If any answer is unclear → stop and ask the user before continuing.
+Answer each question with **evidence**, not assumptions:
+
+| Question | What to answer | Minimum evidence |
+|----------|---------------|-----------------|
+| **What** | Exact problem being solved | Specific error, user request, or requirement |
+| **Why** | What breaks without this | Impact, user pain, business cost |
+| **Who** | What/who depends on this | Services, users, downstream consumers |
+| **When** | Is this needed NOW? | Deadline, dependency chain, blocking issue |
+| **Where** | Where in stack does this belong? | Specific file, module, service |
+| **How** | Simplest full solution | Step-by-step, file-by-file plan |
+
+## Decision Matrix
+
+| Confidence | Action |
+|------------|--------|
+| **HIGH** on all | ✅ Proceed |
+| **MEDIUM** on Why or How | ⚠️ Ask user to clarify |
+| **LOW** on any | 🛑 STOP. Don't guess. |
+
+## Report Format
 
 ```
-🍵 matcha: 5W1H check
+🍵 matcha: 5W1H
 
-Task: [what was requested]
-
-What:  [actual problem being solved]
-Why:   [what breaks or is missing without this]
-Who:   [what/who depends on this]
-When:  [is this needed now, or is it premature?]
-Where: [where in stack/codebase does this belong]
-How:   [simplest full solution]
-
-Confidence: [HIGH / MEDIUM / LOW]
-
-If LOW or MEDIUM on Why or How → state what's unclear and ask user.
-```
+Task: [what was re
+...
+See commands/why.md for full

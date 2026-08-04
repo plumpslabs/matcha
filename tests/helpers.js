@@ -99,10 +99,10 @@ export const AGENT_NAMES = [
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
 ];
 
-/** All 6 matcha commands */
-export const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt"];
+/** All 8 matcha commands */
+export const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers", "stats"];
 
-/** All 7 benchmark tasks */
+/** All benchmark tasks */
 export const TASK_IDS = [
   "email-validator", "debounce", "csv-sum", "fizzbuzz",
   "array-flatten", "date-fmt", "log-filter",
@@ -111,4 +111,5 @@ export const TASK_IDS = [
   "memoize", "chunk-array", "unique-filter", "deep-get", "pipe-compose",
 ];
 
-
+/** Skill module files */
+export const SKILL_MODULES = ["core.md", "flow.md", "communication.md"];

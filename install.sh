@@ -32,6 +32,15 @@ install_file() {
   echo "  ✅ $dst"
 }
 
+install_symlink() {
+  local dst="$1" target="$2"
+  mkdir -p "$(dirname "$dst")"
+  [ -L "$dst" ] && rm -f "$dst"
+  [ -d "$dst" ] && rm -rf "$dst"
+  ln -sf "$target" "$dst"
+  echo "  ✅ $dst → $target"
+}
+
 install_context() { install_file "$1/AGENTS.md" "AGENTS.md"; }
 install_skill() { install_file "$1" "skills/matcha/SKILL.md"; }
 
@@ -54,7 +63,7 @@ install_commands() {
 install_hooks() {
   local target="$1"
   mkdir -p "$target"
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }
@@ -94,4 +103,32 @@ for p in $PLATFORMS; do
   echo ""
 done
 
+# ─── Install hooks + MCP server ──────────────────────────────────────────────
+echo "── hooks + mcp ──"
+if [ -d "$TARGET/hooks" ] || [ -d "$TARGET/.agents" ]; then
+  HOOKS_DIR="$TARGET/hooks"
+  mkdir -p "$HOOKS_DIR"
+  install_hooks "$HOOKS_DIR"
+  echo ""
+  echo "  💡 MCP server available at: $HOOKS_DIR/matcha-mcp-server.js"
+  echo "     Add to your MCP config:"
+  echo '     { "mcpServers": { "matcha": { "command": "node", "args": ["hooks/matcha-mcp-server.js"] } } }'
+fi
+
+# ─── Safe merge settings (don't overwrite existing hooks) ─────────────────────
+if [ -f "$TARGET/.claude/settings.json" ]; then
+  echo ""
+  echo "── safe merge settings ──"
+  echo "  ℹ️  Existing .claude/settings.json detected — merging hooks (not overwriting)"
+  if [ -f "$TARGET/scripts/safe-merge-settings.js" ]; then
+    node "$TARGET/scripts/safe-merge-settings.js" 2>/dev/null || echo "  ⚠️  Could not merge settings — add hooks manually"
+  fi
+fi
+
+echo ""
 echo "🍵 matcha: install complete"
+echo ""
+echo "Next steps:"
+echo "  1. Run  node bin/matcha.js status  to verify"
+echo "  2. Configure MCP server in your AI agent (optional)"
+echo "  3. Start coding with matcha! 🍵"

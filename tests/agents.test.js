@@ -51,13 +51,14 @@ describe("Agent YAML frontmatter validation", () => {
 });
 
 describe("Agent content checks", () => {
-  test("matcha-reviewer has Verify step", () => {
+  test("matcha-reviewer has review gate concept", () => {
     const content = readProjectFile(".claude/agents/matcha-reviewer.md");
-    expect(content).toContain("Verify");
+    expect(content).toContain("review");
+    expect(content).toContain("BLOCK");
   });
 
-  test("matcha-reviewer has Feedback Harness rule", () => {
+  test("matcha-reviewer has correctness check", () => {
     const content = readProjectFile(".claude/agents/matcha-reviewer.md");
-    expect(content).toContain("Feedback Harness");
+    expect(content).toContain("Correctness");
   });
 });

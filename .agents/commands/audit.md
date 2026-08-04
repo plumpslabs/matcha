@@ -1,40 +1,82 @@
 # /matcha:audit
 
-Audit the existing stack for overlaps, inefficiencies, and best practice violations.
+**Stack health check.** Find overlaps, waste, and risks before they become problems.
 
-## Instructions for agent
+## Scope
 
-Run a medium-depth stack audit:
+Audit covers: dependencies, services, config, security posture, and architecture health.
 
-### Step 1 — Read manifests
-- `docker-compose.yml` / `docker-compose.*.yml`
-- `package.json`, `go.mod`, `go.sum`, `requirements.txt`
+## Process
+
+### Step 1 — Inventory
+
+Scan all manifests and config:
+- `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `requirements.txt`
+- `docker-compose*.yml`, `Dockerfile*`
 - `.env.example`, `.env.sample`
 - `Makefile`, `justfile`
+- `tsconfig.json`, `.eslintrc*`, `prettier*`
 
-### Step 2 — Read service files
-For each service/dependency found, read its config or usage in the codebase.
-Understand what it **actually does**, not just that it exists.
+For each: **what does it actually do?** Not just "it exists."
 
-### Step 3 — Report findings
+### Step 2 — Overlap Detection
+
+| Check | How |
+|-------|-----|
+| **Duplicate functionality** | Two deps doing the same thing? (e.g., moment + dayjs, lodash + native) |
+| **Redundant services** | Two containers/services handling same concern? |
+| **Conflicting configs** | ESLint + Prettier fighting? Multiple linters? |
+| **Dead dependencies** | Installed but never imported/used? |
+
+### Step 3 — Waste Detection
+
+| Check | How |
+|-------|-----|
+| **Unused deps** | `npm ls` vs actual imports. Grep for usage. |
+| **Over-abstracted code** | Abstractions used <2 times. Inline them. |
+| **Dead config** | Config files for tools not installed. |
+| **Stale migrations** | DB migrations that are backward-compatible but still present. |
+
+### Step 4 — Security Posture
+
+| Check | How |
+|-------|-----|
+| **Known vulnerabilities** | `npm audit`, `pip audit`, `cargo audit` |
+| **Outdated deps** | Major versions behind? Security patches missing? |
+| **Secret exposure** | `.env` in git? Secrets in config files? |
+| **Missing security deps** | No rate limiting? No input validation library? |
+
+### Step 5 — Architecture Health
+
+| Check | How |
+|-------|-----|
+| **Circular deps** | Module A → B → A. Break the cycle. |
+| **God modules** | Single file doing too much. Split. |
+| **Inconsistent patterns** | Mixed error handling, mixed logging, mixed auth. |
+| **Missing abstractions** | Same boilerplate in 3+ places. Extract. |
+
+## Report Format
 
 ```
 🍵 matcha: stack audit
 
-Services found: [list]
-Dependencies found: [list]
+Inventory: N services, N dependencies, N config files
 
-Overlaps detected:
-  - [service A] and [service B] both handle [X]
-    → Recommendation: ...
+Overlaps:
+  - [A] and [B] both handle [X]
+    → Recommendation: [consolidate/remove/keep]
 
-Inefficiencies:
-  - [thing] is set up but appears unused
-    → Recommendation: ...
+Waste:
+  - [dep/service] installed but unused
+    → Recommendation: [remove]
 
-Best practice violations:
-  - Env var [X] doesn't follow APPNAME_VAR_NAME pattern
-    → Should be: [Y]
+Security:
+  - [vulnerability/issue]
+    → Recommendation: [fix/upgrade/audit]
 
-Overall health: [CLEAN / NEEDS ATTENTION / CRITICAL]
+Architecture:
+  - [issue]
+    → Recommendation: [refactor/split/extract]
+
+Health: CLEAN / NEEDS ATTENTION / CRITICAL
 ```

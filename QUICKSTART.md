@@ -1,24 +1,20 @@
 # 🍵 matcha — Quick Start
 
-1 minute to matcha on any AI coding agent.
+Get matcha running in 2 minutes.
 
 ---
 
 ## 1. Install
 
-Choose your method:
+Choose one:
 
-### A) curl (any AI agent — recommended)
+### A) One-liner (recommended — any AI agent)
 
 ```bash
-# One-liner — auto-detect + install to current project
 curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
-
-# To another project
-curl -fsSL ... | bash -s -- --target /path/to/your-project
 ```
 
-The script auto-detects your AI coding platform and installs the right files.
+Auto-detects your platform. Installs hooks, agents, commands, and MCP server.
 
 ### B) Claude Code Plugin
 
@@ -27,67 +23,111 @@ The script auto-detects your AI coding platform and installs the right files.
 /plugin install matcha@plumpslabs-matcha
 ```
 
-### C) Antigravity CLI / agy
+### C) From cloned repo
 
 ```bash
-# Install via agy plugin manager (auto-detects .agents/)
-agy plugin install https://github.com/plumpslabs/matcha
-
-# Or if you already cloned the repo:
-agy plugin install /path/to/matcha
-
-# Verify installation
-agy plugin list
+git clone https://github.com/plumpslabs/matcha.git
+cd matcha
+node bin/matcha.js init
 ```
-
-Antigravity auto-discovers `.agents/agents/*.md` definitions, `commands/`, and `skills/` from the plugin. No additional config needed.
-
-> **Note:** Requires `plugin.json` at repo root (included since v1.1.0).
 
 ---
 
 ## 2. Verify
 
 ```bash
-# Inside your AI agent:
-/matcha:status
-
-# Or from cloned matcha repo:
 node bin/matcha.js status
 ```
 
-Should show: version, platform detected, components installed, shield status.
+Should show: version, platform detected, components installed.
 
 ---
 
-## 3. Daily Flow
+## 3. Configure (optional but recommended)
+
+Create `MATCHA_PROJECT.md` in your project root with project-specific rules:
+
+```markdown
+# Project Constraints
+
+## Identity
+You are working on: [project name]
+Stack: [languages, frameworks]
+
+## Hard Rules (NEVER)
+- [rule 1]
+- [rule 2]
+
+## Ask First
+- [when to ask user]
+
+## Counterintuitive Patterns
+- [thing that surprises new devs]
+
+## Verification Commands
+- Typecheck: [command]
+- Test: [command]
+```
+
+**Keep under 80 lines.** Only non-inferable rules.
+
+---
+
+## 4. Configure MCP (optional)
+
+Add to your MCP client config:
+
+```json
+{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
+  }
+}
+```
+
+This enables matcha enforcement on any MCP-compatible agent.
+
+---
+
+## 5. Daily Flow
 
 ```
-Planning       → @matcha-planner
-Before coding  → @matcha-finder (reuse check)
-While coding   → @matcha-debugger (stuck on bug?)
-After coding   → /matcha:review  +  @matcha-reviewer  +  @matcha-cleaner
-Verify         → @matcha-reviewer (auto-run tests)
-Check status   → /matcha:status
-Intensity      → /matcha:enforce (default)
+Start task    → @matcha-planner (plan first)
+Before code   → @matcha-finder (find existing)
+While coding  → @matcha-debugger (if stuck)
+After coding  → /matcha:review + @matcha-cleaner
+Ship          → /matcha:review (blocking gate)
 ```
 
 ---
 
-## 4. Done
+## 6. Commands
 
-matcha now enforces the **6-checkpoint filter** on every task. The AI will:
+| Command | Purpose |
+|---------|---------|
+| `/matcha:why` | 5W1H gate |
+| `/matcha:review` | Review gate (8 categories) |
+| `/matcha:audit` | Stack audit |
+| `/matcha:intensity` | Set level |
+| `/matcha:status` | Session dashboard |
+| `/matcha:debt` | Debt ledger |
+| `/matcha:markers` | Scan markers |
+| `/matcha:stats` | Session metrics |
 
-1. 🎯 **Purpose** — ask Why/How before starting
-2. 🔎 **Reuse** — search existing code before writing new
-3. 🔍 **Stack** — check for service/dependency overlap
-4. 🛠️ **Implementation** — no hardcode, explicit errors, simplicity review
-5. 🧹 **Cleanup** — remove temp files, debug code, unused imports
-6. ✅ **Verify** — auto-run tests + typecheck + lint
+---
 
-Plus:
-- 🛡️ **matcha-shield** — blocks dangerous commands (`rm -rf /`, `DROP DATABASE`, etc.)
-- 💡 **End-of-task tips** — 3 context-aware suggestions
+## 7. Intensity
+
+| Level | Behavior |
+|-------|----------|
+| **observe** | Tips only |
+| **enforce** | Full filter (default) |
+| **audit** | Enforce + mandatory cleanup |
+
+Set: `/matcha:enforce` or `node bin/matcha.js state save`
 
 ---
 
@@ -96,9 +136,11 @@ Plus:
 | Resource | Link |
 |----------|------|
 | Full philosophy | `skills/matcha/SKILL.md` |
-| CLI commands | `node bin/matcha.js help` — status, init |
-| Agent reference | `.claude/agents/` or `.opencode/agents/` |
-| Command reference | `commands/` |
+| Project constraints | `skills/matcha/modules/project.md` |
+| MCP server | `hooks/matcha-mcp-server.js` |
+| Agent definitions | `.agents/agents/` |
+| CLI help | `node bin/matcha.js help` |
 
+Need help? See [INSTALL.md](INSTALL.md) for complete provider-specific guides including MCP setup.
 
-Need help? Open an issue at [github.com/plumpslabs/matcha](https://github.com/plumpslabs/matcha).
+[github.com/plumpslabs/matcha](https://github.com/plumpslabs/matcha)

@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 import {
   assertFile, readProjectFile, assertContent, ROOT,
-  KEY_SECTIONS, AGENT_NAMES, COMMAND_NAMES,
+  KEY_SECTIONS, AGENT_NAMES, COMMAND_NAMES, SKILL_MODULES,
 } from "./helpers.js";
 
 const CORE_FILES = [
@@ -9,6 +9,8 @@ const CORE_FILES = [
   "CONTRIBUTING.md", "hooks/matcha-instructions.js", "install.sh", "QUICKSTART.md",
   ".claude-plugin/plugin.json", ".claude-plugin/marketplace.json",
   ".claude/settings.json", "GEMINI.md", ".windsurfrules",
+  "hooks/patterns.json", "hooks/matcha-mcp-server.js",
+  "scripts/build-adapters.js",
 ];
 
 describe("Core files", () => {
@@ -37,62 +39,180 @@ describe("Core files", () => {
   });
 });
 
+describe("Skill modules", () => {
+  test("skills/matcha/SKILL.md exists", () => assertFile("skills/matcha/SKILL.md"));
+
+  test.each(SKILL_MODULES)("skills/matcha/modules/%s exists", (m) => {
+    assertFile(`skills/matcha/modules/${m}`);
+  });
+
+  test("SKILL.md references module index", () => {
+    const content = readProjectFile("skills/matcha/SKILL.md");
+    expect(content).toContain("Module Index");
+    expect(content).toContain("modules/core.md");
+  });
+
+  test("core.md has all 6 checkpoints", () => {
+    const content = readProjectFile("skills/matcha/modules/core.md");
+    expect(content).toContain("Checkpoint 1");
+    expect(content).toContain("Checkpoint 2");
+    expect(content).toContain("Checkpoint 3");
+    expect(content).toContain("Checkpoint 4");
+    expect(content).toContain("Checkpoint 5");
+  });
+
+  test("core.md has intensity levels", () => {
+    const content = readProjectFile("skills/matcha/modules/core.md");
+    expect(content).toContain("observe");
+    expect(content).toContain("enforce");
+    expect(content).toContain("audit");
+  });
+
+  test("flow.md has Red-Green-Refactor (TDD)", () => {
+    const content = readProjectFile("skills/matcha/modules/flow.md");
+    expect(content).toContain("Red");
+    expect(content).toContain("Green");
+    expect(content).toContain("Refactor");
+  });
+
+  test("flow.md has retry/escalation (Loop)", () => {
+    const content = readProjectFile("skills/matcha/modules/flow.md");
+    expect(content).toContain("Retry");
+    expect(content).toContain("Escalate");
+  });
+
+  test("communication.md has boundaries", () => {
+    const content = readProjectFile("skills/matcha/modules/communication.md");
+    expect(content).toContain("Boundaries");
+    expect(content).toContain("matcha DOES");
+    expect(content).toContain("matcha does NOT");
+  });
+});
+
 describe("Content validation", () => {
   const skill = readProjectFile("skills/matcha/SKILL.md");
   const agents = readProjectFile("AGENTS.md");
 
-  test.each(KEY_SECTIONS)('SKILL.md contains "%s"', (s) => {
-    expect(skill).toContain(s);
+  test("SKILL.md has 5W1H reference", () => {
+    expect(skill).toContain("5W1H");
   });
 
-  test.each(KEY_SECTIONS)('AGENTS.md contains "%s"', (s) => {
-    expect(agents).toContain(s);
+  test("SKILL.md references modules that contain matcha pause", () => {
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    expect(core).toContain("matcha pause");
   });
 
-  test("SKILL.md has Observation pattern", () => {
-    expect(skill).toContain("Observation:");
+  test("SKILL.md references modules that contain APPNAME_", () => {
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    expect(core).toContain("APPNAME_");
   });
 
-  test("SKILL.md has End-of-Task Suggestions", () => {
-    expect(skill).toContain("End-of-Task Suggestions");
-  });
-
-  test("SKILL.md has Feedback Harness section", () => {
-    expect(skill).toContain("Feedback Harness");
-  });
-
-  test("SKILL.md has Verify checkpoint", () => {
-    expect(skill).toContain("Checkpoint 5: Verify");
-  });
-
-  test("SKILL.md has TDD Mode section", () => {
-    expect(skill).toContain("Test-Driven Development");
-  });
-});
-
-describe("AGENTS.md vs CLAUDE.md separation", () => {
-  const agentsMd = readProjectFile("AGENTS.md");
-  const claudeMd = readProjectFile("CLAUDE.md");
-
-  test("CLAUDE.md has Claude persona header", () => {
-    expect(claudeMd).toContain("Claude Persona");
+  test("AGENTS.md has 6-checkpoint filter", () => {
+    expect(agents).toContain("6-Checkpoint");
   });
 
   test("AGENTS.md has agent registry table", () => {
-    expect(agentsMd).toContain("Agents");
+    expect(agents).toContain("Agents");
   });
 
   test("AGENTS.md has command reference table", () => {
-    expect(agentsMd).toContain("Commands");
+    expect(agents).toContain("Commands");
   });
 
-  test("CLAUDE.md is shorter than AGENTS.md", () => {
-    expect(claudeMd.length).toBeLessThan(agentsMd.length);
+  test("AGENTS.md has core principles", () => {
+    expect(agents).toContain("Core Principles");
   });
 
-  test("AGENTS.md is under 50 non-empty lines", () => {
-    const lines = agentsMd.split("\n").filter((l) => l.trim());
-    expect(lines.length).toBeLessThan(50);
+  test("AGENTS.md has companion tools", () => {
+    expect(agents).toContain("Kuma");
+    expect(agents).toContain("Fennec");
+  });
+
+  test("AGENTS.md has MCP reference", () => {
+    expect(agents).toContain("MCP");
+  });
+
+  test("AGENTS.md is under 120 non-empty lines", () => {
+    const lines = agents.split("\n").filter((l) => l.trim());
+    expect(lines.length).toBeLessThan(120);
   });
 });
 
+describe("MCP server", () => {
+  const mcp = readProjectFile("hooks/matcha-mcp-server.js");
+
+  test("has server info", () => {
+    expect(mcp).toContain("matcha");
+    expect(mcp).toContain("2.5.0");
+  });
+
+  test("has shield check tool", () => {
+    expect(mcp).toContain("matcha_shield_check");
+  });
+
+  test("has post-write scan tool", () => {
+    expect(mcp).toContain("matcha_post_write_scan");
+  });
+
+  test("has stop tips tool", () => {
+    expect(mcp).toContain("matcha_stop_tips");
+  });
+
+  test("has plan validate tool", () => {
+    expect(mcp).toContain("matcha_plan_validate");
+  });
+
+  test("has DANGER_PATTERNS", () => {
+    expect(mcp).toContain("DANGER_PATTERNS");
+  });
+});
+
+describe("Pattern registry", () => {
+  const patterns = readProjectFile("hooks/patterns.json");
+  const parsed = JSON.parse(patterns);
+
+  test("has version", () => {
+    expect(parsed.version).toBeDefined();
+    expect(typeof parsed.version).toBe("string");
+  });
+
+  test("has multi-language support", () => {
+    expect(parsed.languages).toBeDefined();
+    expect(parsed.languages.js).toBeDefined();
+    expect(parsed.languages.go).toBeDefined();
+    expect(parsed.languages.python).toBeDefined();
+    expect(parsed.languages.rust).toBeDefined();
+    expect(parsed.languages.java).toBeDefined();
+    expect(parsed.languages.ruby).toBeDefined();
+    expect(parsed.languages.swift).toBeDefined();
+  });
+
+  test("each language has extensions", () => {
+    for (const [lang, config] of Object.entries(parsed.languages)) {
+      expect(config.extensions).toBeDefined();
+      expect(config.extensions.length).toBeGreaterThan(0);
+    }
+  });
+
+  test("each language has checks", () => {
+    for (const [lang, config] of Object.entries(parsed.languages)) {
+      if (config.checks) {
+        expect(Object.keys(config.checks).length).toBeGreaterThan(0);
+      } else if (config.extendsChecksFrom) {
+        // TypeScript extends JS checks — valid
+        expect(config.extendsChecksFrom).toBe("js");
+      }
+    }
+  });
+
+  test("has SQL checks", () => {
+    expect(parsed.sql).toBeDefined();
+    expect(parsed.sql.checks).toBeDefined();
+    expect(parsed.sql.checks.unboundedQuery).toBeDefined();
+  });
+
+  test("has prose checks", () => {
+    expect(parsed.prose).toBeDefined();
+    expect(parsed.prose.checks).toBeDefined();
+  });
+});

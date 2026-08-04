@@ -1,40 +1,36 @@
 # /matcha:audit
 
-Audit the existing stack for overlaps, inefficiencies, and best practice violations.
+**Stack health check.** Find overlaps, waste, and risks before they become problems.
 
-## Instructions for agent
+## Scope
 
-Run a medium-depth stack audit:
+Audit covers: dependencies, services, config, security posture, and architecture health.
 
-### Step 1 — Read manifests
-- `docker-compose.yml` / `docker-compose.*.yml`
-- `package.json`, `go.mod`, `go.sum`, `requirements.txt`
+## Process
+
+### Step 1 — Inventory
+
+Scan all manifests and config:
+- `package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `requirements.txt`
+- `docker-compose*.yml`, `Dockerfile*`
 - `.env.example`, `.env.sample`
 - `Makefile`, `justfile`
+- `tsconfig.json`, `.eslintrc*`, `prettier*`
 
-### Step 2 — Read service files
-For each service/dependency found, read its config or usage in the codebase.
-Understand what it **actually does**, not just that it exists.
+For each: **what does it actually do?** Not just "it exists."
 
-### Step 3 — Report findings
+### Step 2 — Overlap Detection
 
-```
-🍵 matcha: stack audit
+| Check | How |
+|-------|-----|
+| **Duplicate functionality** | Two deps doing the same thing? (e.g., moment + dayjs, lodash + native) |
+| **Redundant services** | Two containers/services handling same concern? |
+| **Conflicting configs** | ESLint + Prettier fighting? Multiple linters? |
+| **Dead dependencies** | Installed but never imported/used? |
 
-Services found: [list]
-Dependencies found: [list]
+### Step 3 — Waste Detection
 
-Overlaps detected:
-  - [service A] and [service B] both handle [X]
-    → Recommendation: ...
-
-Inefficiencies:
-  - [thing] is set up but appears unused
-    → Recommendation: ...
-
-Best practice violations:
-  - Env var [X] doesn't follow APPNAME_VAR_NAME pattern
-    → Should be: [Y]
-
-Overall health: [CLEAN / NEEDS ATTENTION / CRITICAL]
-```
+| Check | How |
+|-------|-----|
+...
+See commands/audit.md for full

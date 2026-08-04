@@ -9,413 +9,310 @@
 </p>
 
 <p align="center">
-  <b>Anti-bloat engineering convention for AI coding agents.</b><br />
-  6 agents · 6 commands · 3 lifecycle hooks
+  <b>Engineering philosophy for AI coding agents.</b><br />
+  10 modules · 8 commands · 6 agents · 4 hooks · 1 MCP server
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/agents-6-8A2BE2" alt="6 agents" />
-
-  <img src="https://img.shields.io/badge/tests-316-success" alt="316 tests" />
+  <img src="https://img.shields.io/badge/version-2.5.0-purple" alt="v2.5.0" />
+  <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
+  <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
 
 ---
 
-## Why matcha?
+## What is matcha?
 
-Every AI coding session starts the same: jump in, write code, realize mid-way you missed something obvious. matcha is a **6-checkpoint filter** that runs before, during, and after every implementation — catching the things you'd catch yourself if you stopped to think.
+matcha is a **productivity layer** for AI coding agents. It makes agents **think before they code** — checking purpose, reusing existing code, auditing the stack, and reviewing before shipping.
 
-No bloat. Just a deliberate gate between you and messy code.
+**Without matcha:** Agent jumps in, writes code, realizes mid-way something was wrong.
 
----
+**With matcha:** Agent stops, asks "why?", searches for existing solutions, then implements deliberately.
 
-## Quick Setup
+### The 6-Checkpoint Filter
 
-**Three ways to install:**
-
-<table>
-  <tr><th>Method</th><th>Works on</th><th>Command</th></tr>
-  <tr>
-    <td><code>curl | bash</code></td>
-    <td>Any AI agent (auto-detects 12 platforms)</td>
-    <td><pre>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</pre></td>
-  </tr>
-  <tr>
-    <td><code>/plugin marketplace</code></td>
-    <td>Claude Code only</td>
-    <td><pre>/plugin marketplace add https://github.com/plumpslabs/matcha
-/plugin install matcha@plumpslabs-matcha</pre></td>
-  </tr>
-  <tr>
-    <td><code>agy plugin</code></td>
-    <td>Antigravity CLI</td>
-    <td><pre>agy plugin install https://github.com/plumpslabs/matcha</pre></td>
-  </tr>
-</table>
-
-See [QUICKSTART.md](QUICKSTART.md) for the full 5-minute guide.
-
----
-
-## The 6-Checkpoint Filter
-
-Every implementation passes through these gates:
+Every implementation passes through:
 
 ```
-🎯 Purpose  →  🔎 Reuse  →  🔍 Stack  →  🛠️ Implementation  →  🧹 Cleanup  →  ✅ Verify
+🎯 Purpose → 🔎 Reuse → 🔍 Stack → 🛠️ Implementation → 🧹 Cleanup → ✅ Verify → 🔒 Review
 ```
 
-| # | Checkpoint | What it enforces |
-|---|------------|------------------|
-| 🎯 | **Purpose** | 5W1H — What/Why/Who/When/Where/How. Can't answer Why/How? → STOP. |
-| 🔎 | **Reuse** | Before writing: search codebase for existing implementations. Never write what already exists. |
-| 🔍 | **Stack** | Scan manifests, services, deps. Overlap found? → STOP. Report. |
-| 🛠️ | **Implementation** | No hardcode. Explicit errors. One function. "Is there a simpler path?" |
-| 🧹 | **Cleanup** | Done = working AND clean. Temp files, debug code, unused imports. Decision log. |
-| ✅ | **Verify** | Auto-detect + run tests, typecheck, lint. Tests fail? → STOP and fix first. |
+| # | Check | What it prevents |
+|---|-------|-----------------|
+| 🎯 | **Purpose** | Building the wrong thing |
+| 🔎 | **Reuse** | Duplicating existing code |
+| 🔍 | **Stack** | Adding overlapping dependencies |
+| 🛠️ | **Implementation** | Over-engineering, hardcoding |
+| 🧹 | **Cleanup** | Shipping debug code, temp files |
+| ✅ | **Verify** | Shipping broken code |
+| 🔒 | **Review** | Shipping bad patterns, security issues |
 
 ---
 
-## Philosophy
+## Quick Start (2 minutes)
 
-matcha enforces **universal engineering principles** — language-agnostic, framework-agnostic, team-agnostic. Every rule traces back to one of these core ideas:
+### Option A: One-liner (any agent)
 
-| Principle | What it means | Applied in |
-|-----------|---------------|------------|
-| **Type-safe by default** | No escape hatches, no `any` casting. Let the type system work for you. | Implementation checkpoint |
-| **CQS** | Commands change state (return void). Queries return data (no side effects). Never both. | Implementation checkpoint |
-| **Idempotency** | Mutations must be retry-safe. Use idempotency keys for payments, webhooks, and critical writes. | Implementation checkpoint |
-| **Validate at boundaries** | Validate inputs at the outer layer (controller/handler), not deep in service logic. Fail before mutation, not after partial write. | Implementation checkpoint |
-| **Contract-first** | Draft response shape / component props / API contract before implementation. No contract = no code. | Checkpoint 1 (5W1H) |
-| **Observability** | Structured logging, no `console.log`. Every log line should be parsable and actionable. | PostToolUse hook |
-| **Pure functions first** | Side effects at boundaries. Business logic should be pure — testable without mocks. | Implementation checkpoint |
-| **Fail fast** | Validate config at startup, not at first use. Catch misconfig before it reaches production. | Config validation |
-| **Performance awareness** | Watch for N+1 queries, O(n²+) loops, and unnecessary allocations in hot paths. | PostToolUse hook |
+```bash
+curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+```
 
-### Companion Tools
+Auto-detects your platform and installs the right files.
 
-matcha pairs naturally with other tools from the same ecosystem:
+### Option B: Claude Code Plugin
 
-- 🐻 **[Kuma](https://github.com/plumpslabs/kuma)** — Runtime safety enforcement. MCP server that blocks dangerous operations before they execute. Complements matcha-shield. Use when handling sensitive data or production infrastructure.
-- 🦊 **[Fennec](https://github.com/plumpslabs/fennec)** — AI-native developer observability. MCP server that gives AI agents browser, terminal, and process visibility. Complements matcha's debugging and review checkpoints.
+```bash
+/plugin marketplace add https://github.com/plumpslabs/matcha
+/plugin install matcha@plumpslabs-matcha
+```
 
-Together they form a complete stack: **matcha 🍵** (philosophy) + **kuma 🐻** (safety) + **fennec 🦊** (observability).
+### Option C: From cloned repo
 
----
+```bash
+git clone https://github.com/plumpslabs/matcha.git
+cd matcha
+node bin/matcha.js init
+```
 
-## Agents
+### Verify
 
-| Agent | Checkpoint | Tools | When to use |
-|-------|-----------|-------|-------------|
-| `matcha-planner` | 🎯 Purpose | Read Grep Glob | Before starting features, refactoring, architecture (plan only, no exec) |
-| `matcha-finder` | 🔎 Reuse | Read Grep Glob Bash | Before writing any new code — reuse hunter |
-| `matcha-auditor` | 🔍 Stack | Read Grep Glob Bash | Stack audits, service overlap, health checks |
-| `matcha-reviewer` | 🛠️ + 🧹 + ✅ | Read Grep Glob | Post-implementation review + verify tests passed |
-| `matcha-cleaner` | 🧹 Cleanup | Read Grep Glob Bash | Temp removal, debug code, unused imports |
-| `matcha-debugger` | 🎯 → ✅ (full) | Read Grep Glob Bash | Systematic debugging — one hypothesis at a time |
-
-Invoke: `@matcha-reviewer` or let the agent auto-route via description.
+```bash
+node bin/matcha.js status
+```
 
 ---
 
-## Slash Commands
+## Project Constraints (NEW in v4.0.0)
 
-| Command | Description | Where |
-|---------|-------------|-------|
-| `/matcha:why` | 5W1H check before starting a task | Claude, OpenCode |
-| `/matcha:review` | Post-implementation review | Claude, OpenCode |
-| `/matcha:audit` | Stack audit for overlaps & inefficiencies | Claude, OpenCode |
-| `/matcha:observe\|enforce\|audit` | Set intensity level | Claude, OpenCode |
-| `/matcha:status` | Session health + component availability | Claude, OpenCode |
-| `/matcha:debt` | Technical debt from decision logs | Claude, OpenCode |
+matcha now supports **project-specific rules** — things the agent must know that can't be inferred from reading code.
+
+Create `MATCHA_PROJECT.md` in your project root:
+
+```markdown
+# Project Constraints
+
+## Identity
+You are working on: MyApp
+Stack: Next.js 15, TypeScript strict, pnpm
+
+## Hard Rules (NEVER)
+- Package manager: pnpm — NEVER npm or yarn
+- TypeScript strict — NO `any`, NO `@ts-ignore`
+- All DB queries MUST use parameterized statements
+
+## Ask First
+- Adding new dependencies
+- Database schema changes
+- Modifying auth code
+
+## Counterintuitive Patterns
+- API methods return Result type — NEVER throw, NEVER try/catch
+- Zustand stores: never mutate directly, always return new object
+- Components: named exports only, NO default exports
+
+## Verification Commands
+- Typecheck: pnpm turbo run typecheck
+- Lint: pnpm lint
+- Test: pnpm vitest run
+- Build: pnpm turbo run build
+```
+
+**Keep it under 80 lines.** Only rules that surprise new developers.
 
 ---
 
-## 🛡️ Hooks System
+## Usage
 
-matcha ships **3 lifecycle hooks** that enforce philosophy deterministically — no prompt engineering, no guessing.
+### Daily Flow
 
-### 1. PreToolUse — `matcha-shield.js`
+```
+Start task    → @matcha-planner (plan first)
+Before code   → @matcha-finder (find existing)
+While coding  → @matcha-debugger (if stuck)
+After coding  → /matcha:review + @matcha-cleaner
+Ship          → /matcha:review (blocking gate)
+```
 
-A deterministic safety gate that:
-1. **Blocks codebase modifications/commands before planning**: In `enforce` (default) and `audit` modes, it blocks all write/edit tools and terminal execution commands until you create/update the 5W1H plan in `.agents/matcha-plan.md` (using a valid `<matcha_gate>` XML block with at least 15 characters per section).
-2. **Blocks dangerous commands before they reach the OS**:
+### Commands
 
-| Blocked | Example |
+| Command | Purpose |
 |---------|---------|
-| Root filesystem deletion | `rm -rf /`, `rm -rf ~`, `rm -rf .` |
-| Permission abuse | `chmod 777` |
-| Destructive git | `git push --force` |
-| Database destruction | `DROP DATABASE`, `TRUNCATE TABLE` |
-| Remote code execution | `curl \| bash`, `wget \| sh` |
-| Disk corruption | Write to `/dev/sda`, `mkfs`, `dd` to block device |
-| System commands | `shutdown`, `reboot`, `init 0` |
+| `/matcha:why` | 5W1H gate — answer before coding |
+| `/matcha:review` | **Blocking review gate** — 8 categories |
+| `/matcha:audit` | Stack health — overlaps, waste, security |
+| `/matcha:intensity` | Set level: observe / enforce / audit |
+| `/matcha:status` | Session dashboard |
+| `/matcha:debt` | Technical debt from `// matcha:` markers |
+| `/matcha:markers` | Scan markers by severity |
+| `/matcha:stats` | Session metrics |
 
-**Override:** `MATCHA_SHIELD_OFF=true` (not recommended)
+### Agents
 
-**Architecture:**
-- **CLI mode** — invoked by Claude Code PreToolUse hook, reads event from stdin, exits code 2 to block
-- **Programmatic API** — ESM export via `beforeToolUse(event, context)` for use in other platforms
+| Agent | Role |
+|-------|------|
+| `@matcha-planner` | Plan through checkpoints (read-only) |
+| `@matcha-finder` | Hunt existing code before writing |
+| `@matcha-auditor` | Stack audit for overlaps |
+| `@matcha-reviewer` | **Review gate** — blocks bad code |
+| `@matcha-cleaner` | Remove temp/debug/unused |
+| `@matcha-debugger` | Systematic debugging |
 
-**Platform support:**
+### Intensity Levels
 
-| Platform | Integration |
-|----------|-------------|
-| Claude Code | `.claude/settings.json` — PreToolUse hook |
-| OpenCode | `tool.execute.before` in `matcha.mjs` plugin |
-| Qoder | `hooks.json` — `before:tool_use` event |
-| Antigravity | `gemini-extension.json` — tool lifecycle |
+| Level | Behavior |
+|-------|----------|
+| **observe** | Tips only. No blocking. |
+| **enforce** | Full filter + review gate. **Default.** |
+| **audit** | Enforce + mandatory cleanup. |
 
-**Dual-mode:** Works both as a Claude Code hook (stdin/stdout) and programmatic API (ESM import).
+---
 
-### 2. PostToolUse — `matcha-post-write.js`
+## MCP Server
 
-Automatically scans **modified files** after every Write/Edit for cleanup issues and returns `additionalContext` so the agent can self-correct.
+matcha ships an MCP server for cross-platform use.
 
-| Severity | Check | Pattern |
-|----------|-------|---------|
-| 🔴 **Critical** | Empty catch block | Error silently swallowed |
-| 🔴 **Critical** | Hardcoded credential | API key/secret/password/token |
-| 🟡 **Minor** | Debug log/statement | `console.log`, `print()`, `debugger` |
-| 🟡 **Minor** | TODO/FIXME | Unfinished work left in code |
-| 🟡 **Minor** | Unbounded query | `SELECT` without `LIMIT` |
-| 🟡 **Minor** | High OFFSET | Consider cursor pagination |
-| 🟡 **Minor** | Function in WHERE | `YEAR()`, `MONTH()`, `LOWER()` — index won't be used |
+### Setup
 
-**How it works:**
-1. After Write/Edit tool completes, hook fires
-2. Scans the modified file for 4 check types
-3. If issues found → injects `additionalContext` into agent's reasoning chain
-4. If clean → silent exit (zero overhead)
+Add to your MCP client config:
 
-### 3. Stop — `matcha-stop.js`
-
-Replaces the old prompt-based "surface 3 tips" instruction with a **deterministic** stop event hook that scans git diff for real issues.
-
-| Tip | Scan | Trigger |
-|-----|------|---------|
-| ⚡ **Efficiency** | Debug code, empty catches, oversized functions | `git diff --unified=0` |
-| 🔎 **Reuse** | New functions count, import density | `git diff --diff-filter=AM` |
-| 🧹 **Cleanup** | Untracked files, temp artifacts | `git status --porcelain` |
-
-**Why deterministic:**
-- Old approach: "include 3 tips at the end" → LLM guesswork, inconsistent
-- New approach: scan actual git diff → factual tips every time
-
-**Platform fallback:** For platforms without hook support (OpenCode), an inline End-of-Task checklist is injected via `session.created` system prompt.
-
-**Hook registration** (`.claude/settings.json`):
 ```json
 {
-  "hooks": {
-    "PreToolUse": [{
-      "matcher": "Bash",
-      "hooks": [{
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-shield.js",
-        "timeout": 5000
-      }]
-    }],
-    "PostToolUse": [{
-      "hooks": [{
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-post-write.js",
-        "timeout": 3000
-      }]
-    }],
-    "Stop": [{
-      "hooks": [{
-        "type": "command",
-        "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-stop.js",
-        "timeout": 5000
-      }]
-    }]
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
   }
 }
 ```
+
+### Tools
+
+| Tool | Purpose |
+|------|---------|
+| `matcha_shield_check` | Check command for dangerous patterns |
+| `matcha_post_write_scan` | Scan file for cleanup issues (13+ languages) |
+| `matcha_stop_tips` | Generate tips from git diff |
+| `matcha_plan_validate` | Validate 5W1H plan |
+
+### Start manually
+
+```bash
+node hooks/matcha-mcp-server.js
+# or
+npm run mcp
+```
+
+---
+
+## Hooks
+
+| Hook | When | What it does |
+|------|------|-------------|
+| `matcha-shield.js` | Before tool use | Blocks dangerous commands + enforces planning gate |
+| `matcha-post-write.js` | After file write | Scans for debug code, secrets, empty catches |
+| `matcha-stop.js` | Task complete | Generates tips from git diff |
+
+### Platform Support
+
+| Platform | Integration |
+|----------|-------------|
+| Claude Code | `.claude/settings.json` hooks |
+| OpenCode | `.opencode/plugins/matcha.mjs` |
+| Any MCP client | MCP server (see above) |
+| Any platform | `.agents/` universal format |
+
+---
+
+## Multi-Language Support
+
+matcha checks work across **13+ languages**:
+
+JS · TypeScript · Go · Python · Rust · Java · C# · C/C++ · Ruby · Swift · PHP · Kotlin · Dart
+
+Plus SQL queries and prose (markdown) writing quality.
+
+---
+
+## Architecture
+
+```
+Source of Truth:
+├── AGENTS.md                    ← Primary cross-tool file
+├── skills/matcha/
+│   ├── SKILL.md                 ← Router (references modules)
+│   └── modules/
+│       ├── core.md              ← 6-checkpoint filter + modes
+│       ├── project.md           ← Project constraints (fill in once)
+│       ├── modes.md             ← Context-aware mode switching
+│       ├── risk.md              ← Risk-based review routing (L0-L3)
+│       ├── legacy.md            ← Legacy code protocol
+│       ├── orchestration.md     ← Sub-agent chain
+│       ├── context.md           ← Living context index
+│       ├── metrics.md           ← Metrics & feedback loop
+│       ├── tdd.md               ← TDD mode
+│       ├── loop.md              ← Loop mode
+│       └── communication.md     ← Format + boundaries
+├── hooks/
+│   ├── patterns.json            ← Multi-language pattern registry (13+)
+│   ├── matcha-trigger-packs.json ← Domain-specific risk signals
+│   ├── matcha-mcp-server.js     ← MCP server (4 tools)
+│   ├── matcha-shield.js         ← Safety gate + mode detection
+│   ├── matcha-post-write.js     ← Cleanup enforcement
+│   ├── matcha-stop.js           ← End-of-task tips
+│   └── matcha-metrics.js        ← Session metrics tracking
+├── commands/                    ← 8 slash commands
+└── .agents/agents/              ← 6 agent definitions
+```
+
+### Build System
+
+```bash
+npm run build          # Generate all platform adapters from source
+npm run build:check    # Build + verify copies in sync
+```
+
+---
+
+## Companion Tools
+
+- 🐻 **[Kuma](https://github.com/plumpslabs/kuma)** — Runtime safety enforcement (MCP server)
+- 🦊 **[Fennec](https://github.com/plumpslabs/fennec)** — AI-native developer observability (MCP server)
+
+**The stack:** matcha 🍵 (philosophy) + kuma 🐻 (safety) + fennec 🦊 (observability)
 
 ---
 
 ## Benchmarks
 
-matcha ships with two benchmark modes:
-
-### ⚖️ Compliance Score
-
-Scans your project for matcha compliance issues:
-
-```
-Usage:
-  node benchmark/matcha-bench.js            ← scan current dir
-  node benchmark/matcha-bench.js ./src      ← scan specific dir
-  node benchmark/matcha-bench.js --json     ← JSON output
-  npm run benchmark                         ← via npm script
-  npm run benchmark:json                    ← JSON via npm script
-```
-
-**Scoring:**
-- **A+ (95-100):** Excellent — matcha compliant
-- **A (85-94):** Good — minor issues
-- **B (70-84):** Needs attention
-- **C (50-69):** Poor — needs cleanup
-- **F (0-49):** Critical — major cleanup required
-
-**Checks:** Debug logs, TODO/FIXME, empty catch blocks, hardcoded credentials, hardcoded URLs.
-
-**Baseline comparison:** `node benchmark/matcha-bench.js --json --baseline baseline.json`
-
-### 🤖 Agentic Benchmark
-
-Two modes:
-
-**Static A/B/C** — compares pre-written solutions for baseline, terse, and matcha:
-
 ```bash
-node benchmark/matcha-bench.js --agentic
-node benchmark/matcha-bench.js --agentic --json   # JSON output
-```
-
-**Live A/B/C** — spawns real Claude Code sessions for each arm (requires [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code/overview)):
-
-```bash
-# Full live run — spawns Claude Code for each task × arm
-node benchmark/agentic-runner.js
-
-# Simulated mode (uses default solutions, no Claude needed)
-node benchmark/agentic-runner.js --simulate
-
-# Single arm or task
-node benchmark/agentic-runner.js --arm matcha
-node benchmark/agentic-runner.js --task email-validator
-
-# Keep temp directories for inspection
-node benchmark/agentic-runner.js --keep
-
-# Also accessible via matcha-bench.js
-node benchmark/matcha-bench.js --agentic-live
-node benchmark/matcha-bench.js --agentic-live --simulate
-```
-
-**How it works:**
-1. For each task, creates an isolated temp directory
-2. Writes the task specification as a prompt file
-3. **matcha arm** — injects `.claude/CLAUDE.md` with core matcha rules into the temp project
-4. Spawns `claude --print` with the spec as input
-5. Waits for `solution.js` to be generated (120s timeout)
-6. Runs the task's `test.js` against the generated solution
-7. Measures LOC, tracks correctness, cleans up
-
-**Arms:**
-
-| Arm | Description | Purpose |
-|-----|-------------|---------|
-| **baseline** | Standard implementation | Control — no conventions |
-| **terse** | Just "be brief" | Control — mere brevity vs structural rules |
-| **matcha** | Full matcha conventions | Test subject |
-
-**Scoring per task:**
-- ✅ **Correctness gate** — output matches expected results
-- 🛡️ **Adversarial gate** — handles edge cases (null, empty, type mismatches) without crashing
-- 📐 **LOC & tokens** — code volume comparison across all 3 arms
-
-**Tasks (7 total):**
-| Type | Tasks | What it tests |
-|------|-------|---------------|
-| 🧪 **Surgical** | Email validator, Debounce, CSV sum, FizzBuzz, Array flatten | Single-function precision — does matcha reduce code without breaking correctness? |
-| 🏗️ **Over-build** | Date formatter, Log level filter | Real feature tickets that tempt over-engineering — does matcha prevent unnecessary abstractions? |
-
-The **terse arm** is the key control: if matcha beats terse on correctness + adversarial while using less code, it proves **matcha rules work** — the improvement isn't just because the agent writes shorter code.
-
-```
-Sample output:
-── Email Validator ──
-  ✅ baseline   12 LOC, ~ 53 tok
-  ✅ terse       4 LOC, ~ 35 tok  (-8 LOC, -17%)
-  ✅ matcha      3 LOC, ~ 30 tok  (-9 LOC, -19%)  🛡️
-
-═══ Summary ═══
-                  baseline    terse    matcha
-Total LOC:             52       37        27
-Total tok:            ~278     ~187      ~158
-Correct:              5/7      5/7       5/7
-Adversarial:          5/7      5/7       7/7
-
-  📐 matcha vs baseline: -25 LOC (-48%)
-  📐 terse  vs baseline: -15 LOC (-29%)
-  🎯 matcha beats terse by 10 LOC — rules > mere brevity
+npm run benchmark              # Compliance score
+npm run benchmark:agentic      # A/B/C comparison (baseline vs terse vs matcha)
+npm run benchmark:agentic-live # Live Claude Code sessions
 ```
 
 ---
-
-## Platform Adapters
-
-matcha adapts your conventions to each AI coding platform's native format.
-
-| Platform | Integration |
-|----------|-------------|
-| **Claude Code** | `.claude/` — agents + commands + 3 lifecycle hooks (shield, post-write, stop) |
-| **OpenCode** | `.opencode/` — plugin + agents + skills |
-| **Kiro** | `.kiro/steering/` — matcha.md, dev-mode.md, review-mode.md |
-| **OpenClaw** | `.openclaw/skills/matcha/SKILL.md` |
-| **Windsurf** | `.windsurfrules` (root) |
-| **Antigravity CLI** | `GEMINI.md` |
-| **Any / None** | `.agents/` (auto-created) — universal format |
-
----
-
-## Intensity Levels
-
-| Level | Behavior |
-|-------|----------|
-| **observe** | Tips only. No blocking. |
-| **enforce** | Full 6-checkpoint filter. **Default.** |
-| **audit** | Enforce + mandatory cleanup. Everything flagged. |
-
-Set with `/matcha:audit` or `/matcha:observe` in supported platforms.
-
----
-
-## Communication
-
-When matcha flags something:
-
-```
-🍵 matcha: [TITLE]
-
-Observation: [what was found]
-Why it matters: [impact]
-Options:
-  A) [option] — [trade-off]
-  B) [option] — [trade-off]
-
-Recommendation: [which and why]
-```
-
----
-
-
-
-## CLI (from cloned repo)
-
-```
-node bin/matcha.js status      Show version, platform, components
-node bin/matcha.js init         Install matcha to current directory
-node bin/matcha.js help         Show usage
-```
-
-Install via:
-```bash
-curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
-```
 
 ## Contributing
 
-Contributions are welcome! If you want to add support for a new platform, update language guidelines, or run local benchmarks and tests, please see our [CONTRIBUTING.md](file:///home/mawa/My_File/Development/matcha/CONTRIBUTING.md) guide.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+```bash
+npm test              # Run tests
+npm run build         # Rebuild adapters
+npm run build:check   # Verify everything in sync
+```
 
 ---
 
 ## License
 
 MIT © [plumpslabs](https://github.com/plumpslabs)
+
+---
+
+<p align="center">
+  <b>Simple. Efficient. Deliberate. Never twice.</b>
+</p>

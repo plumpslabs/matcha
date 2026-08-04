@@ -2,61 +2,141 @@
 
 Thanks for wanting to make matcha better!
 
-## How to Contribute
+## Philosophy
 
-### 🐛 Bug Reports
+matcha is about **simple AND efficient**. Your contribution should be too.
 
-Found a bug? Open an issue with:
-- What happened vs what should have happened
-- Steps to reproduce
-- File paths if relevant (e.g., "CLAUDE.md not syncing after build")
+**Do:**
+- Keep changes minimal and focused
+- Reuse existing patterns
+- Add tests for new functionality
+- Follow matcha conventions (eat your own dog food)
 
-### 💡 Feature Ideas
+**Don't:**
+- Add dependencies without clear justification
+- Over-engineer solutions
+- Break the "simple" in "Simple. Efficient. Deliberate. Never twice."
 
-matcha is always evolving. If you have ideas for:
+---
 
-- **More agent adapters** — rules files for other AI coding tools (e.g., Continue.dev, Zed, etc.)
-- **Better SKILL.md instructions** — clearer guidelines for generating context-aware roasts
-- **New platform support** — getting matcha working on more AI coding platforms
+## Development
 
-Open an issue to discuss before sending a PR.
+```bash
+# Clone
+git clone https://github.com/plumpslabs/matcha.git
+cd matcha
 
-### 🔧 Pull Requests
+# Install
+npm install
 
-1. Fork the repo and create a branch from `main`
-2. Follow matcha rules while contributing — irony is the highest form of respect
-3. Run validation: `npm test`
-4. Submit your PR with a clear description of what changed and why
+# Test
+npm test
+
+# Build adapters
+npm run build
+
+# Verify build
+npm run build:check
+```
+
+---
 
 ## Project Structure
 
 ```
 matcha/
-├── AGENTS.md                     # Agent registry + command reference
-├── CLAUDE.md                     # Claude Code persona
-├── skills/matcha/SKILL.md        # Source of truth — full philosophy
-├── hooks/                        # Lifecycle hooks (shield, post-write, stop)
-├── commands/                     # 6 slash commands
-├── .agents/                      # Universal format (agents + commands + skills)
-├── .claude-plugin/               # Claude Code plugin config
-├── .opencode/plugins/matcha.mjs  # OpenCode plugin
-├── bin/matcha.js                 # CLI (status + init)
+├── AGENTS.md                     # Primary cross-tool file
+├── skills/matcha/
+│   ├── SKILL.md                  # Router (references modules)
+│   └── modules/                  # Modular skill components
+│       ├── core.md               # 6-checkpoint filter
+│       ├── project.md            # Project constraints template
+│       ├── tdd.md                # TDD mode
+│       ├── loop.md               # Loop mode
+│       └── communication.md      # Format + boundaries
+├── hooks/                        # Lifecycle hooks
+│   ├── patterns.json             # Multi-language pattern registry
+│   ├── matcha-mcp-server.js      # MCP server
+│   ├── matcha-shield.js          # Safety gate
+│   ├── matcha-post-write.js      # Cleanup enforcement
+│   └── matcha-stop.js            # End-of-task tips
+├── commands/                     # 8 slash commands
+├── .agents/agents/               # 6 agent definitions (canonical)
+├── scripts/
+│   ├── build-adapters.js         # Generate platform files
+│   └── check-rule-copies.js      # Verify copies in sync
+├── bin/matcha.js                 # CLI
 └── tests/                        # Test suite
 ```
 
-## Development
+---
+
+## Making Changes
+
+### Source of Truth
+
+- **Agents:** `.agents/agents/*.md` (canonical)
+- **Commands:** `commands/*.md` (canonical)
+- **Skills:** `skills/matcha/SKILL.md` + `modules/*.md` (canonical)
+- **Hooks:** `hooks/*.js` (canonical)
+
+### After Editing
 
 ```bash
+# Rebuild all platform adapters
+npm run build
+
+# Verify everything in sync
+npm run build:check
+
+# Run tests
 npm test
 ```
 
-## Guidelines
+### Platform Adapters
 
-- Keep it simple. matcha is about **easy AND efficient** — your contribution should be too
-- No new dependencies without a one-line justification
-- If you're adding a new roast/suggestion pattern, make sure it's **language-agnostic**
-- Tests must pass before merging
+`.claude/`, `.opencode/`, `.openclaw/` are **generated** from source. Don't edit them directly — edit the source and rebuild.
+
+---
+
+## Adding a New Command
+
+1. Create `commands/newcommand.md`
+2. Add to `COMMAND_NAMES` in `scripts/build-adapters.js`
+3. Run `npm run build`
+4. Add test in `tests/commands.test.js`
+
+## Adding a New Agent
+
+1. Create `.agents/agents/matcha-newagent.md`
+2. Add to `AGENT_NAMES` in `scripts/build-adapters.js`
+3. Run `npm run build`
+4. Add test in `tests/agents.test.js`
+
+## Adding a New Skill Module
+
+1. Create `skills/matcha/modules/newmodule.md`
+2. Add to module index in `skills/matcha/SKILL.md`
+3. Add test in `tests/core.test.js`
+
+## Adding a New Hook
+
+1. Create `hooks/matcha-newhook.js`
+2. Register in `hooks/hooks.json` and `.claude/settings.json`
+3. Add to install script in `install.sh`
+4. Add test in `tests/hooks.test.js`
+
+---
+
+## Pull Requests
+
+1. Fork + branch from `main`
+2. Make changes
+3. `npm run build && npm test`
+4. PR with clear description of **what** and **why**
+
+---
 
 ## Code of Conduct
 
-Be excellent to each other. matcha roasts code, not people.
+Be excellent. matcha roasts code, not people. 🍵

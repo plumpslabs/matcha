@@ -36,6 +36,7 @@ const STATE_FILE = join(STATE_DIR, "matcha-state.json");
 const SESSION_FILE = join(STATE_DIR, "state", "session.json");
 const DECISIONS_FILE = join(STATE_DIR, "plan", "decisions.log");
 const PLAN_DIR = join(STATE_DIR, "plan");
+const METRICS_FILE = join(STATE_DIR, "matcha-metrics.json");
 
 function readState() {
   try {
@@ -60,14 +61,20 @@ Usage (from cloned repo):
   node bin/matcha.js status    Show version, platform, and installed components
   node bin/matcha.js init      Install matcha to current directory
   node bin/matcha.js stats     Show session health statistics
+  node bin/matcha.js metrics   Show matcha impact metrics
   node bin/matcha.js markers   Scan for // matcha: markers in codebase
   node bin/matcha.js verify    Run verification checks (syntax, typecheck, tests)
   node bin/matcha.js state     Save/show session state
   node bin/matcha.js decision  Log a decision (skip, change, add)
+  node bin/matcha.js mcp       Start MCP server (stdio JSON-RPC)
   node bin/matcha.js help      Show this help
 
 Install:
   curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash
+
+MCP (Model Context Protocol):
+  node hooks/matcha-mcp-server.js    Start MCP server
+  npm run mcp                         Same, via npm script
 
 Docs: https://github.com/plumpslabs/matcha
 `);
@@ -433,7 +440,51 @@ function cmdDecision() {
   }
 }
 
+// ─── Metrics — Impact tracking ──────────────────────────────────────────────
+function cmdMetrics() {
+  console.log(`🍵 matcha: metrics\n`);
+
+  let metrics = { sessions: [], totals: { sessions: 0, tasks: 0, issuesFound: 0, falsePositives: 0 } };
+  try {
+    if (existsSync(METRICS_FILE)) {
+      metrics = JSON.parse(readFileSync(METRICS_FILE, "utf-8"));
+    }
+  } catch {}
+
+  const t = metrics.totals;
+  console.log(`  📊 All-Time Metrics`);
+  console.log(`  Sessions:       ${t.sessions}`);
+  console.log(`  Tasks:          ${t.tasks}`);
+  console.log(`  Issues caught:  ${t.issuesFound} (prevented from shipping)`);
+  console.log(`  False positives: ${t.falsePositives}`);
+
+  if (t.sessions > 0) {
+    const fpRate = t.issuesFound > 0 ? Math.round((t.falsePositives / t.issuesFound) * 100) : 0;
+    console.log(`  FP rate:        ${fpRate}%`);
+    console.log(`  Avg tasks/session: ${Math.round(t.tasks / t.sessions)}`);
+  }
+
+  if (metrics.sessions.length > 0) {
+    console.log(`\n  📈 Recent Sessions`);
+    const recent = metrics.sessions.slice(-5);
+    for (const s of recent) {
+      const date = new Date(s.started).toLocaleDateString();
+      console.log(`    ${date}: ${s.tasks} tasks, ${s.issuesFound} issues`);
+    }
+  }
+
+  if (t.sessions === 0) {
+    console.log(`\n  No metrics yet. Start using matcha to track impact.`);
+  }
+}
+
 // ─── CLI Router ──────────────────────────────────────────────────────────────
+function cmdMcp() {
+  const serverPath = join(PKG_ROOT, "hooks", "matcha-mcp-server.js");
+  // MCP server runs as a long-lived stdio process — exec blocks until it exits
+  execSync(`node "${serverPath}"`, { stdio: "inherit" });
+}
+
 switch (cmd) {
   case "init":
     cmdInit();
@@ -443,6 +494,9 @@ switch (cmd) {
     break;
   case "stats":
     cmdStats();
+    break;
+  case "metrics":
+    cmdMetrics();
     break;
   case "markers":
     cmdMarkers();
@@ -455,6 +509,9 @@ switch (cmd) {
     break;
   case "decision":
     cmdDecision();
+    break;
+  case "mcp":
+    cmdMcp();
     break;
   case "help":
   case "--help":

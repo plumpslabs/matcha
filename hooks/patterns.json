@@ -1,0 +1,534 @@
+{
+  "version": "2.5.0",
+  "description": "Multi-language pattern registry for matcha checks",
+  "changelog": {
+    "4.0.0": "Added severity/description per pattern, ignoreContext, extensions for sql/commit, new languages (c, cpp, csharp, php, kotlin, dart), new checks (unusedImport, magicNumber, insecureRandom, sqlInjectionRisk, longLine), fixed emptyCatch/hardcodedSecret false positives, deduped printStatement into debugLog"
+  },
+  "languages": {
+    "js": {
+      "extensions": [".js", ".jsx", ".mjs", ".cjs"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["console\\.(log|debug|trace|info|warn)\\(", "debugger\\b"],
+          "severity": "warning",
+          "description": "Debug/console statements left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*(\\(\\s*\\w*\\s*\\))?\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows errors"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api[_-]?key|secret|password|passwd|token|auth)\\s*[:=]\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "ignoreContext": ["process\\.env\\.", "import\\.meta\\.env\\.", "\\bENV\\[", "<%.*%>", "\\{\\{.*\\}\\}"],
+          "ignoreValues": ["", "xxx", "changeme", "your-key-here", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "unusedImport": {
+          "patterns": ["^import\\s+.*\\s+from\\s+[\"'].+[\"'];?\\s*$"],
+          "requiresUsageCheck": true,
+          "severity": "warning",
+          "description": "Imported symbol never referenced elsewhere in file"
+        },
+        "magicNumber": {
+          "patterns": ["(?<![\\w.])(?<!0x)\\b\\d{2,}\\b(?!\\s*[;,)\\]]\\s*\\/\\/\\s*(px|ms|s)\\b)"],
+          "ignoreContext": ["^\\s*\\/\\/", "^\\s*\\*", "test", "spec"],
+          "severity": "info",
+          "description": "Unexplained numeric literal; consider a named constant"
+        },
+        "insecureRandom": {
+          "patterns": ["Math\\.random\\(\\)"],
+          "ignoreContext": ["shuffle|animation|jitter|mock|test"],
+          "severity": "warning",
+          "description": "Math.random() is not cryptographically secure; use crypto.getRandomValues for tokens/passwords"
+        },
+        "loosEquality": {
+          "patterns": ["[^=!]==[^=]", "[^=!]!=[^=]"],
+          "severity": "info",
+          "description": "Loose equality (==/!=) may cause type coercion bugs; prefer ===/!=="
+        }
+      }
+    },
+    "ts": {
+      "extendsChecksFrom": "js",
+      "extensions": [".ts", ".tsx", ".mts", ".cts"],
+      "checks": {
+        "anyType": {
+          "patterns": [":\\s*any\\b", "as\\s+any\\b"],
+          "severity": "warning",
+          "description": "Explicit any defeats type safety"
+        },
+        "tsIgnore": {
+          "patterns": ["@ts-ignore", "@ts-nocheck"],
+          "severity": "warning",
+          "description": "Type errors suppressed instead of fixed"
+        },
+        "nonNullAssertion": {
+          "patterns": ["\\w!\\s*[.\\[;,)]"],
+          "severity": "info",
+          "description": "Non-null assertion (!) bypasses null checks"
+        }
+      }
+    },
+    "go": {
+      "extensions": [".go"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["fmt\\.Print(ln|f)?\\(", "log\\.Print(ln|f)?\\(", "spew\\.Dump\\("],
+          "ignoreContext": ["_test\\.go$"],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyErrorCheck": {
+          "patterns": ["if\\s+err\\s*!=\\s*nil\\s*\\{\\s*\\}", "if\\s+err\\s*!=\\s*nil\\s*\\{\\s*return\\s*\\}"],
+          "severity": "error",
+          "description": "Error checked but silently ignored"
+        },
+        "ignoredError": {
+          "patterns": ["\\b_\\s*=\\s*\\w+\\([^)]*\\)\\s*(?://.*)?$", "_,\\s*_\\s*:?=\\s*\\w+\\("],
+          "ignoreContext": ["_ = defer", "_test\\.go$"],
+          "severity": "warning",
+          "description": "Return value (possibly error) discarded via blank identifier"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*:?=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["os\\.Getenv\\(", "viper\\.", "flag\\."],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "panicInLibrary": {
+          "patterns": ["\\bpanic\\("],
+          "ignoreContext": ["_test\\.go$", "func main\\("],
+          "severity": "warning",
+          "description": "panic() in library code; prefer returning an error to the caller"
+        },
+        "insecureRandom": {
+          "patterns": ["math\\/rand\"", "rand\\.Intn?\\("],
+          "ignoreContext": ["crypto\\/rand"],
+          "severity": "warning",
+          "description": "math/rand is not cryptographically secure; use crypto/rand for tokens/keys"
+        }
+      }
+    },
+    "python": {
+      "extensions": [".py", ".pyw"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["\\bprint\\(", "\\bpprint\\(", "breakpoint\\(\\)", "import\\s+pdb", "pdb\\.set_trace\\("],
+          "ignoreContext": ["if\\s+__name__\\s*==\\s*[\"']__main__[\"']"],
+          "severity": "warning",
+          "description": "Debug print/breakpoint left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["except[^:]*:\\s*\\n\\s*pass\\b", "except[^:]*:\\s*pass\\b"],
+          "severity": "error",
+          "description": "Empty except block silently swallows errors"
+        },
+        "bareExcept": {
+          "patterns": ["except\\s*:"],
+          "severity": "warning",
+          "description": "Bare except catches all exceptions including SystemExit/KeyboardInterrupt"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api[_-]?key|secret|password|passwd|token)\\s*=\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "ignoreContext": ["os\\.environ", "os\\.getenv\\(", "getenv\\("],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["#\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "mutableDefaultArg": {
+          "patterns": ["def\\s+\\w+\\([^)]*=\\s*(\\[\\]|\\{\\}|dict\\(\\)|list\\(\\))"],
+          "severity": "warning",
+          "description": "Mutable default argument is shared across calls"
+        },
+        "insecureRandom": {
+          "patterns": ["\\brandom\\.(random|randint|choice)\\("],
+          "ignoreContext": ["secrets\\."],
+          "severity": "warning",
+          "description": "random module is not cryptographically secure; use secrets module for tokens/passwords"
+        },
+        "assertInProd": {
+          "patterns": ["^\\s*assert\\s"],
+          "severity": "info",
+          "description": "assert statements are stripped when Python runs with -O; don't use for validation logic"
+        }
+      }
+    },
+    "rust": {
+      "extensions": [".rs"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["println!\\(", "dbg!\\(", "eprintln!\\("],
+          "ignoreContext": ["#\\[cfg\\(test\\)\\]", "mod tests"],
+          "severity": "warning",
+          "description": "Debug print macro left in code"
+        },
+        "unwrapPanic": {
+          "patterns": ["\\.unwrap\\(\\)", "\\.expect\\("],
+          "ignoreContext": ["#\\[cfg\\(test\\)\\]", "mod tests", "\\.expect\\(\"[^\"]{10,}\"\\)"],
+          "severity": "warning",
+          "description": "unwrap()/expect() panics on error; prefer proper error handling in non-test code"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api_key|secret|password|passwd|token)\\s*[:=]\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["env::var\\("],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "unsafeBlock": {
+          "patterns": ["\\bunsafe\\s*\\{"],
+          "severity": "warning",
+          "description": "unsafe block bypasses Rust's memory safety guarantees; ensure it's justified and documented"
+        }
+      }
+    },
+    "java": {
+      "extensions": [".java"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["System\\.out\\.print(ln)?\\(", "System\\.err\\.print(ln)?\\(", "\\.printStackTrace\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code; use a logger instead"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows exceptions"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["System\\.getenv\\(", "\\.getProperty\\("],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)", "\\/\\*\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "genericException": {
+          "patterns": ["catch\\s*\\(\\s*Exception\\s+\\w+\\s*\\)", "throws\\s+Exception\\b"],
+          "severity": "info",
+          "description": "Catching/declaring generic Exception hides specific error types"
+        }
+      }
+    },
+    "csharp": {
+      "extensions": [".cs"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["Console\\.Write(Line)?\\(", "Debug\\.WriteLine\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*(\\([^)]*\\))?\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows exceptions"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["Environment\\.GetEnvironmentVariable\\(", "Configuration\\["],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        }
+      }
+    },
+    "cpp": {
+      "extensions": [".c", ".h", ".cpp", ".hpp", ".cc", ".cxx"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["printf\\(", "std::cout\\s*<<", "fprintf\\(stderr"],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api_key|secret|password|passwd|token)\\s*=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["getenv\\("],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "unsafeMemory": {
+          "patterns": ["\\bstrcpy\\(", "\\bstrcat\\(", "\\bsprintf\\(", "\\bgets\\("],
+          "severity": "error",
+          "description": "Unsafe C function prone to buffer overflow; use bounded alternatives (strncpy, snprintf, fgets)"
+        },
+        "rawNewDelete": {
+          "patterns": ["\\bnew\\s+\\w+(\\[)?", "\\bdelete\\s+\\w+"],
+          "severity": "info",
+          "description": "Raw new/delete; prefer smart pointers (unique_ptr/shared_ptr) in modern C++"
+        }
+      }
+    },
+    "ruby": {
+      "extensions": [".rb", ".rake"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["\\bputs\\s", "\\bp\\s", "\\bpp\\s", "binding\\.pry", "\\bbyebug\\b"],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["rescue\\s*(=>\\s*\\w+)?\\s*\\n\\s*end", "rescue\\s*$"],
+          "severity": "error",
+          "description": "Empty rescue block silently swallows errors"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api_key|secret|password|passwd|token)\\s*=\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "ignoreContext": ["ENV\\[", "Rails\\.application\\.credentials"],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["#\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        }
+      }
+    },
+    "swift": {
+      "extensions": [".swift"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["\\bprint\\(", "debugPrint\\(", "\\bdump\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows errors"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["ProcessInfo\\.processInfo\\.environment"],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "forceUnwrap": {
+          "patterns": ["\\w!\\s*[.\\n;,)]"],
+          "severity": "warning",
+          "description": "Force unwrap (!) crashes if the optional is nil"
+        }
+      }
+    },
+    "php": {
+      "extensions": [".php"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["\\bvar_dump\\(", "\\bprint_r\\(", "\\becho\\s", "\\bdd\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows exceptions"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:api_key|secret|password|passwd|token)\\s*=\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "ignoreContext": ["getenv\\(", "\\$_ENV\\["],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)", "#\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "sqlConcat": {
+          "patterns": ["\\$(?:sql|query)\\s*\\.?=\\s*.*\\$_(GET|POST|REQUEST)"],
+          "severity": "critical",
+          "description": "User input concatenated directly into SQL query; use prepared statements"
+        }
+      }
+    },
+    "kotlin": {
+      "extensions": [".kt", ".kts"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["println\\(", "print\\(", "Log\\.d\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*\\([^)]+\\)\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows exceptions"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*=\\s*\"[A-Za-z0-9_\\-+/=]{8,}\""],
+          "ignoreContext": ["System\\.getenv\\("],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        },
+        "notNullAssertion": {
+          "patterns": ["\\w!!\\s*[.\\[;,)]"],
+          "severity": "warning",
+          "description": "Non-null assertion (!!) throws NPE if the value is actually null"
+        }
+      }
+    },
+    "dart": {
+      "extensions": [".dart"],
+      "checks": {
+        "debugLog": {
+          "patterns": ["\\bprint\\(", "debugPrint\\("],
+          "severity": "warning",
+          "description": "Debug print statement left in code"
+        },
+        "emptyCatch": {
+          "patterns": ["catch\\s*\\([^)]*\\)\\s*\\{\\s*\\}"],
+          "severity": "error",
+          "description": "Empty catch block silently swallows exceptions"
+        },
+        "hardcodedSecret": {
+          "patterns": ["(?:apiKey|secret|password|passwd|token)\\s*=\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "ignoreContext": ["Platform\\.environment"],
+          "ignoreValues": ["", "changeme", "placeholder", "example", "test", "dummy"],
+          "severity": "critical",
+          "description": "Possible hardcoded credential/secret"
+        },
+        "todoFixme": {
+          "patterns": ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          "severity": "info",
+          "description": "Unresolved TODO/FIXME marker"
+        }
+      }
+    }
+  },
+  "sql": {
+    "extensions": [".sql"],
+    "alsoScanInsideStringLiteralsOf": ["js", "ts", "python", "go", "java", "csharp", "php", "ruby", "kotlin"],
+    "checks": {
+      "unboundedQuery": {
+        "patterns": ["SELECT\\s+.*\\s+FROM\\s+.*\\s+WHERE(?!.*LIMIT)"],
+        "severity": "info",
+        "description": "Query has no LIMIT clause; may return unbounded result sets"
+      },
+      "highOffset": {
+        "patterns": ["OFFSET\\s+\\d{4,}"],
+        "severity": "warning",
+        "description": "Large OFFSET is inefficient for pagination; consider keyset pagination"
+      },
+      "functionInWhere": {
+        "patterns": ["WHERE\\s+.*(?:YEAR|MONTH|DATE|LOWER|UPPER)\\("],
+        "severity": "warning",
+        "description": "Function on column in WHERE clause prevents index usage"
+      },
+      "selectStar": {
+        "patterns": ["SELECT\\s+\\*\\s+FROM"],
+        "severity": "info",
+        "description": "SELECT * fetches unnecessary columns and breaks on schema changes"
+      },
+      "sqlInjectionRisk": {
+        "patterns": ["['\"]\\s*\\+\\s*\\w+\\s*\\+\\s*['\"]", "f['\"].*\\{.*\\}.*(SELECT|INSERT|UPDATE|DELETE)", "%s.*%\\s*\\("],
+        "severity": "critical",
+        "description": "Query built via string concatenation/interpolation instead of parameterized query"
+      }
+    }
+  },
+  "prose": {
+    "extensions": [".md", ".txt", ".rst", ".mdc"],
+    "checks": {
+      "filler-phrases": {
+        "patterns": ["in order to", "due to the fact that", "it is important to note that", "at this point in time", "it is worth noting that", "it should be noted that", "may potentially", "could possibly", "in the event that", "it may be necessary to"],
+        "severity": "info",
+        "description": "Wordy filler phrase; can usually be shortened or cut"
+      },
+      "passive-voice": {
+        "patterns": ["\\b(?:was|were)\\s+\\w+ed\\b", "\\b(?:has been|have been|had been)\\s+\\w+ed\\b"],
+        "severity": "info",
+        "description": "Passive voice construction; consider active voice for clarity"
+      },
+      "dead-words": {
+        "patterns": ["\\bleverage(?:ing|d|s)?\\b", "\\bcutting[ -]edge\\b", "\\bgame[ -]changing\\b", "\\bsynerg(?:y|ize|istic)\\b", "\\bparadigm shift\\b", "\\bdisrupt(?:ive|ion|ing)?\\b", "\\bworld[ -]class\\b", "\\bbest[ -]in[ -]class\\b"],
+        "severity": "info",
+        "description": "Corporate buzzword/cliché"
+      },
+      "longLine": {
+        "patterns": ["^.{121,}$"],
+        "severity": "info",
+        "description": "Line exceeds 120 characters; consider wrapping for readability"
+      }
+    }
+  },
+  "commit": {
+    "extensions": [],
+    "appliesTo": "commit_message",
+    "checks": {
+      "vagueMessage": {
+        "patterns": ["^(fix\\s+bug|fixed\\s+bug|bug\\s+fix|update|updated|changes?|minor|WIP|wip|refactor|lint|format|typo|cleanup|oops)$"],
+        "severity": "warning",
+        "description": "Commit message too vague to convey what changed"
+      },
+      "tooShort": {
+        "patterns": ["^.{1,9}$"],
+        "severity": "info",
+        "description": "Commit message is very short; consider adding more context"
+      },
+      "noTicketRef": {
+        "patterns": ["^(?!.*(?:[A-Z]{2,10}-\\d+|#\\d+)).*$"],
+        "enabled": false,
+        "severity": "info",
+        "description": "Optional: commit message has no ticket/issue reference (disabled by default, opt-in per repo)"
+      }
+    }
+  },
+  "severityLevels": {
+    "critical": "Likely security/correctness bug; should block merge",
+    "error": "Clear defect that should be fixed before merge",
+    "warning": "Probable issue or bad practice; review recommended",
+    "info": "Style/nice-to-have; non-blocking suggestion"
+  }
+}

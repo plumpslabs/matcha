@@ -1,4 +1,4 @@
-import { lstatSync, readlinkSync } from "fs";
+import { lstatSync, readlinkSync, readFileSync } from "fs";
 import { describe, expect, test } from "vitest";
 import { readProjectFile, COMMAND_NAMES, ROOT } from "./helpers.js";
 import { join } from "path";
@@ -15,10 +15,16 @@ describe("Commands — synced across platforms", () => {
       test(`.claude/commands/${cmd}.md validates as Claude Code command`, () => {
         const path = join(ROOT, `.claude/commands/${cmd}.md`);
         const stat = lstatSync(path);
-        expect(stat.isSymbolicLink()).toBe(true);
-        const target = readlinkSync(path);
-        expect(target).toMatch(/^# \/matcha[: ]/);
-        expect(target).toContain(cmd);
+        // Can be symlink (legacy) or regular file (new)
+        if (stat.isSymbolicLink()) {
+          const target = readlinkSync(path);
+          expect(target).toMatch(/^# \/matcha[: ]/);
+          expect(target).toContain(cmd);
+        } else {
+          const content = readFileSync(path, "utf-8");
+          expect(content).toMatch(/^# \/matcha[: ]/);
+          expect(content).toContain(cmd);
+        }
       });
 
       test(`.agents/commands/${cmd}.md matches canonical`, () => {

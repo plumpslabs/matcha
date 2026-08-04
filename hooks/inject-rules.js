@@ -6,12 +6,22 @@
  * (instructed via SKILL.md, not hardcoded here).
  */
 
-import { getMatchaInstructions } from "./matcha-instructions.js";
+import { getMatchaInstructions, getProjectConstraints } from "./matcha-instructions.js";
 
 // ─── Hook handlers ─────────────────────────────────────────────────────────────
 
 export async function preTask(event, context) {
   const instructions = getMatchaInstructions();
+  const projectConstraints = getProjectConstraints();
+
+  const projectSection = projectConstraints
+    ? `
+### 📋 Project Constraints (from MATCHA_PROJECT.md)
+The following project-specific rules are ACTIVE. Follow them strictly:
+
+${projectConstraints}
+`
+    : "";
 
   return {
     system_suffix: `
@@ -37,11 +47,11 @@ For every new task or major request, you MUST overwrite/update this plan with th
 If the user runs \`/matcha observe|enforce|audit\`, persist the change by writing \`{"intensity": "observe|enforce|audit"}\` to \`.agents/matcha-state.json\`.
 
 At the END of every task response, include 3 matcha suggestions (match the user's conversation language, casual, direct, slightly sarcastic tone).
-
+${projectSection}
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.2.0", event: event.type },
+    metadata: { convention: "matcha", version: "2.5.0", event: event.type },
   };
 }
 

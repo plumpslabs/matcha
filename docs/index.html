@@ -3,740 +3,901 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🍵 matcha — Anti-bloat Engineering Convention</title>
+<title>matcha — Documentation</title>
+<meta name="description" content="Production-grade engineering rules for AI coding agents. Complete documentation with setup guides, features, and reference." />
+<link rel="icon" href="https://raw.githubusercontent.com/plumpslabs/matcha/main/public/matcha.png" type="image/png" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 <style>
-  /* ── Reset & Base ── */
-  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html{scroll-behavior:smooth;font-size:16px}
-  body{font-family:'SF Mono','Cascadia Code','JetBrains Mono','Fira Code','Consolas',monospace;background:#0d0d1a;color:#c8c8d4;line-height:1.7;overflow-x:hidden}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#09090b;--bg-card:#111113;--bg-hover:#18181b;--bg-elevated:#1c1c1f;
+  --border:#27272a;--border-hover:#3f3f46;
+  --text:#fafafa;--text-secondary:#a1a1aa;--text-tertiary:#71717a;
+  --accent:#eab308;--accent-dim:rgba(234,179,8,0.12);
+  --green:#22c55e;--green-dim:rgba(34,197,94,0.1);
+  --red:#ef4444;--red-dim:rgba(239,68,68,0.1);
+  --blue:#3b82f6;--blue-dim:rgba(59,130,246,0.1);
+  --purple:#a855f7;--purple-dim:rgba(168,85,247,0.1);
+  --cyan:#06b6d4;--cyan-dim:rgba(6,182,212,0.1);
+  --font:'Inter',system-ui,sans-serif;--mono:'JetBrains Mono',monospace;
+  --radius:8px;--sidebar-w:260px;--header-h:56px;
+}
+html{scroll-behavior:smooth;scroll-padding-top:72px;-webkit-font-smoothing:antialiased}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent);text-decoration:none;transition:opacity .15s}
+a:hover{opacity:.85}
+code{font-family:var(--mono);font-size:13px;background:var(--bg-elevated);padding:2px 6px;border-radius:4px}
+pre{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-x:auto;margin:12px 0;max-width:100%}
+pre code{background:none;padding:0;color:var(--green)}
 
-  /* ── Scrollbar ── */
-  ::-webkit-scrollbar{width:6px}
-  ::-webkit-scrollbar-track{background:#0d0d1a}
-  ::-webkit-scrollbar-thumb{background:#2a2a40;border-radius:3px}
+/* ── Header ─────────────────────────────────────────────────────────────── */
+.header{position:fixed;top:0;left:0;right:0;height:var(--header-h);border-bottom:1px solid var(--border);background:rgba(9,9,11,.9);backdrop-filter:blur(16px);z-index:100;display:flex;align-items:center;padding:0 24px}
+.header-logo{display:flex;align-items:center;gap:10px;font-weight:600;font-size:15px;color:var(--text)}
+.header-logo img{width:24px;height:24px;border-radius:5px}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:16px}
+.header-right a{font-size:13px;color:var(--text-secondary);font-weight:500}
+.header-right a:hover{color:var(--text)}
+.header-badge{background:var(--accent-dim);color:var(--accent);font-size:11px;font-weight:600;padding:3px 8px;border-radius:100px}
+.menu-toggle{display:none;background:none;border:none;color:var(--text);cursor:pointer;padding:8px}
+@media(max-width:900px){.menu-toggle{display:block}}
 
-  /* ── Typography ── */
-  h1,h2,h3,h4{font-weight:700;letter-spacing:-0.02em;line-height:1.3}
-  h1{font-size:2.2rem;color:#f0f0f5}
-  h2{font-size:1.4rem;color:#e6b91e;margin-bottom:1rem}
-  h3{font-size:1rem;color:#f0f0f5;margin-bottom:0.5rem}
-  p{margin-bottom:0.75rem;color:#9a9ab0;font-size:0.85rem}
-  a{color:#5bc0be;text-decoration:none;transition:color .2s}
-  a:hover{color:#e6b91e;text-decoration:none}
-  code{font-family:inherit;background:#1a1a2e;padding:0.1em 0.4em;border-radius:3px;font-size:0.82rem;color:#e6b91e;border:1px solid #2a2a40}
-  pre{background:#0a0a14;border:1px solid #1e1e30;border-radius:6px;padding:1rem;overflow-x:auto;font-size:0.78rem;line-height:1.5;margin-bottom:1rem}
-  pre code{background:none;border:none;padding:0;color:#c8c8d4}
-  strong{color:#f0f0f5}
-  hr{border:none;border-top:1px solid #1e1e30;margin:2rem 0}
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+.sidebar{position:fixed;top:var(--header-h);left:0;bottom:0;width:var(--sidebar-w);border-right:1px solid var(--border);overflow-y:auto;padding:16px 0;z-index:90;background:var(--bg);transition:transform .2s}
+.sidebar-section{margin-bottom:20px}
+.sidebar-label{font-size:11px;font-weight:600;color:var(--text-tertiary);text-transform:uppercase;letter-spacing:.05em;padding:0 20px;margin-bottom:8px}
+.sidebar-link{display:flex;align-items:center;gap:8px;padding:6px 20px;font-size:13px;color:var(--text-secondary);transition:all .15s;cursor:pointer;border-left:2px solid transparent}
+.sidebar-link:hover{color:var(--text);background:var(--bg-hover)}
+.sidebar-link.active{color:var(--accent);border-left-color:var(--accent);background:var(--accent-dim)}
+.sidebar-link i{width:16px;height:16px;flex-shrink:0}
+@media(max-width:900px){.sidebar{transform:translateX(-100%);z-index:95}.sidebar.open{transform:translateX(0)}}
 
-  /* ── Container ── */
-  .container{max-width:820px;margin:0 auto;padding:0 1.5rem}
+/* ── Main ───────────────────────────────────────────────────────────────── */
+.main{margin-left:var(--sidebar-w);margin-top:var(--header-h);padding:40px 48px 80px}
+@media(max-width:900px){.main{margin-left:0;padding:24px 20px 60px}}
 
-  /* ── Nav ── */
-  nav{position:sticky;top:0;z-index:100;background:rgba(13,13,26,0.92);backdrop-filter:blur(14px);border-bottom:1px solid #1e1e30}
-  nav .container{display:flex;align-items:center;justify-content:space-between;height:50px}
-  nav .logo{font-weight:700;font-size:1rem;color:#e6b91e}
-  nav .logo span{color:#5bc0be}
-  nav .links{display:flex;align-items:center;gap:0.3rem;flex-wrap:wrap}    nav .links a{color:#6a6a85;font-size:0.78rem;padding:0.25rem 0.5rem;border-radius:4px;transition:all .15s}
-  nav .links a:hover{color:#e6b91e;background:rgba(230,185,30,0.08);text-decoration:none}
+/* ── Content ────────────────────────────────────────────────────────────── */
+.section{margin-bottom:64px}
+.section-badge{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-dim);padding:3px 10px;border-radius:100px;margin-bottom:12px}
+.section h1{font-size:32px;font-weight:700;letter-spacing:-.02em;margin-bottom:8px}
+.section h2{font-size:24px;font-weight:700;letter-spacing:-.01em;margin:40px 0 12px;padding-top:24px;border-top:1px solid var(--border)}
+.section h3{font-size:18px;font-weight:600;margin:28px 0 10px}
+.section h4{font-size:15px;font-weight:600;margin:20px 0 8px}
+.section p{font-size:14px;color:var(--text-secondary);margin-bottom:12px;line-height:1.7}
+.section ul,.section ol{font-size:14px;color:var(--text-secondary);margin:0 0 12px 20px;line-height:1.7}
+.section li{margin-bottom:4px}
+.section li::marker{color:var(--text-tertiary)}
 
-  @media(max-width:600px){nav .links{gap:0.15rem}nav .links a{font-size:0.65rem;padding:0.2rem 0.3rem}}
+/* ── Tables ─────────────────────────────────────────────────────────────── */
+table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;table-layout:auto}
+th{text-align:left;padding:10px 12px;background:var(--bg-card);border:1px solid var(--border);font-weight:600;color:var(--text);font-size:12px;text-transform:uppercase;letter-spacing:.03em}
+td{padding:10px 12px;border:1px solid var(--border);color:var(--text-secondary)}
+tr:hover td{background:var(--bg-hover)}
 
-  /* ── Hero ── */
-  .hero{text-align:center;padding:4.5rem 0 3rem;position:relative;overflow:hidden}
-  .hero::before{content:'';position:absolute;top:-50%;left:-50%;width:200%;height:200%;background:radial-gradient(ellipse at center,rgba(230,185,30,0.03) 0%,transparent 60%);pointer-events:none}
-  .hero h1{font-size:3rem;margin-bottom:0.3rem;position:relative}
-  .hero h1 span{color:#e6b91e}
-  .hero .subtitle{font-size:0.95rem;color:#6a6a85;max-width:520px;margin:0 auto 1.5rem;line-height:1.6}
-  .hero .subtitle strong{color:#5bc0be}
-  .badges{display:flex;justify-content:center;gap:0.5rem;flex-wrap:wrap}
-  .badge{display:inline-flex;align-items:center;gap:0.3rem;padding:0.2rem 0.65rem;border-radius:999px;font-size:0.7rem;font-weight:500;background:rgba(230,185,30,0.08);color:#e6b91e;border:1px solid rgba(230,185,30,0.2)}
-  .badge span{color:#5bc0be}
-  .hero .terminal-line{font-size:0.78rem;color:#5a5a75;margin-top:2rem;padding:0.75rem 1rem;background:rgba(10,10,20,0.6);border-radius:6px;display:inline-block;border:1px solid #1e1e30}
-  .hero .terminal-line .prompt{color:#5bc0be}
-  .hero .terminal-line .cmd{color:#e6b91e}
+/* ── Cards ──────────────────────────────────────────────────────────────── */
+.card-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:16px 0}
+.card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:all .2s}
+.card:hover{border-color:var(--border-hover);background:var(--bg-hover)}
+.card h4{font-size:14px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.card p{font-size:13px;color:var(--text-tertiary);margin:0;line-height:1.5}
+.card-icon{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-icon.amber{background:var(--accent-dim);color:var(--accent)}
+.card-icon.green{background:var(--green-dim);color:var(--green)}
+.card-icon.blue{background:var(--blue-dim);color:var(--blue)}
+.card-icon.purple{background:var(--purple-dim);color:var(--purple)}
+.card-icon.red{background:var(--red-dim);color:var(--red)}
+.card-icon.cyan{background:var(--cyan-dim);color:var(--cyan)}
 
-  /* ── Sections ── */
-  section{padding:3rem 0}
-  section:nth-child(even){background:#0a0a16}
+/* ── Steps ──────────────────────────────────────────────────────────────── */
+.step{display:flex;gap:16px;margin-bottom:24px}
+.step-num{width:28px;height:28px;border-radius:50%;background:var(--accent-dim);border:2px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0}
+.step-body{flex:1}
+.step-body h4{margin-top:2px;margin-bottom:6px}
+.step-body p{margin-bottom:8px}
 
-  /* ── Tenets ── */
-  .tenets{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:0.75rem;margin-bottom:2rem}
-  .tenet{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem}
-  .tenet .num{color:#5bc0be;font-size:0.7rem;display:block;margin-bottom:0.3rem}
-  .tenet h4{color:#e6b91e;font-size:0.85rem;margin-bottom:0.3rem}
-  .tenet p{font-size:0.75rem;color:#7a7a90;margin-bottom:0;line-height:1.5}
+/* ── Code blocks ────────────────────────────────────────────────────────── */
+.code-block{position:relative;margin:12px 0}
+.code-block pre{margin:0}
+.code-copy{position:absolute;top:8px;right:8px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:4px 8px;cursor:pointer;color:var(--text-tertiary);font-size:11px;transition:all .15s}
+.code-copy:hover{color:var(--text);border-color:var(--border-hover)}
 
-  /* ── Filter Steps ── */
-  .filter-steps{display:flex;flex-direction:column;gap:0.5rem}
-  .filter-step{display:flex;gap:0.75rem;align-items:flex-start;padding:0.6rem 0.8rem;background:#0f0f1e;border-radius:5px;border-left:3px solid #2a2a40;transition:border-color .2s}
-  .filter-step:hover{border-left-color:#e6b91e}
-  .filter-step .icon{font-size:1.1rem;width:1.6rem;text-align:center;flex-shrink:0}
-  .filter-step .info{flex:1}
-  .filter-step .info h4{font-size:0.8rem;color:#f0f0f5;margin-bottom:0.1rem}
-  .filter-step .info p{font-size:0.72rem;color:#7a7a90;margin-bottom:0;line-height:1.4}
+/* ── Provider tabs ──────────────────────────────────────────────────────── */
+.tabs{display:flex;gap:0;border-bottom:1px solid var(--border);margin:16px 0 0}
+.tab{padding:10px 16px;font-size:13px;font-weight:500;color:var(--text-tertiary);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-content{display:none;padding:20px 0}
+.tab-content.active{display:block}
 
-  /* ── Install ── */
-  .install-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0.75rem;margin-bottom:1rem}
-  .install-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem}
-  .install-card .method{font-size:0.8rem;color:#5bc0be;font-weight:600;margin-bottom:0.2rem}
-  .install-card .desc{font-size:0.72rem;color:#6a6a85;margin-bottom:0.5rem}
-  .install-card .code-block{background:#0a0a14;border:1px solid #1e1e30;border-radius:4px;padding:0.5rem;font-size:0.7rem;color:#c8c8d4;overflow-x:auto;line-height:1.4;white-space:pre-wrap;word-break:break-all}
+/* ── Callout ────────────────────────────────────────────────────────────── */
+.callout{padding:16px;border-radius:var(--radius);margin:16px 0;font-size:13px;line-height:1.6}
+.callout-info{background:var(--blue-dim);border:1px solid rgba(59,130,246,.2);color:var(--text-secondary)}
+.callout-warn{background:rgba(234,179,8,.08);border:1px solid rgba(234,179,8,.2);color:var(--text-secondary)}
+.callout-success{background:var(--green-dim);border:1px solid rgba(34,197,94,.2);color:var(--text-secondary)}
+.callout strong{color:var(--text)}
 
-  /* ── Tables ── */
-  .table-wrap{overflow-x:auto;margin-bottom:1.5rem}
-  table{width:100%;border-collapse:collapse;font-size:0.78rem}
-  th{text-align:left;padding:0.5rem 0.6rem;color:#e6b91e;font-weight:600;border-bottom:1px solid #2a2a40;white-space:nowrap}
-  td{padding:0.45rem 0.6rem;border-bottom:1px solid #1a1a2e;color:#9a9ab0}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:rgba(230,185,30,0.03)}
-  td:first-child{font-weight:500;color:#c8c8d4;white-space:nowrap}
-
-  /* ── Architecture Cards ── */
-  .arch-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:0.75rem}
-  .arch-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:1rem;text-align:center;transition:border-color .2s}
-  .arch-card:hover{border-color:#2a2a40}
-  .arch-card .arch-icon{font-size:1.5rem;margin-bottom:0.3rem}
-  .arch-card h4{font-size:0.8rem;color:#f0f0f5;margin-bottom:0.2rem}
-  .arch-card p{font-size:0.7rem;color:#6a6a85;margin-bottom:0;line-height:1.4}
-
-  /* ── Benchmark ── */
-  .bench-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:0.75rem;margin-bottom:1.5rem}
-  .bench-stat{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;text-align:center}
-  .bench-stat .value{font-size:1.5rem;font-weight:700}
-  .bench-stat .label{font-size:0.75rem;color:#6a6a85;margin-top:0.15rem}
-  .bench-stat .sub{font-size:0.65rem;color:#5a5a75;margin-top:0.1rem}
-  .bench-stat .bar-wrap{height:4px;background:#1a1a2e;border-radius:2px;margin-top:0.3rem;overflow:hidden}
-  .bench-stat .bar{height:100%;border-radius:2px;transition:width .8s ease}
-
-  .bench-compare{display:flex;gap:0.75rem;justify-content:center;flex-wrap:wrap}
-  .compare-card{background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;text-align:center;flex:1;min-width:140px}
-  .compare-card .delta{font-size:1.5rem;font-weight:800}
-  .compare-card .delta.positive{color:#5bc0be}
-  .compare-card .delta.negative{color:#e6b91e}
-  .compare-card .desc{font-size:0.68rem;color:#6a6a85;margin-top:0.2rem}
-
-  .bench-rows{display:flex;flex-direction:column;gap:0.35rem;max-height:420px;overflow-y:auto;padding-right:0.25rem}
-  .bench-row{display:flex;gap:0.4rem;align-items:center;padding:0.35rem 0.5rem;background:#0f0f1e;border-radius:4px;border:1px solid #1a1a2e}
-  .bench-row .task{flex:1;font-weight:500;font-size:0.72rem;color:#c8c8d4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .bench-row .arm{font-size:0.62rem;padding:0.12rem 0.35rem;border-radius:3px;font-weight:500;white-space:nowrap}
-  .arm-baseline{background:rgba(255,255,255,0.05);color:#7a7a90;border:1px solid rgba(255,255,255,0.08)}
-  .arm-terse{background:rgba(230,185,30,0.08);color:#e6b91e;border:1px solid rgba(230,185,30,0.15)}
-  .arm-matcha{background:rgba(91,192,190,0.08);color:#5bc0be;border:1px solid rgba(91,192,190,0.15)}
-  .arm-pass{opacity:1}
-  .arm-fail{opacity:0.45}
-
-  .bench-loading{text-align:center;padding:2rem;color:#5a5a75;font-size:0.85rem}
-  .bench-loading::after{content:'...';animation:dots 1.5s steps(4,end) infinite}
-  @keyframes dots{0%{content:''}25%{content:'.'}50%{content:'..'}75%{content:'...'}100%{content:''}}
-  .bench-error{text-align:center;padding:2rem;color:#e05a5a;font-size:0.85rem}
-  .bench-error small{color:#5a5a75}
-
-  /* ── Footer ── */
-  footer{background:#080812;border-top:1px solid #1e1e30;padding:2rem 0;text-align:center;font-size:0.78rem;color:#5a5a75}
-  footer a{color:#5bc0be}
-  footer .links{margin-top:0.5rem;display:flex;justify-content:center;gap:1rem;flex-wrap:wrap}
-  footer .links a{font-size:0.75rem}
-
-  /* ── Utilities ── */
-  .text-center{text-align:center}
-  .mb-1{margin-bottom:1rem}
-  .mb-2{margin-bottom:2rem}
-  .section-label{display:inline-block;font-size:0.65rem;color:#5a5a75;text-transform:uppercase;letter-spacing:0.12em;margin-bottom:0.25rem;border:1px solid #1e1e30;padding:0.1rem 0.4rem;border-radius:3px}
-
-  /* ── Responsive ── */
-  @media(max-width:768px){
-    h1{font-size:1.4rem}.hero h1{font-size:2rem}.hero{padding:3rem 0 2rem}
-    section{padding:2rem 0}
-    .bench-stats{grid-template-columns:1fr}
-    .arch-grid{grid-template-columns:1fr 1fr}
-    .tenets{grid-template-columns:1fr 1fr}
-    nav .links a{font-size:0.7rem;padding:0.2rem 0.35rem}
-    .container{padding:0 1rem}
-    .bench-rows{max-height:300px}
-  }
-  @media(max-width:480px){
-    .arch-grid{grid-template-columns:1fr}
-    .tenets{grid-template-columns:1fr}
-    .install-grid{grid-template-columns:1fr}
-    nav .logo{font-size:0.85rem}
-  }
+/* ── Scrollbar ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 </style>
 </head>
 <body>
 
-<!-- ─── Navigation ─── -->
-<nav>
-  <div class="container">
-    <div class="logo">matcha</div>
-    <div class="links">
-      <a href="#about">About</a>
-      <a href="#install">Install</a>
-      <a href="#agents">Agents</a>
-      <a href="#hooks">Hooks</a>
-      <a href="#benchmark">Benchmark</a>
-      <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
-    </div>
+<!-- ── Header ──────────────────────────────────────────────────────────── -->
+<header class="header">
+  <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+    <i data-lucide="menu" style="width:20px;height:20px"></i>
+  </button>
+  <a href="#" class="header-logo">
+    <img src="https://raw.githubusercontent.com/plumpslabs/matcha/main/public/matcha.png" alt="matcha" />
+    matcha
+  </a>
+  <div class="header-right">
+    <span class="header-badge">v2.5.0</span>
+    <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
+  </div>
+</header>
+
+<!-- ── Sidebar ─────────────────────────────────────────────────────────── -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Getting Started</div>
+    <a class="sidebar-link active" href="#introduction" onclick="setActive(this)"><i data-lucide="book-open"></i> Introduction</a>
+    <a class="sidebar-link" href="#quick-start" onclick="setActive(this)"><i data-lucide="rocket"></i> Quick Start</a>
+    <a class="sidebar-link" href="#installation" onclick="setActive(this)"><i data-lucide="download"></i> Installation</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Provider Setup</div>
+    <a class="sidebar-link" href="#setup-claude" onclick="setActive(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="currentColor"/></svg> Claude Code</a>
+    <a class="sidebar-link" href="#setup-opencode" onclick="setActive(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M16 6H8v12h8V6zm4 16H4V2h16v20z"/></svg> OpenCode</a>
+    <a class="sidebar-link" href="#setup-cursor" onclick="setActive(this)"><i data-lucide="box" style="width:14px;height:14px;flex-shrink:0"></i> Cursor</a>
+    <a class="sidebar-link" href="#setup-windsurf" onclick="setActive(this)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M3 17l4-4 4 4 4-8 4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Windsurf</a>
+    <a class="sidebar-link" href="#setup-agy" onclick="setActive(this)"><svg width="14" height="14" viewBox="0 0 16 15" style="flex-shrink:0"><mask id="m0" width="16" height="15" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M14.078 13.984c.867.65 2.168.217.976-.976C11.5 9.54 12.259 0 7.814 0S4.105 9.54.527 13.008c-1.301 1.309.108 1.634.975.976 3.36-2.276 3.144-6.287 6.287-6.287s2.927 4.011 6.289 6.287z"/></mask><g mask="url(#m0)"><path fill="#FFE432" d="M-.659-3.231c-.264 2.324 1.738 4.46 4.472 4.77 2.734.31 5.158-1.322 5.422-3.646.264-2.324-1.738-4.46-4.472-4.77C2.319-7.187-.112-5.554-.659-3.231z"/><path fill="#FC413D" d="M9.882 4.366c.685 2.95 3.684 4.773 6.698 4.073 3.014-.7 4.902-3.658 4.217-6.607-.685-2.95-3.684-4.773-6.698-4.073-3.014.7-4.902 3.658-4.217 6.607z"/><path fill="#00B95C" d="M-8.053 6.345c.866 3.044 4.764 4.602 8.707 3.481 3.943-1.121 6.438-4.497 5.572-7.541-.866-3.044-4.764-4.602-8.707-3.481-3.943 1.121-6.438 4.497-5.572 7.541z"/><path fill="#3186FF" d="M6.428 17.226c.674 2.901 3.485 4.727 6.278 4.078 2.794-.649 4.512-3.526 3.838-6.427-.674-2.9-3.485-4.727-6.278-4.078-2.794.649-4.512 3.526-3.838 6.427z"/><path fill="#FBBC04" d="M1.665-5.945c-1.411 3.143.133 6.897 3.448 8.385 3.315 1.488 7.146.149 8.557-2.994 1.41-3.143-.133-6.897-3.448-8.385C6.907-10.43 3.076-9.088 1.665-5.945z"/></g></svg> agy</a>
+    <a class="sidebar-link" href="#setup-kiro" onclick="setActive(this)"><svg width="14" height="14" viewBox="0 0 256 256" style="flex-shrink:0"><path fill="#993FF5" d="m200.1 0h-144.2c-30.77 0-55.81 26.13-55.81 55.81v144.1c0 30.84 25.08 56 55.81 56h144.1c30.92 0 56-25.08 56-55.93v-144.2c0-29.68-24.42-55.81-55.87-55.81z"/><path fill="#FEFFFE" d="m195.9 107.8c-2.84-27.64-18.85-62.98-60.73-64.4h-3.09c-29.9 0-52.18 21.88-56.84 52.31-2.68 9.26-2.46 20.79-4.86 35.12-2.48 14.9-7.38 20.23-10.77 28.96-1.88 5.11-1.19 17.58 10.84 18.65 6.63.59 14.92-2.78 15.03-3.96-2.25 4.59-5.08 12.84-4.78 19.82.6 11.64 8.71 17.78 21.25 17.78 14.07 0 24.1-8.4 30.32-12.14 3.01 7.78 6.93 12.14 14.41 12.14 13.02 0 27.47-13.13 33.84-23.58 11.19-19.55 18.26-42.4 16.17-71.32-.08-2.87-.35-6.08-.79-9.38z"/><path fill="#010202" d="M135.1 90.55c-7.28-.54-7.85 8.36-7.85 14.05 0 6.08 1.6 13.14 7.96 13.14 6.6 0 8.92-8.08 8.92-13.14 0-5.56-1.59-14.05-9.03-14.05zM164.4 90.55c-7.27-.54-8.66 7.59-8.66 14.05 0 5.82 1.51 13.14 8.07 13.14 7.38 0 8.83-9.57 8.83-13.14 0-5.89-2.01-14.05-8.24-14.05z"/></svg> Kiro</a>
+    <a class="sidebar-link" href="#setup-mcp" onclick="setActive(this)"><i data-lucide="plug"></i> MCP Server</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Core Concepts</div>
+    <a class="sidebar-link" href="#philosophy" onclick="setActive(this)"><i data-lucide="target"></i> Philosophy</a>
+    <a class="sidebar-link" href="#modes" onclick="setActive(this)"><i data-lucide="workflow"></i> Modes</a>
+    <a class="sidebar-link" href="#risk" onclick="setActive(this)"><i data-lucide="shield"></i> Risk Tiers</a>
+    <a class="sidebar-link" href="#planning" onclick="setActive(this)"><i data-lucide="file-text"></i> Planning Gate</a>
+    <a class="sidebar-link" href="#project-constraints" onclick="setActive(this)"><i data-lucide="settings"></i> Project Constraints</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Reference</div>
+    <a class="sidebar-link" href="#commands" onclick="setActive(this)"><i data-lucide="terminal"></i> Commands</a>
+    <a class="sidebar-link" href="#agents" onclick="setActive(this)"><i data-lucide="users"></i> Agents</a>
+    <a class="sidebar-link" href="#hooks" onclick="setActive(this)"><i data-lucide="zap"></i> Hooks</a>
+    <a class="sidebar-link" href="#modules" onclick="setActive(this)"><i data-lucide="box"></i> Modules</a>
+    <a class="sidebar-link" href="#architecture" onclick="setActive(this)"><i data-lucide="layers"></i> Architecture</a>
   </div>
 </nav>
 
-<!-- ─── Hero ─── -->
-<section class="hero">
-  <div class="container">
-    <h1><span>matcha</span></h1>
-    <p class="subtitle">
-      Simple. Efficient. Deliberate. <strong>Never twice.</strong><br />
-      Anti-bloat engineering convention for AI coding agents.
-    </p>
-    <div class="badges">
-      <span class="badge"><span>✦</span> 6 Agents</span>
-      <span class="badge"><span>✦</span> 6 Commands</span>
-      <span class="badge"><span>✦</span> 16 Rule Sets</span>
-      <span class="badge"><span>✦</span> 3 Hooks</span>
-      <span class="badge"><span>✦</span> 12 Platforms</span>
-      <span class="badge"><span>✦</span> 20 Tasks</span>
-      <span class="badge" style="background:rgba(91,192,190,0.12);border-color:rgba(91,192,190,0.3);color:#5bc0be"><span>⚡</span> Live Claude</span>
+<!-- ── Main Content ────────────────────────────────────────────────────── -->
+<main class="main">
+
+<!-- Introduction -->
+<div class="section" id="introduction">
+  <h1>matcha Documentation</h1>
+  <p style="font-size:16px;color:var(--text);line-height:1.8;max-width:680px">
+    <strong>matcha</strong> is an engineering philosophy for AI coding agents. It makes agents <strong>think before they code</strong> — checking purpose, reusing existing code, auditing the stack, and reviewing before shipping.
+  </p>
+
+  <div class="callout callout-info" style="margin:20px 0">
+    <strong>The Problem:</strong> AI agents write code fast, but often write the wrong code. They skip planning, duplicate existing logic, ignore security, and ship without review. The result: more bugs, more tech debt, more rework.
+  </div>
+
+  <div class="callout callout-success" style="margin:20px 0">
+    <strong>The Solution:</strong> matcha adds a lightweight enforcement layer that forces agents to follow engineering best practices — without slowing them down for simple tasks.
+  </div>
+
+  <h3>How It Works</h3>
+  <p>matcha operates at <strong>4 layers</strong>:</p>
+  <table>
+    <tr><th>Layer</th><th>What It Does</th><th>When It Runs</th></tr>
+    <tr><td><strong>Planning Gate</strong></td><td>Blocks code until 5W1H plan exists</td><td>Before any implementation</td></tr>
+    <tr><td><strong>Safety Shield</strong></td><td>Blocks dangerous commands (rm -rf, git push --force)</td><td>On every command</td></tr>
+    <tr><td><strong>Post-Write Scan</strong></td><td>Checks files for cleanup issues (13+ languages)</td><td>After every file write</td></tr>
+    <tr><td><strong>Review Gate</strong></td><td>8-category review with risk-based routing</td><td>Before shipping</td></tr>
+  </table>
+
+  <h3>Who Is It For?</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4><span class="card-icon amber"><i data-lucide="users" style="width:16px;height:16px"></i></span> Solo Developers</h4>
+      <p>Use AI agents but want guardrails to prevent bad code from shipping.</p>
     </div>
-    <div class="terminal-line">
-      <span class="prompt">$</span> <span class="cmd">curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</span>
+    <div class="card">
+      <h4><span class="card-icon green"><i data-lucide="building" style="width:16px;height:16px"></i></span> Teams</h4>
+      <p>Enforce consistent engineering standards across all AI-assisted code.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon blue"><i data-lucide="shield" style="width:16px;height:16px"></i></span> Security-Conscious</h4>
+      <p>Automated security checks before code reaches production.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon purple"><i data-lucide="layers" style="width:16px;height:16px"></i></span> Legacy Codebases</h4>
+      <p>Incremental refactoring with safety protocols for large projects.</p>
     </div>
   </div>
-</section>
 
-<!-- ─── About ─── -->
-<section id="about">
-  <div class="container">
-    <span class="section-label">About</span>
-    <h2>What is matcha?</h2>
-    <p style="max-width:600px;margin-bottom:1.5rem">
-      Every AI coding session starts the same: jump in, write code, realize mid-way you missed something obvious.
-      <strong>matcha</strong> is a <strong>6-checkpoint filter</strong> that runs before, during, and after every implementation&mdash;
-      catching the things you'd catch yourself if you stopped to think.
-    </p>
-
-    <h3 style="margin-bottom:0.75rem;font-size:0.9rem;color:#e6b91e">The Four Tenets</h3>
-    <div class="tenets">
-      <div class="tenet">
-        <span class="num">01</span>
-        <h4>Simple</h4>
-        <p>Minimum moving parts. One function = one thing. If it feels complex, it's wrong.</p>
-      </div>
-      <div class="tenet">
-        <span class="num">02</span>
-        <h4>Efficient</h4>
-        <p>No filler. No dead code. Every line earns its place.</p>
-      </div>
-      <div class="tenet">
-        <span class="num">03</span>
-        <h4>Deliberate</h4>
-        <p>Think before you code. 5W1H check before starting. Explicit errors.</p>
-      </div>
-      <div class="tenet">
-        <span class="num">04</span>
-        <h4>Never Twice</h4>
-        <p>Search before you write. Reuse, don't rewrite.</p>
-      </div>
+  <h3>Key Features</h3>
+  <div class="card-grid">
+    <div class="card">
+      <h4><span class="card-icon amber"><i data-lucide="target" style="width:16px;height:16px"></i></span> Purpose-First Thinking</h4>
+      <p>5W1H gate forces agents to understand WHY before writing code. No more blind implementation.</p>
     </div>
-
-    <h3 style="font-size:0.9rem;color:#e6b91e">The 6-Checkpoint Filter</h3>
-    <p style="font-size:0.78rem;color:#5bc0be;margin-bottom:0.75rem">
-      Every implementation passes through these gates:
-    </p>
-    <div class="filter-steps">
-      <div class="filter-step">
-        <div class="icon">🎯</div>
-        <div class="info">
-          <h4>Purpose &mdash; 5W1H</h4>
-          <p>What/Why/Who/When/Where/How. Can't answer Why/How? &rarr; STOP.</p>
-        </div>
-      </div>
-      <div class="filter-step">
-        <div class="icon">🔎</div>
-        <div class="info">
-          <h4>Reuse</h4>
-          <p>Before writing: search codebase for existing implementations. Never write what already exists.</p>
-        </div>
-      </div>
-      <div class="filter-step">
-        <div class="icon">🔍</div>
-        <div class="info">
-          <h4>Stack Audit</h4>
-          <p>Scan manifests, services, deps. Overlap found? &rarr; STOP. Report.</p>
-        </div>
-      </div>
-      <div class="filter-step">
-        <div class="icon">🛠️</div>
-        <div class="info">
-          <h4>Implementation</h4>
-          <p>No hardcode. Explicit errors. One function. "Is there a simpler path?"</p>
-        </div>
-      </div>
-      <div class="filter-step">
-        <div class="icon">🧹</div>
-        <div class="info">
-          <h4>Cleanup</h4>
-          <p>Done = working AND clean. Temp files, debug code, unused imports. Decision log.</p>
-        </div>
-      </div>
-      <div class="filter-step">
-        <div class="icon">✅</div>
-        <div class="info">
-          <h4>Verify</h4>
-          <p>Auto-detect + run tests, typecheck, lint. Tests fail? &rarr; STOP and fix first.</p>
-        </div>
-      </div>
+    <div class="card">
+      <h4><span class="card-icon green"><i data-lucide="shield-check" style="width:16px;height:16px"></i></span> Deterministic Enforcement</h4>
+      <p>Hook-based safety checks run in Node.js, not LLM. Zero dependency on AI for critical checks.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon blue"><i data-lucide="git-branch" style="width:16px;height:16px"></i></span> Risk-Based Review</h4>
+      <p>4-tier review routing (L0-L3). Quick tasks skip, critical code gets expert-level scrutiny.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon purple"><i data-lucide="plug" style="width:16px;height:16px"></i></span> Universal Compatibility</h4>
+      <p>Works with Claude, Cursor, Copilot, OpenCode, Windsurf, Kiro, and any MCP client.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon cyan"><i data-lucide="workflow" style="width:16px;height:16px"></i></span> Adaptive Modes</h4>
+      <p>Auto-detects what the agent is doing. Explore, implement, refactor, debug — zero friction.</p>
+    </div>
+    <div class="card">
+      <h4><span class="card-icon red"><i data-lucide="box" style="width:16px;height:16px"></i></span> 13+ Languages</h4>
+      <p>Pattern registry for JS, TS, Go, Python, Rust, Java, C#, C/C++, Ruby, Swift, PHP, Kotlin, Dart.</p>
     </div>
   </div>
-</section>
 
-<!-- ─── Install ─── -->
-<section id="install" style="background:#0a0a16">
-  <div class="container">
-    <span class="section-label">Setup</span>
-    <h2>Quick Install</h2>
-    <p style="max-width:550px;margin-bottom:1rem">Three ways to get matcha on your AI coding agent:</p>
+  <h3>What's Inside</h3>
+  <table>
+    <tr><th>Component</th><th>Count</th><th>Description</th></tr>
+    <tr><td>Modules</td><td>11</td><td>Core, project, modes, risk, legacy, orchestration, context, metrics, tdd, loop, communication</td></tr>
+    <tr><td>Commands</td><td>8</td><td>why, review, audit, intensity, status, debt, markers, stats</td></tr>
+    <tr><td>Agents</td><td>6</td><td>planner, finder, auditor, reviewer, cleaner, debugger</td></tr>
+    <tr><td>Hooks</td><td>4</td><td>shield, post-write, stop, metrics</td></tr>
+    <tr><td>MCP Tools</td><td>4</td><td>shield_check, post_write_scan, stop_tips, plan_validate</td></tr>
+    <tr><td>Languages</td><td>13+</td><td>JS, TS, Go, Python, Rust, Java, C#, C/C++, Ruby, Swift, PHP, Kotlin, Dart</td></tr>
+    <tr><td>Trigger Packs</td><td>6</td><td>web-saas, ml-pipeline, infra-iac, mobile, embedded, cli-tool</td></tr>
+  </table>
 
-    <div class="install-grid">
-      <div class="install-card">
-        <div class="method">curl &rarr; bash</div>
-        <div class="desc">Any AI agent &mdash; auto-detects 12 platforms</div>
-        <div class="code-block">curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</div>
-      </div>
-      <div class="install-card">
-        <div class="method">Claude Code Plugin</div>
-        <div class="desc">Claude Code marketplace</div>
-        <div class="code-block">/plugin marketplace add https://github.com/plumpslabs/matcha</div>
-      </div>
-      <div class="install-card">
-        <div class="method">npm (clone)</div>
-        <div class="desc">From cloned repo</div>
-        <div class="code-block">git clone https://github.com/plumpslabs/matcha.git<br>cd matcha &amp;&amp; node bin/matcha.js init</div>
-      </div>
-    </div>
+  <h3>Example: Before vs After matcha</h3>
+  <table>
+    <tr><th>Without matcha</th><th>With matcha</th></tr>
+    <tr><td>Agent writes code immediately</td><td>Agent plans first (5W1H gate)</td></tr>
+    <tr><td>Duplicates existing functions</td><td>Searches codebase, reuses existing</td></tr>
+    <tr><td>Ships without review</td><td>8-category review gate</td></tr>
+    <tr><td>No security checks</td><td>Automated security scanning</td></tr>
+    <tr><td>Same process for all tasks</td><td>Adaptive modes (explore/implement/debug)</td></tr>
+    <tr><td>Breaks legacy code</td><td>Incremental batching with safety</td></tr>
+  </table>
+</div>
 
-    <p style="font-size:0.75rem;color:#5a5a75;text-align:center">
-      See <a href="../QUICKSTART.md">QUICKSTART.md</a> for the full guide &middot;
-      <a href="https://github.com/plumpslabs/matcha/blob/main/install.sh">install.sh</a>
-    </p>
-  </div>
-</section>
+<!-- Quick Start -->
+<div class="section" id="quick-start">
+  <h1>Quick Start</h1>
+  <p>Up and running in 2 minutes.</p>
 
-<!-- ─── Agents & Commands ─── -->
-<section id="agents">
-  <div class="container">
-    <span class="section-label">Reference</span>
-    <h2>Agents</h2>
-    <p style="max-width:500px;margin-bottom:1rem">Six specialized agents, each covering a checkpoint in the matcha filter:</p>
-
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Agent</th><th>Checkpoint</th><th>Use Case</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>@matcha-planner</td><td>🎯 Purpose</td><td>Plan features through 4 checkpoints</td></tr>
-          <tr><td>@matcha-finder</td><td>🔎 Reuse</td><td>Hunt existing code before writing new</td></tr>
-          <tr><td>@matcha-auditor</td><td>🔍 Stack</td><td>Stack audit for service overlap</td></tr>
-          <tr><td>@matcha-reviewer</td><td>🛠️ + 🧹 + ✅</td><td>Code review + verify tests passed</td></tr>
-          <tr><td>@matcha-cleaner</td><td>🧹 Cleanup</td><td>Remove temp/debug/unused code</td></tr>
-          <tr><td>@matcha-debugger</td><td>🎯 &rarr; ✅</td><td>Systematic debugging</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2>Commands</h2>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Command</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>/matcha:status</td><td>Session status &amp; component availability</td></tr>
-          <tr><td>/matcha:why</td><td>5W1H check before starting</td></tr>
-          <tr><td>/matcha:audit</td><td>Stack audit for overlaps &amp; inefficiencies</td></tr>
-          <tr><td>/matcha:review</td><td>Post-implementation review</td></tr>
-          <tr><td>/matcha:intensity</td><td>Set level: observe / enforce / audit</td></tr>
-          <tr><td>/matcha:debt</td><td>Show technical debt from decision logs</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2>CLI Reference</h2>
-    <p style="max-width:500px;margin-bottom:1rem">From the cloned repository:</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Command</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>node bin/matcha.js status</code></td><td>Show version, platform, components, shield status</td></tr>
-          <tr><td><code>node bin/matcha.js why</code></td><td>5W1H interactive check (supports piped input)</td></tr>
-          <tr><td><code>node bin/matcha.js audit</code></td><td>Quick project stack audit (manifests, CI/CD, Docker, env)</td></tr>
-          <tr><td><code>node bin/matcha.js verify</code></td><td>Auto-detect test framework, run tests + typecheck + lint</td></tr>
-          <tr><td><code>node bin/matcha.js init</code></td><td>Run install.sh from the cloned repo</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h2>Benchmark CLI</h2>
-    <p style="max-width:500px;margin-bottom:1rem">Run benchmarks from the repo:</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Command</th><th>Description</th></tr>
-        </thead>
-        <tbody>
-          <tr><td><code>npm run benchmark</code></td><td>Compliance scan on current project</td></tr>
-          <tr><td><code>npm run benchmark:json</code></td><td>Compliance scan with JSON output</td></tr>
-          <tr><td><code>node benchmark/generate-report.js</code></td><td>Full 3-arm agentic benchmark + report generation</td></tr>
-          <tr><td><code>node benchmark/agentic-runner.js --simulate</code></td><td>Simulated benchmark using default solutions (no Claude required)</td></tr>
-          <tr><td><code>node benchmark/agentic-runner.js --arm matcha</code></td><td>Single arm only (no Claude required)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p style="font-size:0.75rem;color:#5a5a75">Invoke: <code>@matcha-reviewer</code> or <code>/matcha:audit</code> &middot; Full reference in <a href="../AGENTS.md">AGENTS.md</a></p>
-  </div>
-</section>
-
-<!-- ─── Hooks System ─── -->
-<section id="hooks" style="background:#0a0a16">
-  <div class="container">
-    <span class="section-label">Lifecycle</span>
-    <h2>Hooks System</h2>
-    <p style="max-width:600px;margin-bottom:1.5rem">
-      matcha ships <strong>3 lifecycle hooks</strong> that enforce philosophy deterministically&mdash;no prompt engineering, no guessing.
-    </p>
-
-    <div class="filter-steps">
-      <div class="filter-step" style="border-left-color:#5bc0be">
-        <div class="icon">🛡️</div>
-        <div class="info">
-          <h4>PreToolUse &mdash; matcha-shield.js</h4>
-          <p>Blocks dangerous commands before they reach the OS: <code>rm -rf /</code>, <code>git push --force</code>, <code>DROP DATABASE</code>, <code>curl | bash</code>, <code>shutdown</code>, <code>mkfs</code>, <code>chmod 777</code> and more. Also implements the 5W1H planning gate in <strong>enforce</strong> mode.</p>
-        </div>
-      </div>
-      <div class="filter-step" style="border-left-color:#e6b91e">
-        <div class="icon">🧹</div>
-        <div class="info">
-          <h4>PostToolUse &mdash; matcha-post-write.js</h4>
-          <p>Automatically scans modified files after every Write/Edit for cleanup issues: empty catch blocks (critical), hardcoded credentials, debug logs, TODO/FIXME left in code. Injects <code>additionalContext</code> for self-correction.</p>
-        </div>
-      </div>
-      <div class="filter-step" style="border-left-color:#e05a5a">
-        <div class="icon">⏹️</div>
-        <div class="info">
-          <h4>Stop &mdash; matcha-stop.js</h4>
-          <p>Scans <code>git diff</code> for real issues at session end. Reports: debug code, oversized functions, untracked files, import density. Deterministic&mdash;no LLM guesswork.</p>
-        </div>
-      </div>
-    </div>
-
-    <h3 style="font-size:0.9rem;color:#e6b91e;margin-top:1.5rem">Platform Support</h3>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Platform</th><th>Integration</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Claude Code</td><td><code>.claude/settings.json</code> &mdash; PreToolUse + PostToolUse + Stop hooks</td></tr>
-          <tr><td>OpenCode</td><td><code>tool.execute.before</code> in <code>matcha.mjs</code> plugin</td></tr>
-          <tr><td>Qoder</td><td><code>hooks.json</code> &mdash; <code>before:tool_use</code> event</td></tr>
-          <tr><td>Antigravity CLI</td><td><code>gemini-extension.json</code> &mdash; tool lifecycle</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p style="font-size:0.75rem;color:#5a5a75">
-      Learn more: <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma</a> (runtime safety) &middot;
-      <a href="https://github.com/plumpslabs/fennec" target="_blank">Fennec</a> (developer observability) &middot;
-      <a href="./architecture.md">Architecture docs &rarr;</a>
-    </p>
-  </div>
-</section>
-
-<!-- ─── Architecture ─── -->
-<section id="architecture" style="background:#0a0a16">
-  <div class="container">
-    <span class="section-label">System</span>
-    <h2>Architecture</h2>
-
-    <h3 style="font-size:0.9rem;color:#e6b91e;margin-bottom:0.75rem">Components</h3>
-    <div class="arch-grid" style="margin-bottom:1.5rem">
-      <div class="arch-card">
-        <div class="arch-icon">🧠</div>
-        <h4>6 Agents</h4>
-        <p>Planner &middot; Finder &middot; Auditor &middot; Reviewer &middot; Cleaner &middot; Debugger</p>
-      </div>
-      <div class="arch-card">
-        <div class="arch-icon">🪝</div>
-        <h4>3 Lifecycle Hooks</h4>
-        <p>PreToolUse (shield) &rarr; PostToolUse (cleanup) &rarr; Stop (tips)</p>
-      </div>
-      <div class="arch-card">
-        <div class="arch-icon">📐</div>
-        <h4>16 Rule Sets</h4>
-        <p>TypeScript, Go, Python, Java, PHP, React Native + common rules</p>
-      </div>
-      <div class="arch-card">
-        <div class="arch-icon">🎯</div>
-        <h4>12 Platforms</h4>
-        <p>Claude Code &middot; OpenCode &middot; Cursor &middot; Windsurf &middot; Cline &middot; Kiro &middot; Qoder &middot; Qwen &middot; Codebuff &middot; Antigravity &middot; OpenClaw &middot; agy</p>
-      </div>
-      <div class="arch-card">
-        <div class="arch-icon">⚙️</div>
-        <h4>3-Arm Benchmark</h4>
-        <p>20 coding tasks &times; baseline/terse/matcha. Correctness + Adversarial + LOC metrics.</p>
-      </div>
-      <div class="arch-card">
-        <div class="arch-icon">🛡️</div>
-        <h4>Kuma &#x2B; Fennec</h4>
-        <p>Kuma blocks dangerous commands. Fennec gives AI browser &#x2B; terminal visibility.</p>
-      </div>
-    </div>
-
-    <h3 style="font-size:0.9rem;color:#e6b91e;margin-top:1.5rem">Intensity Levels</h3>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr><th>Level</th><th>Behavior</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>observe</td><td>Tips only. No blocking.</td></tr>
-          <tr><td><strong style="color:#e6b91e">enforce</strong></td><td>Full 6-checkpoint filter. <strong style="color:#5a5a75">Default.</strong></td></tr>
-          <tr><td>audit</td><td>Enforce + mandatory cleanup. Everything flagged.</td></tr>
-        </tbody>
-      </table>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <p>One command. Works on macOS, Linux, and WSL.</p>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or install globally:</p>
+      <div class="code-block"><pre><code>npm install -g matcha && matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+      <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or without npm (curl script):</p>
+      <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
-</section>
 
-<!-- ─── Benchmark ─── -->
-<section id="benchmark">
-  <div class="container">
-    <span class="section-label">Data</span>
-    <h2>Benchmark</h2>
-
-    <!-- ── Tab selector ── -->
-    <div id="bench-tabs" style="display:flex;gap:0.25rem;margin-bottom:1rem">
-      <button class="bench-tab active" data-tab="real" style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:4px;padding:0.35rem 0.75rem;font-size:0.75rem;color:#6a6a85;cursor:pointer;font-family:inherit;transition:all .15s">
-        🏗️ Real Scenario
-      </button>
-      <button class="bench-tab" data-tab="compare" style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:4px;padding:0.35rem 0.75rem;font-size:0.75rem;color:#6a6a85;cursor:pointer;font-family:inherit;transition:all .15s">
-        ⚖️ Matcha vs No Matcha
-      </button>
-    </div>
-
-    <!-- ── Real benchmark info ── -->
-    <div id="bench-info-real" style="display:none">
-      <p style="max-width:560px;margin-bottom:1.5rem">
-        3 multi-turn features &times; 3 steps each &times; with matcha.
-        Express API project — activity tracking, pagination, rate limiting.
-        <strong style="color:#5bc0be">Generated with agy (Gemini 3.5 Flash)</strong> &mdash; 9 prompts, 30 tests.
-        <br><span style="color:#6a6a85;font-size:0.72rem">✅ Matcha full (.claude + hooks + rules) injected — hooks <strong>available</strong> but not triggered (non-interactive).</span>
-      </p>
-    </div>
-
-    <!-- ── Comparison info ── -->
-    <div id="bench-info-compare" style="display:none">
-      <p style="max-width:560px;margin-bottom:1.5rem">
-        Same prompt: <code style="color:#e6b91e">"Add an activity endpoint"</code> &mdash; no detail.
-        Comparing code quality <strong style="color:#5bc0be">WITH</strong> vs <strong style="color:#6a6a85">WITHOUT</strong> matcha.
-        <br><span style="color:#6a6a85;font-size:0.72rem">Backend: agy (Gemini 3.5 Flash) &middot; Express API project &middot; 12 tests each</span>
-      </p>
-    </div>
-
-    <div id="bench-container">
-      <div class="bench-loading">Loading benchmark data</div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Configure your provider</h4>
+      <p>Matcha auto-detects your platform. Or configure manually:</p>
+      <div class="code-block"><pre><code>node scripts/build-adapters.js
+# Generates CLAUDE.md, .windsurfrules, GEMINI.md, etc.</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
-</section>
 
-<!-- ─── Footer ─── -->
-<footer>
-  <div class="container">
-    <p>matcha &mdash; Anti-bloat engineering for AI coding agents.</p>
-    <p style="margin-top:0.3rem">MIT &copy; <a href="https://github.com/plumpslabs" target="_blank">plumpslabs</a></p>
-    <div class="links">
-      <a href="https://github.com/plumpslabs/matcha" target="_blank">matcha</a>
-      <a href="https://github.com/plumpslabs/kuma" target="_blank">Kuma</a>
-      <a href="https://github.com/plumpslabs/fennec" target="_blank">Fennec</a>
-      <a href="../AGENTS.md">AGENTS.md</a>
-      <a href="../QUICKSTART.md">Quick Start</a>
-      <a href="../CONTRIBUTING.md">Contributing</a>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Add project constraints (optional)</h4>
+      <p>Copy the template and fill in your project-specific rules:</p>
+      <div class="code-block"><pre><code>cp skills/matcha/modules/project.md ./MATCHA_PROJECT.md
+# Edit with your framework, package manager, coding standards</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
     </div>
   </div>
-</footer>
 
-<!-- ─── Benchmark Data (embedded fallback) ─── -->
-<script id="benchmark-data" type="application/json">
-{"realBench":{"generated":"2026-06-27T12:30:00.000Z","backend":"agy (Gemini 3.5 Flash)","matcha":true,"summary":{"totalTests":30,"passed":30,"failed":0,"totalLOC":270,"matchaCompliance":"Excellent"},"features":[{"id":"activity-tracking","name":"Activity Tracking","steps":3,"file":"src/routes/activity.js","loc":111,"tests":12,"passed":12,"matchaScore":"A","highlights":["Separate validateActivityInput() function","Named constants for HTTP status codes","Explicit error messages for all validation failures","No console.log or debug leftovers"]},{"id":"pagination","name":"Pagination","steps":3,"file":"src/utils/pagination.js","loc":67,"tests":10,"passed":10,"matchaScore":"A","highlights":["Reusable paginate() utility function","Env var configuration (PAGINATION_DEFAULT_LIMIT, PAGINATION_MAX_LIMIT)","Edge case handling for negative/NaN page values","No regression","Existing users endpoint still works"]},{"id":"rate-limiting","name":"Rate Limiting","steps":3,"file":"src/middleware/rateLimit.js","loc":75,"tests":8,"passed":8,"matchaScore":"A","highlights":["Cleanup timer with setInterval + unref()","Config via RATE_LIMIT_MAX and RATE_LIMIT_WINDOW_MS env vars","X-RateLimit headers on all responses","/health endpoint excluded from rate limiting"]}]},"simplePromptTest":{"generated":"2026-06-27T12:45:00.000Z","prompt":"Add an activity endpoint","backend":"agy (Gemini 3.5 Flash)","comparison":{"withMatcha":{"loc":80,"tests":12,"passed":12,"namedConstants":true,"explicitErrors":true,"separateFunction":true,"dataStructure":"Per-user object (activitiesStore)","errorMessages":["Request body is required","Action must be a non-empty string","Details must be an object","User not found"],"statusCodes":["STATUS_CREATED","STATUS_BAD_REQUEST","STATUS_NOT_FOUND"]},"withoutMatcha":{"loc":69,"tests":12,"passed":12,"namedConstants":false,"explicitErrors":false,"separateFunction":true,"dataStructure":"Flat array (activities)","errorMessages":["Invalid input","User not found"],"statusCodes":["404","400","201"]}}}}
-</script>
+  <div class="step">
+    <div class="step-num">4</div>
+    <div class="step-body">
+      <h4>Verify installation</h4>
+      <p>Check that everything is working:</p>
+      <div class="code-block"><pre><code>matcha status
+# Shows: version, platform, intensity, installed components</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
 
-<!-- ─── Benchmark Script ─── -->
+  <div class="callout callout-success"><strong>Done!</strong> Your agent now follows matcha's philosophy. The shield hook runs automatically on every command.</div>
+</div>
+
+<!-- Installation -->
+<div class="section" id="installation">
+  <h1>Installation</h1>
+  <p>Multiple ways to install matcha depending on your setup.</p>
+
+  <h3>Option A: npm (recommended)</h3>
+  <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p style="margin-top: 8px; font-size: 13px; color: var(--dim)">Or install globally:</p>
+  <div class="code-block"><pre><code>npm install -g matcha
+matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Option B: One-liner (any agent, no npm)</h3>
+  <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Option C: Clone + build</h3>
+  <div class="code-block"><pre><code>git clone https://github.com/plumpslabs/matcha.git
+cd matcha
+node scripts/build-adapters.js</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Option D: Claude Code plugin</h3>
+  <div class="code-block"><pre><code># From Claude Code marketplace
+/install matcha</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>What Gets Installed</h3>
+  <table>
+    <tr><th>File/Dir</th><th>Purpose</th></tr>
+    <tr><td><code>AGENTS.md</code></td><td>Primary cross-tool rules file</td></tr>
+    <tr><td><code>.claude/</code></td><td>Claude Code agents, commands, skills, hooks</td></tr>
+    <tr><td><code>.opencode/</code></td><td>OpenCode agents and skills</td></tr>
+    <tr><td><code>.agents/</code></td><td>Universal agent definitions (canonical source)</td></tr>
+    <tr><td><code>.openclaw/</code></td><td>OpenClaw skills</td></tr>
+    <tr><td><code>.kiro/</code></td><td>Kiro steering files</td></tr>
+    <tr><td><code>.windsurfrules</code></td><td>Windsurf rules</td></tr>
+    <tr><td><code>GEMINI.md</code></td><td>Antigravity/Agy rules</td></tr>
+    <tr><td><code>hooks/</code></td><td>Lifecycle hooks (shield, post-write, stop, metrics)</td></tr>
+  </table>
+
+  <div class="callout callout-info"><strong>Safety:</strong> matcha uses safe-merge for settings. It will NOT overwrite existing hooks from other tools (Kuma, Fennec, etc.).</div>
+</div>
+
+<!-- Provider Setup: Claude Code -->
+<div class="section" id="setup-claude">
+  <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:8px"><path d="M4.709 15.955l4.72-2.647.08-.23-.08-.128H9.2l-.79-.048-2.698-.073-2.339-.097-2.266-.122-.571-.121L0 11.784l.055-.352.48-.321.686.06 1.52.103 2.278.158 1.652.097 2.449.255h.389l.055-.157-.134-.098-.103-.097-2.358-1.596-2.552-1.688-1.336-.972-.724-.491-.364-.462-.158-1.008.656-.722.881.06.225.061.893.686 1.908 1.476 2.491 1.833.365.304.145-.103.019-.073-.164-.274-1.355-2.446-1.446-2.49-.644-1.032-.17-.619a2.97 2.97 0 01-.104-.729L6.283.134 6.696 0l.996.134.42.364.62 1.414 1.002 2.229 1.555 3.03.456.898.243.832.091.255h.158V9.01l.128-1.706.237-2.095.23-2.695.08-.76.376-.91.747-.492.584.28.48.685-.067.444-.286 1.851-.559 2.903-.364 1.942h.212l.243-.242.985-1.306 1.652-2.064.73-.82.85-.904.547-.431h1.033l.76 1.129-.34 1.166-1.064 1.347-.881 1.142-1.264 1.7-.79 1.36.073.11.188-.02 2.856-.606 1.543-.28 1.841-.315.833.388.091.395-.328.807-1.969.486-2.309.462-3.439.813-.042.03.049.061 1.549.146.662.036h1.622l3.02.225.79.522.474.638-.079.485-1.215.62-1.64-.389-3.829-.91-1.312-.329h-.182v.11l1.093 1.068 2.006 1.81 2.509 2.33.127.578-.322.455-.34-.049-2.205-1.657-.851-.747-1.926-1.62h-.128v.17l.444.649 2.345 3.521.122 1.08-.17.353-.608.213-.668-.122-1.374-1.925-1.415-2.167-1.143-1.943-.14.08-.674 7.254-.316.37-.729.28-.607-.461-.322-.747.322-1.476.389-1.924.315-1.53.286-1.9.17-.632-.012-.042-.14.018-1.434 1.967-2.18 2.945-1.726 1.845-.414.164-.717-.37.067-.662.401-.589 2.388-3.036 1.44-1.882.93-1.086-.006-.158h-.055L4.132 18.56l-1.13.146-.487-.456.061-.746.231-.243 1.908-1.312-.006.006z" fill="#D97757"/></svg> Claude Code Setup</h1>
+  <p>matcha works natively with Claude Code via plugin marketplace or manual setup.</p>
+
+  <h3>Method 1: Plugin Marketplace</h3>
+  <div class="code-block"><pre><code># Inside Claude Code
+/install matcha</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Method 2: npm install</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+
+  <h3>Method 3: Curl script</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Run install script</h4>
+      <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Hooks are auto-configured</h4>
+      <p>The install script creates <code>.claude/settings.json</code> with hooks (merged, not overwritten).</p>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <h4>Verify</h4>
+      <div class="code-block"><pre><code>node bin/matcha.js status
+# Should show: Platform: Claude Code ✅</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+
+  <h3>MCP Configuration (Optional)</h3>
+  <p>Add matcha MCP tools for additional enforcement:</p>
+  <div class="code-block"><pre><code>{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Place in <code>.mcp.json</code> (per-project) or <code>~/.claude.json</code> (global).</p>
+</div>
+
+<!-- Provider Setup: OpenCode -->
+<div class="section" id="setup-opencode">
+  <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="var(--accent)" style="vertical-align:middle;margin-right:8px"><path d="M16 6H8v12h8V6zm4 16H4V2h16v20z"/></svg> OpenCode Setup</h1>
+  <p>matcha auto-detects OpenCode and configures agents + skills.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Auto-detected</h4>
+      <p>OpenCode reads <code>.opencode/agents/*.md</code> and <code>.opencode/skills/matcha/SKILL.md</code> automatically.</p>
+    </div>
+  </div>
+
+  <h3>MCP Configuration</h3>
+  <div class="code-block"><pre><code>{
+  "mcp": {
+    "matcha": {
+      "type": "local",
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"],
+      "enabled": true
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Place in <code>opencode.json</code> (per-project) or <code>~/.config/opencode/opencode.json</code> (global).</p>
+</div>
+
+<!-- Provider Setup: Cursor -->
+<div class="section" id="setup-cursor">
+  <h1><i data-lucide="box" style="width:24px;height:24px;vertical-align:middle;margin-right:8px"></i> Cursor Setup</h1>
+  <p>matcha works with Cursor via AGENTS.md (native) and optional MCP.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>AGENTS.md auto-detected</h4>
+      <p>Cursor reads <code>AGENTS.md</code> in project root automatically.</p>
+    </div>
+  </div>
+
+  <h3>MCP Configuration (Optional)</h3>
+  <div class="code-block"><pre><code>{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Place in <code>.cursor/mcp.json</code> (per-project) or <code>~/.cursor/mcp.json</code> (global).</p>
+</div>
+
+<!-- Provider Setup: Windsurf -->
+<div class="section" id="setup-windsurf">
+  <h1><svg width="24" height="24" viewBox="0 0 24 24" fill="none" style="vertical-align:middle;margin-right:8px"><path d="M3 17l4-4 4 4 4-8 4 4" stroke="var(--cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> Windsurf Setup</h1>
+  <p>matcha works with Windsurf via <code>.windsurfrules</code>.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>.windsurfrules auto-generated</h4>
+      <p>Windsurf reads <code>.windsurfrules</code> in project root automatically.</p>
+    </div>
+  </div>
+
+  <h3>MCP Configuration</h3>
+  <div class="code-block"><pre><code>{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Place in <code>~/.codeium/windsurf/mcp_config.json</code> (global only).</p>
+</div>
+
+<!-- Provider Setup: Kiro -->
+<div class="section" id="setup-agy">
+  <h1><svg width="24" height="24" viewBox="0 0 16 15" style="vertical-align:middle;margin-right:8px"><mask id="m0" width="16" height="15" x="0" y="0" maskUnits="userSpaceOnUse" style="mask-type:alpha"><path fill="#000" d="M14.078 13.984c.867.65 2.168.217.976-.976C11.5 9.54 12.259 0 7.814 0S4.105 9.54.527 13.008c-1.301 1.309.108 1.634.975.976 3.36-2.276 3.144-6.287 6.287-6.287s2.927 4.011 6.289 6.287z"/></mask><g mask="url(#m0)"><path fill="#FFE432" d="M-.659-3.231c-.264 2.324 1.738 4.46 4.472 4.77 2.734.31 5.158-1.322 5.422-3.646.264-2.324-1.738-4.46-4.472-4.77C2.319-7.187-.112-5.554-.659-3.231z"/><path fill="#FC413D" d="M9.882 4.366c.685 2.95 3.684 4.773 6.698 4.073 3.014-.7 4.902-3.658 4.217-6.607-.685-2.95-3.684-4.773-6.698-4.073-3.014.7-4.902 3.658-4.217 6.607z"/><path fill="#00B95C" d="M-8.053 6.345c.866 3.044 4.764 4.602 8.707 3.481 3.943-1.121 6.438-4.497 5.572-7.541-.866-3.044-4.764-4.602-8.707-3.481-3.943 1.121-6.438 4.497-5.572 7.541z"/><path fill="#3186FF" d="M6.428 17.226c.674 2.901 3.485 4.727 6.278 4.078 2.794-.649 4.512-3.526 3.838-6.427-.674-2.9-3.485-4.727-6.278-4.078-2.794.649-4.512 3.526-3.838 6.427z"/><path fill="#FBBC04" d="M1.665-5.945c-1.411 3.143.133 6.897 3.448 8.385 3.315 1.488 7.146.149 8.557-2.994 1.41-3.143-.133-6.897-3.448-8.385C6.907-10.43 3.076-9.088 1.665-5.945z"/></g></svg> agy (Antigravity) Setup</h1>
+  <p>matcha works with agy (Antigravity CLI) via plugin install.</p>
+
+  <h3>Method 1: Plugin Install</h3>
+  <div class="code-block"><pre><code>agy plugin install https://github.com/plumpslabs/matcha</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Method 2: npm install</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+
+  <h3>Method 3: Curl script</h3>
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Run install script</h4>
+      <div class="code-block"><pre><code>curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh | bash</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Auto-detected</h4>
+      <p>agy reads <code>GEMINI.md</code> and <code>.agents/</code> automatically.</p>
+    </div>
+  </div>
+
+  <h3>What Gets Installed</h3>
+  <ul>
+    <li><code>GEMINI.md</code> — rules file</li>
+    <li><code>.agents/agents/*.md</code> — 6 agent definitions</li>
+    <li><code>.agents/commands/*.md</code> — 8 slash commands</li>
+    <li><code>.agents/skills/matcha/SKILL.md</code> — skill file</li>
+    <li><code>AGENTS.md</code> — cross-tool file</li>
+  </ul>
+
+  <h3>MCP Configuration (Optional)</h3>
+  <div class="code-block"><pre><code>{
+  "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": ["hooks/matcha-mcp-server.js"]
+    }
+  }
+}</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+</div>
+
+<div class="section" id="setup-kiro">
+  <h1><svg width="24" height="24" viewBox="0 0 256 256" style="vertical-align:middle;margin-right:8px"><path fill="#993FF5" d="m200.1 0h-144.2c-30.77 0-55.81 26.13-55.81 55.81v144.1c0 30.84 25.08 56 55.81 56h144.1c30.92 0 56-25.08 56-55.93v-144.2c0-29.68-24.42-55.81-55.87-55.81z"/><path fill="#FEFFFE" d="m195.9 107.8c-2.84-27.64-18.85-62.98-60.73-64.4h-3.09c-29.9 0-52.18 21.88-56.84 52.31-2.68 9.26-2.46 20.79-4.86 35.12-2.48 14.9-7.38 20.23-10.77 28.96-1.88 5.11-1.19 17.58 10.84 18.65 6.63.59 14.92-2.78 15.03-3.96-2.25 4.59-5.08 12.84-4.78 19.82.6 11.64 8.71 17.78 21.25 17.78 14.07 0 24.1-8.4 30.32-12.14 3.01 7.78 6.93 12.14 14.41 12.14 13.02 0 27.47-13.13 33.84-23.58 11.19-19.55 18.26-42.4 16.17-71.32-.08-2.87-.35-6.08-.79-9.38z"/><path fill="#010202" d="M135.1 90.55c-7.28-.54-7.85 8.36-7.85 14.05 0 6.08 1.6 13.14 7.96 13.14 6.6 0 8.92-8.08 8.92-13.14 0-5.56-1.59-14.05-9.03-14.05zM164.4 90.55c-7.27-.54-8.66 7.59-8.66 14.05 0 5.82 1.51 13.14 8.07 13.14 7.38 0 8.83-9.57 8.83-13.14 0-5.89-2.01-14.05-8.24-14.05z"/></svg> Kiro Setup</h1>
+  <p>matcha works with Kiro via steering files in <code>.kiro/steering/</code>.</p>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <h4>Install matcha</h4>
+      <div class="code-block"><pre><code>npx matcha@latest init</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+    </div>
+  </div>
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <h4>Steering files created</h4>
+      <p><code>.kiro/steering/matcha.md</code>, <code>dev-mode.md</code>, <code>review-mode.md</code></p>
+    </div>
+  </div>
+</div>
+
+<!-- Provider Setup: MCP -->
+<div class="section" id="setup-mcp">
+  <h1><i data-lucide="plug" style="width:24px;height:24px;vertical-align:middle"></i> MCP Server Setup</h1>
+  <p>matcha exposes 4 tools via MCP (Model Context Protocol) for any compatible client.</p>
+
+  <h3>Available Tools</h3>
+  <table>
+    <tr><th>Tool</th><th>Description</th></tr>
+    <tr><td><code>matcha_shield_check</code></td><td>Check a command for dangerous patterns</td></tr>
+    <tr><td><code>matcha_post_write_scan</code></td><td>Scan a file for cleanup issues (13+ languages)</td></tr>
+    <tr><td><code>matcha_stop_tips</code></td><td>Get end-of-task suggestions from git diff</td></tr>
+    <tr><td><code>matcha_plan_validate</code></td><td>Validate a 5W1H plan</td></tr>
+  </table>
+
+  <h3>Start the Server</h3>
+  <div class="code-block"><pre><code>node hooks/matcha-mcp-server.js
+# Runs via stdio JSON-RPC</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Client Configuration</h3>
+  <p>Each client has a different config format. See provider-specific sections above.</p>
+
+  <div class="callout callout-info"><strong>Global vs Per-Project:</strong> We recommend per-project MCP config (<code>.mcp.json</code>) — safer, easier to remove, can be committed to repo.</div>
+</div>
+
+<!-- Philosophy -->
+<div class="section" id="philosophy">
+  <h1>Philosophy</h1>
+  <p><em>Simple. Efficient. Deliberate. Never twice.</em></p>
+
+  <h3>The 6-Checkpoint Filter</h3>
+  <p>Every implementation passes through 6 checkpoints:</p>
+  <table>
+    <tr><th>#</th><th>Checkpoint</th><th>Purpose</th></tr>
+    <tr><td>1</td><td><strong>Purpose + Reuse</strong></td><td>5W1H gate + search for existing code</td></tr>
+    <tr><td>2</td><td><strong>Stack Audit</strong></td><td>Check for service overlap</td></tr>
+    <tr><td>3</td><td><strong>Implementation</strong></td><td>Write code with principles</td></tr>
+    <tr><td>4</td><td><strong>Cleanup</strong></td><td>Remove temp files, debug code</td></tr>
+    <tr><td>5</td><td><strong>Verify</strong></td><td>Run tests, typecheck, lint</td></tr>
+    <tr><td>6</td><td><strong>Review Gate</strong></td><td>Risk-based review (L0-L3)</td></tr>
+  </table>
+
+  <h3>Core Principles</h3>
+  <ul>
+    <li><strong>No hardcoded values</strong> — use env vars: <code>APPNAME_VAR_NAME</code></li>
+    <li><strong>One function = one responsibility</strong> — pure functions first</li>
+    <li><strong>Prefer stdlib</strong> — 3 use cases minimum before abstracting</li>
+    <li><strong>Fail fast</strong> — validate inputs at boundaries</li>
+    <li><strong>Idempotent</strong> — operations safe to retry</li>
+    <li><strong>No empty catches</strong> — explicit error paths</li>
+  </ul>
+</div>
+
+<!-- Modes -->
+<div class="section" id="modes">
+  <h1>Context-Aware Modes</h1>
+  <p>matcha auto-detects what the agent is doing and adjusts behavior.</p>
+
+  <table>
+    <tr><th>Mode</th><th>Trigger</th><th>Planning Gate</th><th>Review Gate</th></tr>
+    <tr><td><strong>Explore</strong></td><td>Reading, greping</td><td>Skip</td><td>Skip</td></tr>
+    <tr><td><strong>Implement</strong></td><td>Writing new code</td><td>Enforce</td><td>Enforce</td></tr>
+    <tr><td><strong>Refactor</strong></td><td>Changing existing code</td><td>Enforce + legacy</td><td>Enforce</td></tr>
+    <tr><td><strong>Debug</strong></td><td>Error, investigating</td><td>Skip</td><td>Skip</td></tr>
+    <tr><td><strong>Review</strong></td><td>Finished implementing</td><td>Skip</td><td>Is the review</td></tr>
+  </table>
+
+  <p>Modes are detected automatically from tool input. No manual switching needed.</p>
+</div>
+
+<!-- Risk Tiers -->
+<div class="section" id="risk">
+  <h1>Risk-Based Review</h1>
+  <p>Not all code needs the same review. Route by risk.</p>
+
+  <h3>Risk Tiers</h3>
+  <table>
+    <tr><th>Tier</th><th>Risk</th><th>Review Level</th></tr>
+    <tr><td><strong>L0</strong></td><td>Disposable</td><td>Output check only</td></tr>
+    <tr><td><strong>L1</strong></td><td>Low</td><td>Lint + typecheck</td></tr>
+    <tr><td><strong>L2</strong></td><td>Product Logic</td><td>Full 8-category review</td></tr>
+    <tr><td><strong>L3</strong></td><td>High Risk</td><td>Expert review + threat model</td></tr>
+  </table>
+
+  <h3>Trigger Packs</h3>
+  <p>matcha does NOT hardcode what "high risk" means. Detection uses domain-specific trigger packs:</p>
+  <div class="card-grid">
+    <div class="card"><h4>web-saas</h4><p>Auth, payments, secrets, DB schema</p></div>
+    <div class="card"><h4>ml-pipeline</h4><p>Data leakage, PII, model deploy</p></div>
+    <div class="card"><h4>infra-iac</h4><p>Destructive applies, IAM, prod paths</p></div>
+    <div class="card"><h4>mobile</h4><p>Keychain, permissions, IAP</p></div>
+    <div class="card"><h4>embedded</h4><p>Memory, interrupts, watchdog</p></div>
+    <div class="card"><h4>cli-tool</h4><p>rm -rf, sudo, eval</p></div>
+  </div>
+  <p>See <code>hooks/matcha-trigger-packs.json</code> for all packs and custom template.</p>
+
+  <h3>L2 Full Review Categories</h3>
+  <table>
+    <tr><th>Severity</th><th>Category</th><th>Checks</th></tr>
+    <tr><td>🔴 Must Fix</td><td>Correctness</td><td>Logic, edge cases, race conditions, dead code</td></tr>
+    <tr><td>🔴 Must Fix</td><td>Performance</td><td>O(n²+), N+1, re-render loops, memory leaks</td></tr>
+    <tr><td>🔴 Must Fix</td><td>Security</td><td>Injection, secrets, auth bypass</td></tr>
+    <tr><td>🟡 Should Fix</td><td>Architecture</td><td>God objects, circular deps, over-engineering</td></tr>
+    <tr><td>🟡 Should Fix</td><td>Errors</td><td>Empty catches, missing paths, no retry</td></tr>
+    <tr><td>🟡 Should Fix</td><td>Quality</td><td>Duplication, magic numbers, deep nesting</td></tr>
+    <tr><td>🟢 Nice to Have</td><td>Testing</td><td>Coverage, edge cases</td></tr>
+    <tr><td>🟢 Nice to Have</td><td>Maintainability</td><td>WHY comments, env vars</td></tr>
+  </table>
+</div>
+
+<!-- Planning Gate -->
+<div class="section" id="planning">
+  <h1>Planning Gate</h1>
+  <p>Blocks code modifications until a 5W1H plan exists.</p>
+
+  <h3>Smart Auto-Skip</h3>
+  <p>Planning gate is automatically skipped for:</p>
+  <ul>
+    <li>Read-only commands (<code>git status</code>, <code>grep</code>, <code>ls</code>)</li>
+    <li>Test commands (<code>npm test</code>, <code>vitest</code>)</li>
+    <li>Lint/format commands (<code>eslint</code>, <code>prettier</code>)</li>
+    <li>Documentation files (<code>.md</code>, <code>.txt</code>)</li>
+    <li>Test files (<code>.test.js</code>, <code>.spec.ts</code>)</li>
+  </ul>
+
+  <h3>Plan Format</h3>
+  <div class="code-block"><pre><code>&lt;matcha_gate&gt;
+  &lt;what&gt;Describe what you are building/fixing — with file refs&lt;/what&gt;
+  &lt;why&gt;Why is this necessary? — with evidence&lt;/why&gt;
+  &lt;how&gt;Simplest implementation path — numbered steps&lt;/how&gt;
+&lt;/matcha_gate&gt;</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Validation Rules</h3>
+  <ul>
+    <li><code>&lt;what&gt;</code> must reference specific files</li>
+    <li><code>&lt;why&gt;</code> must include evidence (metrics, errors)</li>
+    <li><code>&lt;how&gt;</code> must list 2+ concrete steps</li>
+    <li>Each section must be 15+ characters</li>
+  </ul>
+</div>
+
+<!-- Project Constraints -->
+<div class="section" id="project-constraints">
+  <h1>Project Constraints</h1>
+  <p>matcha supports project-specific rules that agents must follow.</p>
+
+  <h3>Setup</h3>
+  <div class="code-block"><pre><code>cp skills/matcha/modules/project.md ./MATCHA_PROJECT.md</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>Template Sections</h3>
+  <ul>
+    <li><strong>Stack:</strong> Framework, language, package manager</li>
+    <li><strong>Conventions:</strong> Naming, imports, error handling</li>
+    <li><strong>Architecture:</strong> Layers, patterns, anti-patterns</li>
+    <li><strong>Testing:</strong> Framework, coverage requirements</li>
+    <li><strong>Security:</strong> Auth, secrets, validation rules</li>
+  </ul>
+
+  <div class="callout callout-info"><strong>Auto-loading:</strong> matcha automatically loads <code>MATCHA_PROJECT.md</code> from project root when present.</div>
+</div>
+
+<!-- Commands Reference -->
+<div class="section" id="commands">
+  <h1>Commands Reference</h1>
+  <p>8 slash commands for matcha workflows.</p>
+
+  <table>
+    <tr><th>Command</th><th>Purpose</th><th>Usage</th></tr>
+    <tr><td><code>/matcha:why</code></td><td>5W1H gate check</td><td>Before any implementation</td></tr>
+    <tr><td><code>/matcha:review</code></td><td>Risk-based review gate</td><td>After implementation</td></tr>
+    <tr><td><code>/matcha:audit</code></td><td>Stack audit</td><td>Check for overlaps</td></tr>
+    <tr><td><code>/matcha:intensity</code></td><td>Set enforcement level</td><td><code>/matcha observe|enforce|audit</code></td></tr>
+    <tr><td><code>/matcha:status</code></td><td>Session dashboard</td><td>Check current state</td></tr>
+    <tr><td><code>/matcha:debt</code></td><td>Technical debt report</td><td>Find <code>// matcha:</code> markers</td></tr>
+    <tr><td><code>/matcha:markers</code></td><td>Marker scan</td><td>Group by severity</td></tr>
+    <tr><td><code>/matcha:stats</code></td><td>Session metrics</td><td>Changes, tests, duration</td></tr>
+  </table>
+</div>
+
+<!-- Agents Reference -->
+<div class="section" id="agents">
+  <h1>Agents Reference</h1>
+  <p>6 specialized agents for matcha workflows.</p>
+
+  <table>
+    <tr><th>Agent</th><th>Tools</th><th>Purpose</th></tr>
+    <tr><td><code>@matcha-planner</code></td><td>Read, Grep, Glob</td><td>Plan features through 5W1H checkpoints</td></tr>
+    <tr><td><code>@matcha-finder</code></td><td>Read, Grep, Glob, Bash</td><td>Hunt existing code before writing new</td></tr>
+    <tr><td><code>@matcha-auditor</code></td><td>Read, Grep, Glob, Bash</td><td>Stack audit for overlaps and risks</td></tr>
+    <tr><td><code>@matcha-reviewer</code></td><td>Read, Grep, Glob</td><td>Code review with risk-based routing</td></tr>
+    <tr><td><code>@matcha-cleaner</code></td><td>Read, Grep, Glob, Bash</td><td>Remove temp/debug/unused code</td></tr>
+    <tr><td><code>@matcha-debugger</code></td><td>Read, Grep, Glob, Bash</td><td>Systematic debugging workflow</td></tr>
+  </table>
+</div>
+
+<!-- Hooks Reference -->
+<div class="section" id="hooks">
+  <h1>Hooks Reference</h1>
+  <p>4 lifecycle hooks for deterministic enforcement.</p>
+
+  <table>
+    <tr><th>Hook</th><th>Event</th><th>Purpose</th></tr>
+    <tr><td><code>matcha-shield.js</code></td><td>PreToolUse</td><td>Blocks dangerous commands + mode detection</td></tr>
+    <tr><td><code>matcha-post-write.js</code></td><td>PostToolUse</td><td>Scans files for cleanup issues (13+ languages)</td></tr>
+    <tr><td><code>matcha-stop.js</code></td><td>Stop</td><td>End-of-task suggestions from git diff</td></tr>
+    <tr><td><code>matcha-metrics.js</code></td><td>Shared</td><td>Session metrics tracking</td></tr>
+  </table>
+
+  <h3>Override</h3>
+  <div class="code-block"><pre><code>MATCHA_SHIELD_OFF=true  # Disable all shield checks</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+</div>
+
+<!-- Modules Reference -->
+<div class="section" id="modules">
+  <h1>Modules Reference</h1>
+  <p>11 focused modules loaded on-demand.</p>
+
+  <table>
+    <tr><th>Module</th><th>When to Load</th><th>Content</th></tr>
+    <tr><td><code>core.md</code></td><td>Always</td><td>6-checkpoint filter, intensity, planning gate</td></tr>
+    <tr><td><code>project.md</code></td><td>Always</td><td>Project-specific constraints</td></tr>
+    <tr><td><code>modes.md</code></td><td>Always</td><td>Context-aware mode switching</td></tr>
+    <tr><td><code>risk.md</code></td><td>During review</td><td>Risk-based review routing (L0-L3)</td></tr>
+    <tr><td><code>legacy.md</code></td><td>Legacy codebases</td><td>Incremental batching, impact analysis</td></tr>
+    <tr><td><code>orchestration.md</code></td><td>Large tasks</td><td>Sub-agent chain (scout→plan→execute→review)</td></tr>
+    <tr><td><code>context.md</code></td><td>All sessions</td><td>Living context index</td></tr>
+    <tr><td><code>metrics.md</code></td><td>End of session</td><td>Metrics tracking</td></tr>
+    <tr><td><code>tdd.md</code></td><td>TDD requested</td><td>Test-driven development flow</td></tr>
+    <tr><td><code>loop.md</code></td><td>Complex tasks</td><td>Loop mode with retry/escalation</td></tr>
+    <tr><td><code>communication.md</code></td><td>Flagging issues</td><td>Format, tone, boundaries</td></tr>
+  </table>
+</div>
+
+<!-- Architecture -->
+<div class="section" id="architecture">
+  <h1>Architecture</h1>
+  <p>Layered by design. Each layer does one thing.</p>
+
+  <div style="display:flex;flex-direction:column;gap:4px;max-width:500px;margin:20px 0">
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">1</span>
+      <span style="font-size:14px;font-weight:600">AGENTS.md</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">Primary cross-tool rules</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">2</span>
+      <span style="font-size:14px;font-weight:600">Skills + Modules</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">11 load-on-demand modules</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">3</span>
+      <span style="font-size:14px;font-weight:600">Project Constraints</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">MATCHA_PROJECT.md</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">4</span>
+      <span style="font-size:14px;font-weight:600">Hooks</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">Shield, post-write, stop, metrics</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">5</span>
+      <span style="font-size:14px;font-weight:600">MCP Server</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">4 tools, cross-platform</span>
+    </div>
+    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
+      <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">6</span>
+      <span style="font-size:14px;font-weight:600">Commands + Agents</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">8 commands, 6 agents</span>
+    </div>
+  </div>
+</div>
+
+</main>
+
 <script>
-(async function() {
-  const container = document.getElementById('bench-container');
-  let currentTab = 'real';
+// Sidebar active state
+function setActive(el) {
+  document.querySelectorAll('.sidebar-link').forEach(l => l.classList.remove('active'));
+  el.classList.add('active');
+  // Close mobile sidebar
+  document.querySelector('.sidebar').classList.remove('open');
+}
 
-  async function loadData() {
-    try {
-      const resp = await fetch('./benchmark.json');
-      if (!resp.ok) throw new Error('Not found');
-      return await resp.json();
-    } catch {
-      const el = document.getElementById('benchmark-data');
-      if (el) return JSON.parse(el.textContent);
-      throw new Error('No embedded fallback');
-    }
-  }
-
-  function renderRealBench(json) {
-    const rb = json.realBench;
-    if (!rb) return '<p style="color:#6a6a85;text-align:center">No real benchmark data available.</p>';
-
-    const f = rb.features;
-
-    let html = '<div class="bench-stats">';
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#5bc0be">${rb.summary.passed}/${rb.summary.totalTests}</div>
-      <div class="label" style="color:#5bc0be">Tests Passed</div>
-      <div class="sub">${rb.summary.failed} failed &middot; 🏗️ 3 features</div>
-    </div>`;
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#e6b91e">${rb.summary.totalLOC}</div>
-      <div class="label" style="color:#e6b91e">Total LOC Added</div>
-      <div class="sub">${f.map(x => x.file.split('/').pop()).join(' + ')}</div>
-    </div>`;
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#7a7a90">${rb.backend}</div>
-      <div class="label" style="color:#7a7a90">AI Backend</div>
-      <div class="sub">🍵 matcha: ${rb.matcha ? '✅ Active' : '❌ Not active'}</div>
-    </div>`;
-    html += '</div>';
-
-    // Feature cards
-    for (const feat of f) {
-      html += `<div style="background:#0f0f1e;border:1px solid #1a1a2e;border-radius:6px;padding:0.75rem 1rem;margin-bottom:0.75rem">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem">
-          <span style="font-weight:600;font-size:0.82rem;color:#f0f0f5">${feat.name}</span>
-          <span style="font-size:0.65rem;color:#6a6a85">${feat.file} &middot; ${feat.steps} steps</span>
-        </div>
-        <div style="display:flex;gap:0.75rem;margin-bottom:0.4rem;flex-wrap:wrap">
-          <span style="font-size:0.7rem;color:#5bc0be">📄 ${feat.loc} LOC</span>
-          <span style="font-size:0.7rem;color:#e6b91e">🧪 ${feat.passed}/${feat.tests} tests</span>
-          <span style="font-size:0.7rem;background:rgba(91,192,190,0.08);color:#5bc0be;border:1px solid rgba(91,192,190,0.15);padding:0.08rem 0.3rem;border-radius:3px">🍵 Score: ${feat.matchaScore}</span>
-        </div>
-        <ul style="list-style:none;font-size:0.68rem;color:#7a7a90;margin:0;padding:0">
-          ${feat.highlights.map(h => `<li style="padding:0.1rem 0">✓ ${h}</li>`).join('')}
-        </ul>
-      </div>`;
-    }
-
-    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:0.75rem">
-      Generated: ${new Date(rb.generated).toLocaleString()} &middot;
-      Backend: ${rb.backend} &middot;
-      <a href="../MATCHA_REAL_BENCHMARK.md">Methodology &rarr;</a>
-    </p>`;
-    return html;
-  }
-
-  function renderCompareBench(json) {
-    const sp = json.simplePromptTest;
-    if (!sp) return '<p style="color:#6a6a85;text-align:center">No comparison data available.</p>';
-
-    const w = sp.comparison.withMatcha;
-    const wo = sp.comparison.withoutMatcha;
-
-    let html = '<div class="bench-stats">';
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#5bc0be">${w.passed}/${w.tests}</div>
-      <div class="label" style="color:#5bc0be">🍵 With Matcha</div>
-      <div class="sub">${w.loc} LOC &middot; ${w.namedConstants ? 'Named constants ✅' : 'Hardcoded ❌'}</div>
-    </div>`;
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#6a6a85">${wo.passed}/${wo.tests}</div>
-      <div class="label" style="color:#6a6a85">❌ Without Matcha</div>
-      <div class="sub">${wo.loc} LOC &middot; ${wo.namedConstants ? 'Named constants ✅' : 'Hardcoded ❌'}</div>
-    </div>`;
-    html += `<div class="bench-stat">
-      <div class="value" style="color:#e6b91e">${w.loc - wo.loc > 0 ? '+' : ''}${w.loc - wo.loc} LOC</div>
-      <div class="label" style="color:#e6b91e">Delta</div>
-      <div class="sub">Matcha uses ${Math.round((w.loc - wo.loc) / wo.loc * 100)}% more — cost of maintainability</div>
-    </div>`;
-    html += '</div>';
-
-    // Comparison table
-    html += '<div class="table-wrap"><table>';
-    html += '<thead><tr><th>Criterion</th><th style="color:#5bc0be">🍵 With Matcha</th><th style="color:#6a6a85">❌ Without Matcha</th></tr></thead><tbody>';
-
-    const rows = [
-      { label: 'Status Codes', w: w.statusCodes.join(', '), wo: wo.statusCodes.join(', ') },
-      { label: 'Error Messages', w: w.errorMessages.join('<br>'), wo: wo.errorMessages.join('<br>') },
-      { label: 'Named Constants', w: w.namedConstants ? '✅ Yes' : '❌ No', wo: wo.namedConstants ? '✅ Yes' : '❌ No' },
-      { label: 'Separate Function', w: w.separateFunction ? '✅ Yes' : '❌ No', wo: wo.separateFunction ? '✅ Yes' : '❌ No' },
-      { label: 'Data Structure', w: w.dataStructure, wo: wo.dataStructure },
-      { label: 'Tests Passed', w: w.passed + '/' + w.tests, wo: wo.passed + '/' + wo.tests },
-    ];
-
-    for (const row of rows) {
-      html += `<tr><td>${row.label}</td><td style="color:#5bc0be">${row.w}</td><td style="color:#6a6a85">${row.wo}</td></tr>`;
-    }
-
-    html += '</tbody></table></div>';
-
-    html += `<p class="text-center" style="font-size:0.65rem;color:#3a3a50;margin-top:0.75rem">
-      Prompt: <code style="color:#e6b91e">"${sp.prompt}"</code> &middot;
-      Backend: ${sp.backend} &middot;
-      <a href="../MATCHA_REAL_BENCHMARK.md">Full comparison &rarr;</a>
-    </p>`;
-    return html;
-  }
-
-  function render() {
-    const json = window.__benchData;
-    if (!json) {
-      container.innerHTML = '<div class="bench-error">⚠️ No benchmark data.</div>';
-      return;
-    }
-    if (currentTab === 'real') container.innerHTML = renderRealBench(json);
-    else container.innerHTML = renderCompareBench(json);
-  }
-
-  // ── Tab switching ──
-  document.querySelectorAll('.bench-tab').forEach(btn => {
-    btn.addEventListener('click', function() {
-      document.querySelectorAll('.bench-tab').forEach(b => {
-        b.style.background = '#0f0f1e';
-        b.style.color = '#6a6a85';
-        b.style.borderColor = '#1a1a2e';
-      });
-      this.style.background = '#1a1a2e';
-      this.style.color = '#e6b91e';
-      this.style.borderColor = '#2a2a40';
-
-      currentTab = this.dataset.tab;
-      document.getElementById('bench-info-real').style.display = currentTab === 'real' ? 'block' : 'none';
-      document.getElementById('bench-info-compare').style.display = currentTab === 'compare' ? 'block' : 'none';
-      render();
-    });
+// Scroll spy
+const sections = document.querySelectorAll('.section[id]');
+const links = document.querySelectorAll('.sidebar-link[href^="#"]');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 100) current = s.id;
   });
+  links.forEach(l => {
+    l.classList.toggle('active', l.getAttribute('href') === '#' + current);
+  });
+});
 
-  // ── Load data & render ──
-  try {
-    window.__benchData = await loadData();
-    render();
-  } catch (e) {
-    container.innerHTML = `<div class="bench-error">
-      ⚠️ No benchmark data available.
-      <br><br>
-      Run <code style="color:#e6b91e">cd matcha/ &amp;&amp; node benchmark/generate-report.js</code>.
-      <br><br>
-      <small>${e.message}</small>
-    </div>`;
-  }
-})();
+// Copy code
+function copyCode(btn) {
+  const code = btn.parentElement.querySelector('code').textContent;
+  navigator.clipboard.writeText(code).then(() => {
+    btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = 'Copy', 1500);
+  });
+}
+
+// Init icons
+lucide.createIcons();
 </script>
-
 </body>
 </html>

@@ -32,7 +32,6 @@ describe("Symmetry — canonical source", () => {
     const files = AGENT_NAMES.map(a => join(ROOT, ".agents/agents", `${a}.md`));
     for (const f of files) {
       const content = readFileSync(f, "utf-8");
-      // Should not reference .opencode or .claude paths
       expect(content).not.toContain(".opencode/");
       expect(content).not.toContain(".claude/");
     }
@@ -49,7 +48,6 @@ describe("Symmetry — no stale duplicates", () => {
         if (existsSync(path)) {
           const stat = lstatSync(path);
           if (!stat.isSymbolicLink()) {
-            // Regular file in platform dir = stale copy, should be symlink
             expect(false).toBe(true);
           }
         }
@@ -64,6 +62,7 @@ describe("Symmetry — SKILL.md canonical", () => {
     ".opencode/skills/matcha/SKILL.md",
     ".claude/skills/matcha/SKILL.md",
     ".openclaw/skills/matcha/SKILL.md",
+    ".agents/skills/matcha/SKILL.md",
   ];
 
   test("canonical SKILL.md exists", () => {
@@ -78,4 +77,37 @@ describe("Symmetry — SKILL.md canonical", () => {
       expect(stat.isSymbolicLink()).toBe(true);
     });
   }
+});
+
+describe("Symmetry — Skill modules exist", () => {
+  const modules = ["core.md", "flow.md", "communication.md"];
+
+  for (const mod of modules) {
+    test(`skills/matcha/modules/${mod} exists`, () => {
+      expect(existsSync(join(ROOT, "skills/matcha/modules", mod))).toBe(true);
+    });
+  }
+});
+
+describe("Symmetry — Pattern registry", () => {
+  test("hooks/patterns.json exists and is valid JSON", () => {
+    const content = readFileSync(join(ROOT, "hooks/patterns.json"), "utf-8");
+    const parsed = JSON.parse(content);
+    expect(parsed.version).toBeDefined();
+    expect(Object.keys(parsed.languages).length).toBeGreaterThanOrEqual(7);
+  });
+});
+
+describe("Symmetry — MCP server", () => {
+  test("hooks/matcha-mcp-server.js exists", () => {
+    expect(existsSync(join(ROOT, "hooks/matcha-mcp-server.js"))).toBe(true);
+  });
+
+  test("hooks/matcha-mcp-server.js has MCP tools", () => {
+    const content = readFileSync(join(ROOT, "hooks/matcha-mcp-server.js"), "utf-8");
+    expect(content).toContain("matcha_shield_check");
+    expect(content).toContain("matcha_post_write_scan");
+    expect(content).toContain("matcha_stop_tips");
+    expect(content).toContain("matcha_plan_validate");
+  });
 });

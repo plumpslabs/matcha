@@ -105,6 +105,7 @@ for (const agent of AGENT_NAMES) {
 
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .claude/skills/matcha/)
 symlink(".claude/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
+symlink(".claude/skills/matcha/modules", "../../../skills/matcha/modules");
 
 // Commands: regular files (truncated for Claude Code context window)
 const CMD_MAX = 1200;
@@ -141,6 +142,7 @@ for (const cmd of COMMAND_NAMES) {
 
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .opencode/skills/matcha/)
 symlink(".opencode/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
+symlink(".opencode/skills/matcha/modules", "../../../skills/matcha/modules");
 
 // Plugin stays as-is (it's OpenCode-specific)
 // Don't overwrite .opencode/plugins/matcha.js
@@ -162,6 +164,7 @@ for (const agent of AGENT_NAMES) {
 
 // Skills: symlink to canonical
 symlink(".agents/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
+symlink(".agents/skills/matcha/modules", "../../../skills/matcha/modules");
 
 // Commands: regular files
 cleanLegacyCommands(".agents/commands");
@@ -180,6 +183,7 @@ console.log("── .openclaw/ ──");
 
 // Skills: symlink to canonical (3 levels up from .openclaw/skills/matcha/)
 symlink(".openclaw/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
+symlink(".openclaw/skills/matcha/modules", "../../../skills/matcha/modules");
 
 console.log("");
 

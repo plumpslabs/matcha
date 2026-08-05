@@ -74,8 +74,16 @@ describe("danger-checks.js", () => {
     test("detects read-only commands as simple", () => {
       expect(isSimpleTask("Bash", { command: "ls -la" })).toBe(true);
       expect(isSimpleTask("Bash", { command: "git status" })).toBe(true);
+      expect(isSimpleTask("Bash", { command: "git log --oneline -5" })).toBe(true);
       expect(isSimpleTask("Bash", { command: "cat file.txt" })).toBe(true);
       expect(isSimpleTask("Bash", { command: "grep pattern" })).toBe(true);
+    });
+
+    test("git branch switching never blocks (git switch)", () => {
+      expect(isSimpleTask("Bash", { command: "git switch main" })).toBe(true);
+      expect(isSimpleTask("Bash", { command: "git switch -c feat/x" })).toBe(true);
+      expect(isSimpleTask("Bash", { command: "git blame src/app.js" })).toBe(true);
+      expect(isSimpleTask("Bash", { command: "git worktree list" })).toBe(true);
     });
 
     test("detects test commands as simple", () => {

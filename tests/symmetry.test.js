@@ -102,10 +102,24 @@ describe("Symmetry — SKILL.md canonical", () => {
 
 describe("Symmetry — Skill modules exist", () => {
   const modules = ["core.md", "project.md", "modes.md", "risk.md", "legacy.md"];
+  const platformDirs = [
+    ".agents/skills/matcha/modules",
+    ".claude/skills/matcha/modules",
+    ".opencode/skills/matcha/modules",
+    ".openclaw/skills/matcha/modules",
+  ];
 
   for (const mod of modules) {
-    test(`skills/matcha/modules/${mod} exists`, () => {
+    test(`skills/matcha/modules/${mod} exists (canonical)`, () => {
       expect(existsSync(join(ROOT, "skills/matcha/modules", mod))).toBe(true);
+    });
+  }
+
+  for (const dir of platformDirs) {
+    test(`${dir} resolves all 5 modules`, () => {
+      for (const mod of modules) {
+        expect(existsSync(join(ROOT, dir, mod))).toBe(true);
+      }
     });
   }
 });

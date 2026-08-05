@@ -60,7 +60,7 @@ export function checkCommand(command) {
 
 const SIMPLE_TASK_PATTERNS = [
   /^(cat|ls|find|grep|head|tail|wc|echo|pwd|which|env|date)\b/i,
-  /^git\s+(status|log|diff|show|branch|remote|tag|add|commit|push|pull|fetch|merge|stash|checkout|restore)\b/i,
+  /^git\s+(status|log|diff|show|branch|remote|tag|add|commit|push|pull|fetch|merge|stash|checkout|restore|switch|blame|bisect|reflog|describe|worktree)\b/i,
   /^(npm|npx|yarn|pnpm|bun|vitest|jest|mocha|pytest|go test|cargo test)\b/i,
   /^(npm|pnpm|yarn|bun)\s+(install|add|ci|update|remove)\b/i,
   /^(eslint|prettier|black|ruff|gofmt|rustfmt)\b/i,

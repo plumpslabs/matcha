@@ -42,7 +42,7 @@ describe("Core files", () => {
   test("plugin.json (AGY manifest) has current version", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     expect(content.name).toBe("matcha");
-    expect(content.version).toBe("2.5.13");
+    expect(content.version).toBe("2.5.14");
   });
 
   test("plugin.json (AGY manifest) declares all 7 commands", () => {
@@ -174,7 +174,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.13");
+    expect(mcp).toContain("2.5.14");
   });
 
   test("has shield check tool", () => {

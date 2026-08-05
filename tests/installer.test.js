@@ -43,6 +43,16 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("matcha-stop.js");
   });
 
+  test("installs hook runtime dependencies (shield/mcp/opencode import them)", () => {
+    // matcha-shield.js imports danger-checks, planning-gate, mode-detect, matcha-metrics
+    // matcha-mcp-server.js + opencode plugin import planning-gate
+    expect(installer).toContain("planning-gate.js");
+    expect(installer).toContain("danger-checks.js");
+    expect(installer).toContain("mode-detect.js");
+    expect(installer).toContain("matcha-metrics.js");
+    expect(installer).toContain("matcha-trigger-packs.json");
+  });
+
   test("scaffolds session memory (plan + reports)", () => {
     expect(installer).toContain(".agents/plan/current.md");
     expect(installer).toContain(".agents/reports");

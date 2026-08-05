@@ -594,10 +594,22 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   <ul>
     <li><code>skills/</code> — 1 skill (<code>matcha</code>) → usable via <code>/matcha</code></li>
     <li><code>commands/</code> — 7 commands → converted to skills (<code>matcha:review</code>, <code>matcha:why</code>, ...)</li>
-    <li><code>agents/</code> — 6 agents: 4 primary (planner, finder, auditor, reviewer — Tab-switchable) + 2 subagents (debugger, cleaner — via <code>@</code>)</li>
+    <li><code>agents/</code> — 6 agents: 4 selectable in the <code>/agents</code> panel (planner, finder, auditor, reviewer) + 2 subagent-only (debugger, cleaner)</li>
     <li><code>mcp_config.json</code> — matcha MCP server auto-registered</li>
     <li><code>GEMINI.md</code> + <code>AGENTS.md</code> — rules files (read automatically)</li>
   </ul>
+
+  <h3>Using matcha agents</h3>
+  <p>AGY discovers the 6 matcha agents from <code>.agents/agents/</code> (project) and the plugin's <code>agents/</code> dir. Verify with:</p>
+  <div class="code-block"><pre><code>agy agent          # list discovered agents (4 primary shown)
+agy --agent matcha-planner "plan feature X"   # one-shot, no TUI</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <table>
+    <tr><th>Action</th><th>How</th></tr>
+    <tr><td>Pick an agent inside the TUI</td><td>Type <code>/agents</code> → arrow to the agent → <code>Enter</code> → <code>Esc</code></td></tr>
+    <tr><td>Start a session with an agent</td><td><code>agy --agent &lt;name&gt; &lt;prompt&gt;</code> (per-session only — AGY has no persistent default-agent setting)</td></tr>
+    <tr><td>List agents</td><td><code>agy agent</code></td></tr>
+  </table>
+  <div class="callout callout-warn"><strong>Shift+Tab ≠ agents.</strong> In AGY, <code>Shift+Tab</code> only cycles built-in execution modes (<code>plan</code>, <code>auto-edit</code>). Custom agents are selected via the <code>/agents</code> panel or <code>--agent</code> flag — this is normal AGY behavior, not a bug. <code>debugger</code> and <code>cleaner</code> are subagent-only (<code>mainAgent: false</code>) so they don't appear in <code>agy agent</code>; they run via <code>invoke_subagent</code> from a main agent.</div>
   <div class="callout callout-info"><strong>Note:</strong> AGY converts plugin commands into skills. The <code>/matcha</code> slash command is the core skill; command skills are invoked via <code>matcha:review</code>-style names. Hooks use Claude Code's format, so they are not registered by AGY's plugin scanner.</div>
 </div>
 

@@ -98,6 +98,15 @@ All L2 checks PLUS:
 
 Findings found at L2 never auto-upgrade to L3 — escalation always requires expert sign-off.
 
+## Lifecycle Handoff
+
+**Task ships on PASS.** On verdict **PASS** (or PASS after PASS_WITH_FIXES fixes), the review closes the task lifecycle:
+1. Append the completed plan from `.agents/plan/current.md` → `.agents/reports/planner-<YYYY-MM>.md`
+2. Persist the verdict → `.agents/reports/reviewer-<YYYY-MM>.md`
+3. **Reset** `current.md` to the empty template (`status: active`, TBD)
+
+BLOCK / PASS_WITH_FIXES → keep `current.md` intact; the fix iteration continues from the same plan.
+
 ## Report Format
 
 ```

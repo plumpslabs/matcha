@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.16
+  version: 2.5.17
 ---
 
 # 🍵 matcha — Engineering Philosophy
@@ -39,7 +39,7 @@ This skill is split into focused modules. Load the relevant module for the task:
 
 **Loop Guardrail** — Halt & ask if 2 consecutive edit attempts fail or repeat.
 
-**Session Memory** — Persist gate artifacts: plan → `.agents/plan/current.md` (overwrite), review/audit → `.agents/reports/<agent>-<YYYY-MM>.md` (append). Lazy-load only.
+**Session Memory** — Persist gate artifacts: plan → `.agents/plan/current.md` (overwrite), review/audit → `.agents/reports/<agent>-<YYYY-MM>.md` (append). Task ships on review PASS → reviewer archives the plan + resets `current.md` (only PASS resets). Lazy-load only.
 
 ## Intensity
 

@@ -185,10 +185,10 @@ Rules:
 - **`current.md` lifecycle (anti-stale) — always holds ONE active task:**
   1. **Start:** read it. Intent matches the current request? → continue, update in place. Mismatch → **overwrite** (never follow a stale plan).
   2. **Update:** overwrite / check-off in place. Never append (appending = bloat when re-read).
-  3. **Done (task ships):** append content → `reports/planner-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD).
+  3. **Done (task ships = review PASS):** the reviewer finalizes the handoff — appends the completed plan → `reports/planner-<YYYY-MM>.md`, writes its verdict → `reports/reviewer-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD). Only a PASS resets; BLOCK / PASS_WITH_FIXES keeps `current.md` for fix iteration. If no reviewer is used, the planner performs the same handoff.
 - **Living over archive.** Reports append monthly, keep latest 5 per agent, delete older.
 - **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly, standard.
-- Persistence: agents persist plan/report files directly where permitted (`.agents/plan/current.md` for planner, `.agents/reports/**` for planner/reviewer/auditor — provider-enforced `edit` rules) or hand output to the orchestrating agent.
+- Persistence: agents persist plan/report files directly where permitted (`.agents/plan/current.md` for planner + reviewer, `.agents/reports/**` for planner/reviewer/auditor — provider-enforced `edit` rules) or hand output to the orchestrating agent.
 - **Gate artifacts only.** Persist plan/review/audit outputs — they gate shipping. Skip work artifacts (finder/cleaner/debugger): cheaper to re-run than to archive.
 
 ---

@@ -61,7 +61,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 | `@matcha-cleaner` | Remove temp/debug/unused code | Post-implementation |
 | `@matcha-debugger` | Systematic debugging — 1 hypothesis at a time | When stuck on an error |
 
-> 🔒 **Enforced permissions (OpenCode `permission:` + Claude Code `disallowedTools:`):** `planner`, `finder`, `reviewer`, `auditor` are read-only — `edit` is denied for all source code (writable paths only: `.agents/plan/current.md` for planner, `.agents/reports/**` for planner/reviewer/auditor). `debugger` + `cleaner` may modify code (minimal fix / post-confirmation cleanup). Bash is denied for planner/finder, allowed for the rest. Other providers (agy, Cursor, Windsurf) read the same agents — enforcement there is prompt-level + safety hooks.
+> 🔒 **Enforced permissions (OpenCode `permission:` + Claude Code `disallowedTools:`):** `planner`, `finder`, `reviewer`, `auditor` are read-only — `edit` is denied for all source code (writable paths only: `.agents/plan/current.md` for planner + reviewer, `.agents/reports/**` for planner/reviewer/auditor). `debugger` + `cleaner` may modify code (minimal fix / post-confirmation cleanup). Bash is denied for planner/finder, allowed for the rest. Other providers (agy, Cursor, Windsurf) read the same agents — enforcement there is prompt-level + safety hooks.
 </system_toolkit>
 
 <project_context>
@@ -74,7 +74,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 - **Persist BEFORE the first edit** — the first non-.md write in a task requires `.agents/plan/current.md` filled (Intent Discovery). Don't wait for a user command — the hook blocks writes without it.
 - Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
 - Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
-- Task done → archive `current.md` → `reports/planner-<YYYY-MM>.md`, reset to empty template.
+- Task done (review PASS) → reviewer archives `current.md` → `reports/planner-<YYYY-MM>.md`, writes verdict → `reports/reviewer-<YYYY-MM>.md`, resets to empty template. Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.
 - Lazy-load only — never auto-inject memory files into context.
 </project_context>
 

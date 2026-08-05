@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.16-purple" alt="v2.5.16" />
+  <img src="https://img.shields.io/badge/version-2.5.17-purple" alt="v2.5.17" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -177,7 +177,7 @@ Filesystem is durable memory; the context window is volatile. matcha persists ga
 | `.agents/plan/decisions.log` | `matcha decision <type> <reason>` | `matcha markers` / `/matcha:debt` |
 
 - **Lazy-load only** — memory files are never auto-injected into context; read on demand.
-- **Lifecycle (anti-stale)** — `current.md` holds one active task: intent mismatch at start → overwrite; done → archive to `reports/planner-<YYYY-MM>.md` + reset to empty template.
+- **Lifecycle (anti-stale)** — `current.md` holds one active task: intent mismatch at start → overwrite; done (review PASS) → reviewer archives to `reports/planner-<YYYY-MM>.md` + resets to empty template. Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.
 - **Living over archive** — `current.md` overwrites, never appends. Reports append monthly; keep latest 5 per agent.
 - **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly.
 

@@ -102,8 +102,15 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (["matcha-reviewer", "matcha-auditor"].includes(agent)) {
-        test("reviewer/auditor may persist reports only", () => {
+        test("reviewer/auditor may persist reports", () => {
           expect(content).toMatch(/\.agents\/reports\/\*\*": allow/);
+        });
+      }
+
+      if (agent === "matcha-reviewer") {
+        test("reviewer may reset current.md on PASS (lifecycle handoff)", () => {
+          expect(content).toMatch(/\.agents\/plan\/current\.md": allow/);
+          expect(content).toContain("reset");
         });
       }
 

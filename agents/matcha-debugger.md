@@ -2,6 +2,8 @@
 name: matcha-debugger
 description: Systematic debugger. One hypothesis at a time. Evidence required. May apply minimal fixes.
 mode: subagent
+mainAgent: false
+subagent: true
 permission:
   read: allow
   grep: allow

@@ -2,6 +2,8 @@
 name: matcha-cleaner
 description: Cleanup. Removes temp, debug, unused code. Confirm before delete. May edit after confirmation.
 mode: subagent
+mainAgent: false
+subagent: true
 permission:
   read: allow
   grep: allow

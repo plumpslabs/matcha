@@ -27,6 +27,8 @@ describe("Command YAML frontmatter validation", () => {
 
 const READ_ONLY_AGENTS = ["matcha-planner", "matcha-finder", "matcha-reviewer", "matcha-auditor"];
 const WRITER_AGENTS = ["matcha-debugger", "matcha-cleaner"];
+const PRIMARY_AGENTS = ["matcha-planner", "matcha-finder", "matcha-reviewer", "matcha-auditor"];
+const SUBAGENT_AGENTS = ["matcha-debugger", "matcha-cleaner"];
 
 describe("Agent YAML frontmatter validation", () => {
   for (const agent of AGENT_NAMES) {
@@ -62,9 +64,17 @@ describe("Agent YAML frontmatter validation", () => {
         expect(content).not.toMatch(/color: /);
       });
 
-      test("has mode: subagent", () => {
-        expect(content).toMatch(/mode: subagent/);
-      });
+      if (PRIMARY_AGENTS.includes(agent)) {
+        test("primary agent (Tab-switchable)", () => {
+          expect(content).toMatch(/mode: primary/);
+        });
+      }
+
+      if (SUBAGENT_AGENTS.includes(agent)) {
+        test("subagent (via @ mention)", () => {
+          expect(content).toMatch(/mode: subagent/);
+        });
+      }
 
       if (READ_ONLY_AGENTS.includes(agent)) {
         test("read-only: denies source edits + Claude disallowedTools", () => {
@@ -76,6 +86,11 @@ describe("Agent YAML frontmatter validation", () => {
       } else if (WRITER_AGENTS.includes(agent)) {
         test("writer: allows edits", () => {
           expect(content).toMatch(/^  edit: allow$/m);
+        });
+
+        test("writer: AGY subagent-only (mainAgent: false)", () => {
+          expect(content).toMatch(/mainAgent: false/);
+          expect(content).toMatch(/subagent: true/);
         });
       }
 

@@ -1,7 +1,7 @@
 ---
 name: matcha-reviewer
 description: Review gate with risk-based routing. L0=output check, L1=lint, L2=full review, L3=expert+threat model. Blocks merge if critical issues found. Read-only.
-mode: subagent
+mode: primary
 permission:
   read: allow
   grep: allow

@@ -2,3 +2,5 @@
 .agent-backups/
 node_modules/
 .tmp-*
+.agents/plan/
+.agents/reports/

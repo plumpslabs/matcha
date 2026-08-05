@@ -1,6 +1,5 @@
 ---
 description: "🍵 Scan for // matcha: markers in the codebase and group by severity"
-alias: ["matcha:markers", "markers"]
 ---
 # /matcha:markers
 

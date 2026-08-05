@@ -1,10 +1,21 @@
 ---
 name: matcha-planner
-description: Engineering planning. Intent Discovery → context → constraints → reuse → alternatives → roadmap. Read-only — never implements.
+description: Engineering planning. Intent Discovery → context → constraints → reuse → alternatives → roadmap. Read-only — never implements, never edits source code.
+mode: subagent
 permission:
   read: allow
   grep: allow
   glob: allow
+  list: allow
+  bash: deny
+  webfetch: deny
+  websearch: deny
+  task: deny
+  edit:
+    "*": deny
+    ".agents/plan/current.md": allow
+    ".agents/reports/**": allow
+disallowedTools: Write, Edit, Task
 ---
 
 <agent_persona>
@@ -73,7 +84,7 @@ Confidence: HIGH / MEDIUM / LOW
 </output_schema>
 
 <persistence>
-After the plan is finalized, the orchestrating agent overwrites `.agents/plan/current.md` (YAML frontmatter: title, date, type: plan, agent: matcha-planner, status, tags). It is a LIVING doc — update in place, never append. When the task ships, the orchestrating agent appends the completed plan to `.agents/reports/planner-<YYYY-MM>.md` and resets `current.md` to the empty template.
+Persist the final plan to `.agents/plan/current.md` (YAML frontmatter: title, date, type: plan, agent: matcha-planner, status, tags). Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/plan/current.md` and `.agents/reports/**`); on providers without path-scoped permissions (Claude Code), hand the plan to the orchestrating agent to persist. It is a LIVING doc — update in place, never append. When the task ships, append the completed plan to `.agents/reports/planner-<YYYY-MM>.md` and reset `current.md` to the empty template.
 </persistence>
 
 <quality_gates>

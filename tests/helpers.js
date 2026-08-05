@@ -103,8 +103,11 @@ export const AGENT_NAMES = [
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
 ];
 
-/** All 8 matcha commands */
-export const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
+/** All 7 matcha commands */
+export const COMMAND_NAMES = [
+  "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
+  "matcha:status", "matcha:debt", "matcha:markers",
+];
 
 /** All benchmark tasks */
 export const TASK_IDS = [

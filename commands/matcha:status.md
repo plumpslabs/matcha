@@ -1,6 +1,5 @@
 ---
 description: "🍵 Master session health dashboard — intensity, git diff stats, test status, and marker ledger"
-alias: ["matcha:status", "status"]
 ---
 # /matcha:status
 
@@ -29,3 +28,4 @@ Plan:       [satisfied/missing]
 
 Health:     ✅ Healthy | ⚠️ Needs Attention | 🔴 Critical
 ```
+

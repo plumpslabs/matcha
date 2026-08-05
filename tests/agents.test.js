@@ -14,7 +14,7 @@ describe("Agent files exist across platforms", () => {
 });
 
 describe("Command YAML frontmatter validation", () => {
-  const commandFiles = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
+  const commandFiles = ["matcha:why", "matcha:review", "matcha:audit", "matcha:intensity", "matcha:status", "matcha:debt", "matcha:markers"];
 
   for (const cmd of commandFiles) {
     test(`commands/${cmd}.md has description frontmatter`, () => {
@@ -24,6 +24,9 @@ describe("Command YAML frontmatter validation", () => {
     });
   }
 });
+
+const READ_ONLY_AGENTS = ["matcha-planner", "matcha-finder", "matcha-reviewer", "matcha-auditor"];
+const WRITER_AGENTS = ["matcha-debugger", "matcha-cleaner"];
 
 describe("Agent YAML frontmatter validation", () => {
   for (const agent of AGENT_NAMES) {
@@ -58,6 +61,48 @@ describe("Agent YAML frontmatter validation", () => {
       test("has no color field", () => {
         expect(content).not.toMatch(/color: /);
       });
+
+      test("has mode: subagent", () => {
+        expect(content).toMatch(/mode: subagent/);
+      });
+
+      if (READ_ONLY_AGENTS.includes(agent)) {
+        test("read-only: denies source edits + Claude disallowedTools", () => {
+          expect(content).not.toMatch(/^  edit: allow$/m);
+          expect(content).toMatch(/disallowedTools: Write, Edit/);
+          expect(content).toMatch(/task: deny/);
+          expect(content).toMatch(/webfetch: deny/);
+        });
+      } else if (WRITER_AGENTS.includes(agent)) {
+        test("writer: allows edits", () => {
+          expect(content).toMatch(/^  edit: allow$/m);
+        });
+      }
+
+      if (agent === "matcha-planner") {
+        test("planner may persist plan file only", () => {
+          expect(content).toMatch(/\.agents\/plan\/current\.md": allow/);
+          expect(content).toMatch(/\.agents\/reports\/\*\*": allow/);
+        });
+      }
+
+      if (["matcha-reviewer", "matcha-auditor"].includes(agent)) {
+        test("reviewer/auditor may persist reports only", () => {
+          expect(content).toMatch(/\.agents\/reports\/\*\*": allow/);
+        });
+      }
+
+      if (["matcha-planner", "matcha-finder"].includes(agent)) {
+        test("planner/finder deny bash", () => {
+          expect(content).toMatch(/bash: deny/);
+        });
+      }
+
+      if (["matcha-debugger", "matcha-cleaner"].includes(agent)) {
+        test("writer allows bash", () => {
+          expect(content).toMatch(/bash: allow/);
+        });
+      }
     });
   }
 });

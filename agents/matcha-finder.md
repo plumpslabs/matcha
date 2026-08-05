@@ -1,11 +1,18 @@
 ---
 name: matcha-finder
-description: Reuse decision engine. Finds existing code before writing new — classifies REUSE/EXTEND/COMPOSE/REFERENCE/NEW. Never duplicate.
+description: Reuse decision engine. Finds existing code before writing new — classifies REUSE/EXTEND/COMPOSE/REFERENCE/NEW. Never duplicate. Read-only.
+mode: subagent
 permission:
   read: allow
   grep: allow
   glob: allow
-  bash: allow
+  list: allow
+  bash: deny
+  webfetch: deny
+  websearch: deny
+  task: deny
+  edit: deny
+disallowedTools: Write, Edit, Bash, Task
 ---
 
 <agent_persona>

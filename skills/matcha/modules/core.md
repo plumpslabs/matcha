@@ -188,7 +188,7 @@ Rules:
   3. **Done (task ships):** append content → `reports/planner-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD).
 - **Living over archive.** Reports append monthly, keep latest 5 per agent, delete older.
 - **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly, standard.
-- Persistence is done by the **orchestrating agent** (agents are read-only; they designate where output goes).
+- Persistence: agents persist plan/report files directly where permitted (`.agents/plan/current.md` for planner, `.agents/reports/**` for planner/reviewer/auditor — provider-enforced `edit` rules) or hand output to the orchestrating agent.
 - **Gate artifacts only.** Persist plan/review/audit outputs — they gate shipping. Skip work artifacts (finder/cleaner/debugger): cheaper to re-run than to archive.
 
 ---

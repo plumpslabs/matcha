@@ -1,6 +1,5 @@
 ---
 description: "🍵 Stack health check — find overlaps, waste, and risks before they become problems"
-alias: ["matcha:audit", "audit"]
 ---
 # /matcha:audit
 
@@ -29,6 +28,7 @@ For each: **what does it actually do?** Not just "it exists."
 |-------|-----|
 | **Duplicate functionality** | Two deps doing the same thing? (e.g., moment + dayjs, lodash + native) |
 | **Redundant services** | Two containers/services handling same concern? |
-| **Conflicting configs** | ESLint + Prettier fighting? Multi
+| **Conflicting configs** | ESLint + Prettier fighting? Multiple linters? |
+| **Dead dependenc
 ...
-See commands/audit.md for full
+See commands/matcha:audit.md for full

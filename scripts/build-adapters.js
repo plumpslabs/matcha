@@ -53,6 +53,19 @@ function ensureDir(relPath) {
   mkdirSync(join(ROOT, relPath), { recursive: true });
 }
 
+// Remove command files that used the old non-namespaced names (pre-v2.5.15),
+// so platforms never expose BOTH /why and /matcha:why.
+const LEGACY_COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
+function cleanLegacyCommands(relDir) {
+  for (const legacy of LEGACY_COMMAND_NAMES) {
+    const p = join(ROOT, relDir, `${legacy}.md`);
+    if (existsSync(p)) {
+      rmSync(p);
+      console.log(`  🧹 removed legacy ${relDir}/${legacy}.md`);
+    }
+  }
+}
+
 console.log("🍵 matcha — building all adapters...\n");
 
 // ─── Source files ────────────────────────────────────────────────────────────
@@ -68,7 +81,10 @@ const AGENT_NAMES = [
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
 ];
 
-const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
+const COMMAND_NAMES = [
+  "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
+  "matcha:status", "matcha:debt", "matcha:markers",
+];
 
 // ─── .claude/ ────────────────────────────────────────────────────────────────
 
@@ -92,6 +108,7 @@ symlink(".claude/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 
 // Commands: regular files (truncated for Claude Code context window)
 const CMD_MAX = 1200;
+cleanLegacyCommands(".claude/commands");
 for (const cmd of COMMAND_NAMES) {
   const content = read(`commands/${cmd}.md`).trim();
   if (content.length <= CMD_MAX) {
@@ -114,6 +131,12 @@ console.log("── .opencode/ ──");
 // Agents: symlink to .agents/agents/
 for (const agent of AGENT_NAMES) {
   symlink(`.opencode/agents/${agent}.md`, `../../.agents/agents/${agent}.md`);
+}
+
+// Commands: regular files (opencode scans .opencode/commands/)
+cleanLegacyCommands(".opencode/commands");
+for (const cmd of COMMAND_NAMES) {
+  write(`.opencode/commands/${cmd}.md`, read(`commands/${cmd}.md`));
 }
 
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .opencode/skills/matcha/)
@@ -141,9 +164,13 @@ for (const agent of AGENT_NAMES) {
 symlink(".agents/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 
 // Commands: regular files
+cleanLegacyCommands(".agents/commands");
 for (const cmd of COMMAND_NAMES) {
   write(`.agents/commands/${cmd}.md`, read(`commands/${cmd}.md`));
 }
+
+// AGY hooks manifest (workspace scope: <project>/.agents/hooks.json)
+write(".agents/hooks.json", read("hooks.json"));
 
 console.log("");
 

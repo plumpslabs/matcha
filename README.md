@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.14-purple" alt="v2.5.14" />
+  <img src="https://img.shields.io/badge/version-2.5.15-purple" alt="v2.5.15" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -155,6 +155,8 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 | `@matcha-reviewer` | **Review gate** — blocks bad code |
 | `@matcha-cleaner` | Remove temp/debug/unused |
 | `@matcha-debugger` | Systematic debugging |
+
+> 🔒 **Enforced permissions** (OpenCode `permission:` + Claude Code `disallowedTools:`): planner/finder/reviewer/auditor are read-only — `edit` is denied for all source code. Only plan/report files are writable (`.agents/plan/current.md`, `.agents/reports/**`). debugger/cleaner may modify code. Other providers: prompt-level + hooks.
 
 ### Intensity Levels
 

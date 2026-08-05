@@ -1,0 +1,17 @@
+{
+  "matcha-safety": {
+    "enabled": true,
+    "PreToolUse": [
+      {
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node hooks/matcha-agy-hooks.js",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

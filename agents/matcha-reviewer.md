@@ -1,10 +1,20 @@
 ---
 name: matcha-reviewer
-description: Review gate with risk-based routing. L0=output check, L1=lint, L2=full review, L3=expert+threat model. Blocks merge if critical issues found.
+description: Review gate with risk-based routing. L0=output check, L1=lint, L2=full review, L3=expert+threat model. Blocks merge if critical issues found. Read-only.
+mode: subagent
 permission:
   read: allow
   grep: allow
   glob: allow
+  list: allow
+  bash: allow
+  webfetch: deny
+  websearch: deny
+  task: deny
+  edit:
+    "*": deny
+    ".agents/reports/**": allow
+disallowedTools: Write, Edit, Task
 ---
 
 <agent_persona>
@@ -80,7 +90,7 @@ Confidence: HIGH / MEDIUM / LOW
 </output_schema>
 
 <persistence>
-After the verdict is rendered, the orchestrating agent appends it to `.agents/reports/reviewer-<YYYY-MM>.md` (frontmatter: title, date, type: review, agent: matcha-reviewer, verdict, tags). Keep latest 5 files per agent prefix — delete older.
+Persist the verdict to `.agents/reports/reviewer-<YYYY-MM>.md` (frontmatter: title, date, type: review, agent: matcha-reviewer, verdict, tags). Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/reports/**`); on providers without path-scoped permissions (Claude Code), hand the report to the orchestrating agent to persist. Keep latest 5 files per agent prefix — delete older.
 </persistence>
 
 <example>

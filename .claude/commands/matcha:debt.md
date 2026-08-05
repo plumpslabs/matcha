@@ -1,6 +1,5 @@
 ---
 description: "🍵 Technical debt & marker ledger — harvest all // matcha: comments into an actionable report"
-alias: ["matcha:debt", "debt"]
 ---
 # /matcha:debt
 
@@ -28,28 +27,6 @@ alias: ["matcha:debt", "debt"]
 🍵 matcha: debt & markers
 
 Total markers: N
-  explain: N (LOW) — documented shortcuts
-  todo:    N (MEDIUM) — future tasks
-  debt:    N (HIGH) ← action required
-  adr:     N (INFO) — architecture decisions
-
-Debt ratio: HIGH / TOTAL = X%
-
-🔴 HIGH items (resolve before merge):
-  file:line — [reason] → [fix when]
-
-🟡 MEDIUM items (track for next sprint):
-  file:line — [task]
-
-Health: ✅ CLEAN | ⚠️ DEBT ACCUMULATING | 🔴 CRITICAL DEBT
-```
-
-```
-
-## Debt Budget
-
-| Ratio | Status |
-|-------|--------|
-| HIGH/TOTAL < 10% | ✅ Healthy |
-| HIGH/TOTAL 10-30% | ⚠️ Needs attention |
-| HIGH/TOTAL > 30% | 🔴 Critical — prioritize debt reduction |
+  explain: N (LOW) — docu
+...
+See commands/matcha:debt.md for full

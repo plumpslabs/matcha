@@ -34,7 +34,7 @@ describe("install.sh — core structure", () => {
   });
 
   test("installs all 7 commands", () => {
-    expect(installer).toContain("for cmd in why review audit intensity status debt markers");
+    expect(installer).toContain("for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers");
   });
 
   test("installs hooks", () => {
@@ -51,6 +51,11 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("mode-detect.js");
     expect(installer).toContain("matcha-metrics.js");
     expect(installer).toContain("matcha-trigger-packs.json");
+  });
+
+  test("installs AGY hooks adapter + workspace manifest", () => {
+    expect(installer).toContain("matcha-agy-hooks.js");
+    expect(installer).toContain(".agents/hooks.json");
   });
 
   test("scaffolds session memory (plan + reports)", () => {
@@ -129,7 +134,7 @@ describe(".agents/ (universal format)", () => {
     });
   }
 
-  for (const c of ["why", "review", "audit", "intensity", "status"]) {
+  for (const c of ["matcha:why", "matcha:review", "matcha:audit", "matcha:intensity", "matcha:status"]) {
     test(`commands/${c}.md exists`, () => {
       assertFile(`.agents/commands/${c}.md`);
     });

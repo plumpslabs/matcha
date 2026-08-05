@@ -100,6 +100,7 @@ const PLATFORM_OPTIONS = [
   { num: "8", dir: ".qoder",     label: "Qoder" },
   { num: "9", dir: ".trae",      label: "Trae" },
   { num: "10", dir: ".agents",   label: "Universal (.agents)" },
+  { num: "11", dir: ".agents",   label: "Antigravity (agy) — GEMINI.md + .agents" },
 ];
 
 function detectExistingPlatforms() {

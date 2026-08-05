@@ -60,6 +60,8 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 | `@matcha-reviewer` | **Blocking review gate** — catches everything | Before merge |
 | `@matcha-cleaner` | Remove temp/debug/unused code | Post-implementation |
 | `@matcha-debugger` | Systematic debugging — 1 hypothesis at a time | When stuck on an error |
+
+> 🔒 **Enforced permissions (OpenCode `permission:` + Claude Code `disallowedTools:`):** `planner`, `finder`, `reviewer`, `auditor` are read-only — `edit` is denied for all source code (writable paths only: `.agents/plan/current.md` for planner, `.agents/reports/**` for planner/reviewer/auditor). `debugger` + `cleaner` may modify code (minimal fix / post-confirmation cleanup). Bash is denied for planner/finder, allowed for the rest. Other providers (agy, Cursor, Windsurf) read the same agents — enforcement there is prompt-level + safety hooks.
 </system_toolkit>
 
 <project_context>

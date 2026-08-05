@@ -1,10 +1,10 @@
 ---
 description: "🍵 Set matcha intensity level: observe, enforce, or audit"
-alias: ["matcha:intensity", "intensity"]
 ---
-# /matcha observe|enforce|audit
+# /matcha:intensity
 
 Set intensity level for current session.
+Usage: `/matcha observe|enforce|audit`
 
 **When to use:** at session start or when switching work types — observe for exploration, enforce for normal work (default), audit for critical/high-stakes work.
 

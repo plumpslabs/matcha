@@ -1,6 +1,5 @@
 ---
 description: "🍵 Review gate — risk-based code review (L0-L3). Nothing ships until this passes"
-alias: ["matcha:review", "review"]
 ---
 # /matcha:review
 

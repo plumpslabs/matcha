@@ -1,6 +1,6 @@
 {
   "name": "@plumpslabs/matcha",
-  "version": "2.5.14",
+  "version": "2.5.15",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
 
 
@@ -50,6 +50,7 @@
     "scripts/",
     "plugin.json",
     "mcp_config.json",
+    "hooks.json",
     "rules/",
     ".claude/",
     ".claude-plugin/",

@@ -1,6 +1,5 @@
 ---
 description: "🍵 Intent Discovery — problem, goals, success criteria, What → Why → How before touching code"
-alias: ["matcha:why", "why"]
 ---
 # /matcha:why
 

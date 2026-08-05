@@ -1,11 +1,20 @@
 ---
 name: matcha-auditor
 description: Stack audit. Finds overlaps, waste, security risks. Read-only.
+mode: subagent
 permission:
   read: allow
   grep: allow
   glob: allow
+  list: allow
   bash: allow
+  webfetch: deny
+  websearch: deny
+  task: deny
+  edit:
+    "*": deny
+    ".agents/reports/**": allow
+disallowedTools: Write, Edit, Task
 ---
 
 <agent_persona>
@@ -88,7 +97,7 @@ Recommendations: [prioritized actions]
 </output_schema>
 
 <persistence>
-After the report is delivered, the orchestrating agent appends it to `.agents/reports/auditor-<YYYY-MM>.md` (frontmatter: title, date, type: audit, agent: matcha-auditor, health, tags). Keep latest 5 files per agent prefix — delete older.
+Persist the report to `.agents/reports/auditor-<YYYY-MM>.md` (frontmatter: title, date, type: audit, agent: matcha-auditor, health, tags). Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/reports/**`); on providers without path-scoped permissions (Claude Code), hand the report to the orchestrating agent to persist. Keep latest 5 files per agent prefix — delete older.
 </persistence>
 
 <quality_gates>

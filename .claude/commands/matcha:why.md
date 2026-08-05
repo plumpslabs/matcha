@@ -1,6 +1,5 @@
 ---
 description: "🍵 Intent Discovery — problem, goals, success criteria, What → Why → How before touching code"
-alias: ["matcha:why", "why"]
 ---
 # /matcha:why
 
@@ -16,6 +15,7 @@ alias: ["matcha:why", "why"]
 | **What** | Scope of the change | Specific files/areas affected |
 | **Why** | What breaks without this | Impact, user pain, business cost |
 | **How** | Simplest full solution | Step-by-step, file-by-file plan |
-| **Assumptions** | What we take as given | Constrai
+| **Assumptions** | What we take as given | Constraints, existing patterns |
+| **
 ...
-See commands/why.md for full
+See commands/matcha:why.md for full

@@ -1,6 +1,7 @@
 {
+  "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "matcha",
-  "version": "2.5.14",
+  "version": "2.5.15",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces Intent Discovery thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",
@@ -18,37 +19,37 @@
     {
       "name": "matcha:review",
       "description": "Review current implementation for efficiency and redundancy",
-      "file": "commands/review.md"
+      "file": "commands/matcha:review.md"
     },
     {
       "name": "matcha:audit",
       "description": "Audit existing stack for overlaps and inefficiencies",
-      "file": "commands/audit.md"
+      "file": "commands/matcha:audit.md"
     },
     {
       "name": "matcha:why",
       "description": "Run Intent Discovery check on the current task",
-      "file": "commands/why.md"
+      "file": "commands/matcha:why.md"
     },
     {
       "name": "matcha:intensity",
       "description": "Set matcha intensity: observe, enforce, or audit",
-      "file": "commands/intensity.md"
+      "file": "commands/matcha:intensity.md"
     },
     {
       "name": "matcha:status",
       "description": "Show matcha session status",
-      "file": "commands/status.md"
+      "file": "commands/matcha:status.md"
     },
     {
       "name": "matcha:debt",
       "description": "Show technical debt from decision logs",
-      "file": "commands/debt.md"
+      "file": "commands/matcha:debt.md"
     },
     {
       "name": "matcha:markers",
       "description": "Scan for // matcha: markers in the codebase",
-      "file": "commands/markers.md"
+      "file": "commands/matcha:markers.md"
     }
   ]
 }

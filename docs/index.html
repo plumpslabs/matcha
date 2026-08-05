@@ -134,7 +134,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.10</span>
+    <span class="header-badge">v2.5.11</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -201,7 +201,7 @@ tr:hover td{background:var(--bg-hover)}
   <p>matcha operates at <strong>4 layers</strong>:</p>
   <table>
     <tr><th>Layer</th><th>What It Does</th><th>When It Runs</th></tr>
-    <tr><td><strong>Planning Gate</strong></td><td>Blocks code until 5W1H plan exists</td><td>Before any implementation</td></tr>
+    <tr><td><strong>Planning Gate</strong></td><td>Blocks code until Intent Discovery plan exists</td><td>Before any implementation</td></tr>
     <tr><td><strong>Safety Shield</strong></td><td>Blocks dangerous commands (rm -rf, git push --force)</td><td>On every command</td></tr>
     <tr><td><strong>Post-Write Scan</strong></td><td>Checks files for cleanup issues (13+ languages)</td><td>After every file write</td></tr>
     <tr><td><strong>Review Gate</strong></td><td>8-category review with risk-based routing</td><td>Before shipping</td></tr>
@@ -231,7 +231,7 @@ tr:hover td{background:var(--bg-hover)}
   <div class="card-grid">
     <div class="card">
       <h4><span class="card-icon amber"><i data-lucide="target" style="width:16px;height:16px"></i></span> Purpose-First Thinking</h4>
-      <p>5W1H gate forces agents to understand WHY before writing code. No more blind implementation.</p>
+      <p>Intent Discovery (problem, goals, success criteria, What → Why → How) forces agents to understand WHY before writing code. No more blind implementation.</p>
     </div>
     <div class="card">
       <h4><span class="card-icon green"><i data-lucide="shield-check" style="width:16px;height:16px"></i></span> Deterministic Enforcement</h4>
@@ -259,7 +259,7 @@ tr:hover td{background:var(--bg-hover)}
   <table>
     <tr><th>Component</th><th>Count</th><th>Description</th></tr>
     <tr><td>Modules</td><td>5</td><td>Core, project, modes, risk, legacy</td></tr>
-    <tr><td>Commands</td><td>8</td><td>why, review, audit, intensity, status, debt, markers, stats</td></tr>
+    <tr><td>Commands</td><td>7</td><td>why, review, audit, intensity, status, debt, markers</td></tr>
     <tr><td>Agents</td><td>6</td><td>planner, finder, auditor, reviewer, cleaner, debugger</td></tr>
     <tr><td>Hooks</td><td>4</td><td>shield, post-write, stop, metrics</td></tr>
     <tr><td>MCP Tools</td><td>4</td><td>shield_check, post_write_scan, stop_tips, plan_validate</td></tr>
@@ -270,7 +270,7 @@ tr:hover td{background:var(--bg-hover)}
   <h3>Example: Before vs After matcha</h3>
   <table>
     <tr><th>Without matcha</th><th>With matcha</th></tr>
-    <tr><td>Agent writes code immediately</td><td>Agent plans first (5W1H gate)</td></tr>
+    <tr><td>Agent writes code immediately</td><td>Agent plans first (Intent Discovery)</td></tr>
     <tr><td>Duplicates existing functions</td><td>Searches codebase, reuses existing</td></tr>
     <tr><td>Ships without review</td><td>8-category review gate</td></tr>
     <tr><td>No security checks</td><td>Automated security scanning</td></tr>
@@ -367,8 +367,8 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
     <tr><th>Target</th><th>Contents</th><th>For</th></tr>
     <tr><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td>Primary rules files</td><td>Every agent (Antigravity, Qwen, Gemini, Codex, Zed, ...)</td></tr>
     <tr><td><code>.github/copilot-instructions.md</code></td><td>Custom instructions</td><td>GitHub Copilot</td></tr>
-    <tr><td><code>.claude/</code></td><td>6 agents, 6 commands, skill + modules, hooks + settings.json</td><td>Claude Code</td></tr>
-    <tr><td><code>.opencode/</code></td><td>6 agents, 6 commands, skill + modules</td><td>OpenCode</td></tr>
+    <tr><td><code>.claude/</code></td><td>6 agents, 7 commands, skill + modules, hooks + settings.json</td><td>Claude Code</td></tr>
+    <tr><td><code>.opencode/</code></td><td>6 agents, 7 commands, skill + modules</td><td>OpenCode</td></tr>
     <tr><td><code>.cursor/rules/</code></td><td><code>matcha.mdc</code> rule</td><td>Cursor</td></tr>
     <tr><td><code>.windsurf/</code></td><td><code>matcha.md</code> rule + <code>.windsurfrules</code></td><td>Windsurf</td></tr>
     <tr><td><code>.clinerules/</code></td><td><code>matcha.md</code> rule</td><td>Cline</td></tr>
@@ -376,7 +376,7 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
     <tr><td><code>.kiro/</code></td><td>3 steering files, skill + modules</td><td>Kiro Code</td></tr>
     <tr><td><code>.qoder/rules/</code></td><td><code>matcha.md</code> rule</td><td>Qoder</td></tr>
     <tr><td><code>.trae/rules/</code></td><td><code>matcha.md</code> rule</td><td>Trae IDE</td></tr>
-    <tr><td><code>.agents/</code></td><td>6 agents, 6 commands, skill + modules + <code>rules/</code></td><td>Universal / Antigravity (AGY)</td></tr>
+    <tr><td><code>.agents/</code></td><td>6 agents, 7 commands, skill + modules + <code>rules/</code></td><td>Universal / Antigravity (AGY)</td></tr>
     <tr><td><code>hooks/</code></td><td>Shield, post-write, stop, metrics, MCP server</td><td>Every agent (server-side safety)</td></tr>
   </table>
 
@@ -591,7 +591,7 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   <p>The repo ships an AGY-compatible plugin manifest (<code>plugin.json</code>) plus root <code>agents/</code> and <code>mcp_config.json</code> so <code>agy plugin install</code> picks up everything:</p>
   <ul>
     <li><code>skills/</code> — 1 skill (<code>matcha</code>) → usable via <code>/matcha</code></li>
-    <li><code>commands/</code> — 8 commands → converted to skills (<code>matcha:review</code>, <code>matcha:why</code>, ...)</li>
+    <li><code>commands/</code> — 7 commands → converted to skills (<code>matcha:review</code>, <code>matcha:why</code>, ...)</li>
     <li><code>agents/</code> — 6 subagents (planner, finder, auditor, reviewer, cleaner, debugger)</li>
     <li><code>mcp_config.json</code> — matcha MCP server auto-registered</li>
     <li><code>GEMINI.md</code> + <code>AGENTS.md</code> — rules files (read automatically)</li>
@@ -630,7 +630,7 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
     <tr><td><code>matcha_shield_check</code></td><td>Check a command for dangerous patterns</td></tr>
     <tr><td><code>matcha_post_write_scan</code></td><td>Scan a file for cleanup issues (13+ languages)</td></tr>
     <tr><td><code>matcha_stop_tips</code></td><td>Get end-of-task suggestions from git diff</td></tr>
-    <tr><td><code>matcha_plan_validate</code></td><td>Validate a 5W1H plan</td></tr>
+    <tr><td><code>matcha_plan_validate</code></td><td>Validate an Intent Discovery plan</td></tr>
   </table>
 
   <h3>What Is This For?</h3>
@@ -669,7 +669,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <p>Every implementation passes through 6 checkpoints:</p>
   <table>
     <tr><th>#</th><th>Checkpoint</th><th>Purpose</th></tr>
-    <tr><td>1</td><td><strong>Purpose + Reuse</strong></td><td>5W1H gate + search for existing code</td></tr>
+    <tr><td>1</td><td><strong>Purpose + Reuse</strong></td><td>Intent Discovery + search for existing code</td></tr>
     <tr><td>2</td><td><strong>Stack Audit</strong></td><td>Check for service overlap</td></tr>
     <tr><td>3</td><td><strong>Implementation</strong></td><td>Write code with principles</td></tr>
     <tr><td>4</td><td><strong>Cleanup</strong></td><td>Remove temp files, debug code</td></tr>
@@ -748,7 +748,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 <!-- Planning Gate -->
 <div class="section" id="planning">
   <h1>Planning Gate</h1>
-  <p>Blocks code modifications until a 5W1H plan exists.</p>
+  <p>Blocks code modifications until an Intent Discovery plan exists.</p>
 
   <h3>Smart Auto-Skip</h3>
   <p>Planning gate is automatically skipped for:</p>
@@ -869,7 +869,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <div class="step-num">8</div>
     <div class="step-body">
       <h4>Report</h4>
-      <p><code>/matcha:status</code> and <code>/matcha:stats</code> show the session dashboard: components, intensity, changes, test results.</p>
+      <p><code>/matcha:status</code> shows the session dashboard: components, intensity, changes, test results.</p>
     </div>
   </div>
 
@@ -877,7 +877,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <table>
     <tr><th>Phase</th><th>Automatic?</th><th>Command</th><th>Agent</th><th>Example</th></tr>
     <tr><td>Setup</td><td>No</td><td><code>/matcha:intensity</code></td><td>—</td><td>Set enforce / observe / audit</td></tr>
-    <tr><td>Plan</td><td>Gate auto-runs</td><td><code>/matcha:why</code></td><td><code>@matcha-planner</code></td><td>"Plan this feature with 5W1H"</td></tr>
+    <tr><td>Plan</td><td>Gate auto-runs</td><td><code>/matcha:why</code></td><td><code>@matcha-planner</code></td><td>"Plan this feature with Intent Discovery"</td></tr>
     <tr><td>Reuse</td><td>No</td><td>—</td><td><code>@matcha-finder</code></td><td>"Is there existing code for X?"</td></tr>
     <tr><td>Audit</td><td>Optional</td><td><code>/matcha:audit</code></td><td><code>@matcha-auditor</code></td><td>Health check before legacy refactor</td></tr>
     <tr><td>Implement</td><td>Rules enforced</td><td>—</td><td>—</td><td>"matcha pause" if a better path appears</td></tr>
@@ -885,7 +885,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <tr><td>Review</td><td>No — must run</td><td><code>/matcha:review</code></td><td><code>@matcha-reviewer</code></td><td>Gate before "done"</td></tr>
     <tr><td>Debug (if blocked)</td><td>No</td><td>—</td><td><code>@matcha-debugger</code></td><td>"Find the root cause of the N+1 query"</td></tr>
     <tr><td>Cleanup</td><td>No</td><td><code>/matcha:debt</code> <code>/matcha:markers</code></td><td><code>@matcha-cleaner</code></td><td>Remove temp/debug/unused</td></tr>
-    <tr><td>Report</td><td>No</td><td><code>/matcha:status</code> <code>/matcha:stats</code></td><td>—</td><td>Session dashboard</td></tr>
+    <tr><td>Report</td><td>No</td><td><code>/matcha:status</code></td><td>—</td><td>Session dashboard</td></tr>
   </table>
 
   <h3>Mode by Situation</h3>
@@ -902,18 +902,17 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 <!-- Commands Reference -->
 <div class="section" id="commands">
   <h1>Commands Reference</h1>
-  <p>8 slash commands for matcha workflows.</p>
+  <p>7 slash commands for matcha workflows.</p>
 
   <table>
     <tr><th>Command</th><th>Purpose</th><th>Usage</th></tr>
-    <tr><td><code>/matcha:why</code></td><td>5W1H gate check</td><td>Before any implementation</td></tr>
+    <tr><td><code>/matcha:why</code></td><td>Intent Discovery check</td><td>Before any implementation</td></tr>
     <tr><td><code>/matcha:review</code></td><td>Risk-based review gate</td><td>After implementation</td></tr>
     <tr><td><code>/matcha:audit</code></td><td>Stack audit</td><td>Check for overlaps</td></tr>
     <tr><td><code>/matcha:intensity</code></td><td>Set enforcement level</td><td><code>/matcha observe|enforce|audit</code></td></tr>
     <tr><td><code>/matcha:status</code></td><td>Session dashboard</td><td>Check current state</td></tr>
     <tr><td><code>/matcha:debt</code></td><td>Technical debt report</td><td>Find <code>// matcha:</code> markers</td></tr>
     <tr><td><code>/matcha:markers</code></td><td>Marker scan</td><td>Group by severity</td></tr>
-    <tr><td><code>/matcha:stats</code></td><td>Session metrics</td><td>Changes, tests, duration</td></tr>
   </table>
 </div>
 
@@ -924,7 +923,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 
   <table>
     <tr><th>Agent</th><th>Tools</th><th>Purpose</th></tr>
-    <tr><td><code>@matcha-planner</code></td><td>Read, Grep, Glob</td><td>Plan features through 5W1H checkpoints</td></tr>
+    <tr><td><code>@matcha-planner</code></td><td>Read, Grep, Glob</td><td>Engineering planning: Intent Discovery → context → reuse → decision → roadmap</td></tr>
     <tr><td><code>@matcha-finder</code></td><td>Read, Grep, Glob, Bash</td><td>Hunt existing code before writing new</td></tr>
     <tr><td><code>@matcha-auditor</code></td><td>Read, Grep, Glob, Bash</td><td>Stack audit for overlaps and risks</td></tr>
     <tr><td><code>@matcha-reviewer</code></td><td>Read, Grep, Glob</td><td>Code review with risk-based routing</td></tr>
@@ -1003,7 +1002,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 18px;display:flex;align-items:center;gap:12px">
       <span style="width:24px;height:24px;border-radius:50%;background:var(--accent-dim);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--accent);flex-shrink:0">6</span>
       <span style="font-size:14px;font-weight:600">Commands + Agents</span>
-      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">8 commands, 6 agents</span>
+      <span style="font-size:12px;color:var(--text-tertiary);margin-left:auto">7 commands, 6 agents</span>
     </div>
   </div>
 </div>

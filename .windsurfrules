@@ -4,7 +4,7 @@
 Simple. Efficient. Deliberate. Never twice.
 
 ## Always Apply
-1. **5W1H Gate** — Confirm What/Why/Who/When/Where/How before any code. STOP if Why/How unclear.
+1. **Intent Discovery** — Confirm What/Why/How before any code. STOP if Why/How unclear.
 2. **Reuse Before Write** — Search existing code (`file:line`). NEVER write what exists.
 3. **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate inputs/schemas at entry points.
 4. **Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

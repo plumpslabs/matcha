@@ -1,6 +1,6 @@
 /**
  * 🍵 matcha — planning-gate.js
- * Planning gate validation. Blocks code modifications until 5W1H plan exists.
+ * Planning gate validation. Blocks code modifications until Intent Discovery plan exists.
  *
  * Exports:
  *   checkPlanningGate(event) — returns { block, message } or null
@@ -68,7 +68,7 @@ export function checkPlanningGate(event) {
   if (!existsSync(planPath)) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nCreate and write your 5W1H plan to .agents/matcha-plan.md using the following format:\n\n<matcha_gate>\n  <what>Describe what you are building/fixing</what>\n  <why>Why is this necessary? What is the impact?</why>\n  <how>What is the simplest and most efficient implementation path?</how>\n</matcha_gate>\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nCreate and write your Intent Discovery plan to .agents/matcha-plan.md using the following format:\n\n<matcha_gate>\n  <what>Describe what you are building/fixing</what>\n  <why>Why is this necessary? What is the impact?</why>\n  <how>What is the simplest and most efficient implementation path?</how>\n</matcha_gate>\n`
     };
   }
 
@@ -111,7 +111,7 @@ export function checkPlanningGate(event) {
   if (hasPlaceholders) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYour 5W1H plan in .agents/matcha-plan.md is incomplete, too short (must be at least 15 characters per section), or contains placeholder text.\nPlease fill in the <what>, <why>, and <how> sections with actual project details.\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYour Intent Discovery plan in .agents/matcha-plan.md is incomplete, too short (must be at least 15 characters per section), or contains placeholder text.\nPlease fill in the <what>, <why>, and <how> sections with actual project details.\n`
     };
   }
 

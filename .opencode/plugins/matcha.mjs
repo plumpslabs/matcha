@@ -66,7 +66,7 @@ Check the 3 items below before wrapping up:
   // Register slash commands
   commands: {
     "matcha:why": {
-      description: "Run 5W1H check on current task",
+      description: "Run Intent Discovery check on current task",
       file: "../../commands/why.md",
     },
     "matcha:audit": {

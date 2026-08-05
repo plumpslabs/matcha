@@ -34,7 +34,7 @@ Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 
 ### 🔴 PLANNING GATE (ENFORCED BY HOOK)
 
-In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the 5W1H plan.
+In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the Intent Discovery plan (Problem, Goals, Success Criteria, What → Why → How).
 
 **Smart Auto-Skip:** Planning gate is automatically skipped for:
 - Read-only commands (grep, ls, cat, find, git status)
@@ -62,7 +62,7 @@ In **enforce** and **audit** levels, you are blocked from modifying code until y
 
 ## 🎯 Checkpoint 1: Purpose + Reuse
 
-**5W1H Gate** — Before ANY action. What → Why → Who → When → Where → How. Can't answer Why/How with evidence? → STOP.
+**Intent Discovery** — Before planning, confirm Problem, Goals, Success Criteria, and What → Why → How with evidence. What/Why/How is one technique; the container also captures Assumptions and Unknowns. Can't answer Why/How with evidence? → STOP.
 
 **Hunter Protocol** — Search codebase for existing logic before writing new code. Function exists? Utility handles it? → **Reuse. Don't rewrite.** Report exact `path:line`.
 

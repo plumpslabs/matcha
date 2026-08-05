@@ -34,6 +34,8 @@ Default signals (no pack loaded):
 | Files in disposable paths | L0 |
 | `// matcha:explain` with justification | L0 |
 
+Diff-size heuristic: tiny diffs (≤10 lines) stay low; large diffs (>100 lines or many files) escalate a tier.
+
 ## Review Checklists by Tier
 
 ### L0 — Output Check
@@ -79,6 +81,13 @@ All L2 checks PLUS:
 
 **Verdict:** EXPERT_REQUIRED (cannot auto-pass)
 
+## Severity
+
+- **CRITICAL** — production outage, security breach, data loss, incorrect business logic
+- **HIGH** — major performance/reliability degradation, auth/payment/DB risk
+- **MEDIUM** — maintainability, complexity, debt
+- **LOW** — minor improvements (label `Nit:` — non-blocking)
+
 ## Verdict Rules
 
 | Tier | Auto-pass? | Verdict |
@@ -87,6 +96,8 @@ All L2 checks PLUS:
 | L1 | ✅ Yes | **PASS** if lint + typecheck clean |
 | L2 | ⚠️ Conditional | BLOCK / PASS_WITH_FIXES / PASS |
 | L3 | ❌ Never | **EXPERT_REQUIRED** — domain expert must review |
+
+Findings found at L2 never auto-upgrade to L3 — escalation always requires expert sign-off.
 
 ## Report Format
 
@@ -106,7 +117,7 @@ Scope: [files, lines +/-]
   → [fix]
 
 🟢 INFO:
-  file:line — [suggestion]
+  file:line — [suggestion]  (label style-only notes `Nit:` — non-blocking)
 
 📊 Critical: N | Warning: N | Info: N
 Verdict: BLOCK / PASS_WITH_FIXES / PASS / EXPERT_REQUIRED

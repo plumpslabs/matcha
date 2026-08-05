@@ -104,7 +104,7 @@ Follow this 4-phase lifecycle for every feature or bugfix:
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-1. **Phase 1: Plan & Intent** — Call `@matcha-planner` or run `/matcha:why` to complete 5W1H evidence check before touching code.
+1. **Phase 1: Plan & Intent** — Call `@matcha-planner` or run `/matcha:why` to complete Intent Discovery evidence check before touching code.
 2. **Phase 2: Search & Reuse** — Call `@matcha-finder` to hunt existing functions/utilities (`file:line`) before writing new code.
 3. **Phase 3: Code & Debug** — Write code following 8-Pillar Engineering Directives. If stuck on an error, call `@matcha-debugger` for 1-hypothesis-at-a-time investigation.
 4. **Phase 4: Review & Ship** — Run `/matcha:review` to pass risk-based gate (L0-L3) and call `@matcha-cleaner` to remove debug logs.
@@ -116,14 +116,13 @@ Follow this 4-phase lifecycle for every feature or bugfix:
 
 | Command | Purpose |
 |---------|---------|
-| `/matcha:why` | 5W1H gate |
+| `/matcha:why` | Intent Discovery |
 | `/matcha:review` | Review gate (8 categories) |
 | `/matcha:audit` | Stack audit |
 | `/matcha:intensity` | Set level |
 | `/matcha:status` | Session dashboard |
 | `/matcha:debt` | Debt ledger |
 | `/matcha:markers` | Scan markers |
-| `/matcha:stats` | Session metrics |
 
 ---
 

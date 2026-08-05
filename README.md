@@ -10,13 +10,13 @@
 
 <p align="center">
   <b>Engineering philosophy for AI coding agents.</b><br />
-  5 modules · 8 commands · 6 agents · 10 hooks · 1 MCP server
+  5 modules · 7 commands · 6 agents · 10 hooks · 1 MCP server
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.10-purple" alt="v2.5.10" />
+  <img src="https://img.shields.io/badge/version-2.5.11-purple" alt="v2.5.11" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -125,7 +125,7 @@ Create `MATCHA_PROJECT.md` in your project root:
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-1. **Phase 1: Plan & Intent** — `@matcha-planner` or `/matcha:why` (5W1H evidence gate)
+1. **Phase 1: Plan & Intent** — `@matcha-planner` or `/matcha:why` (Intent Discovery)
 2. **Phase 2: Search & Reuse** — `@matcha-finder` (hunt existing code `file:line`)
 3. **Phase 3: Code & Debug** — Follow 8-Pillar Directives + `@matcha-debugger` if stuck
 4. **Phase 4: Review & Ship** — `/matcha:review` (blocking L0-L3 gate) + `@matcha-cleaner`
@@ -137,14 +137,13 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 
 | Command | Purpose |
 |---------|---------|
-| `/matcha:why` | 5W1H gate — answer before coding |
+| `/matcha:why` | Intent Discovery — answer before coding |
 | `/matcha:review` | **Blocking review gate** — 8 categories |
 | `/matcha:audit` | Stack health — overlaps, waste, security |
 | `/matcha:intensity` | Set level: observe / enforce / audit |
 | `/matcha:status` | Session dashboard |
 | `/matcha:debt` | Technical debt from `// matcha:` markers |
 | `/matcha:markers` | Scan markers by severity |
-| `/matcha:stats` | Session metrics |
 
 ### Agents
 
@@ -219,7 +218,7 @@ npm install -g @plumpslabs/matcha
 | `matcha_shield_check` | Check command for dangerous patterns |
 | `matcha_post_write_scan` | Scan file for cleanup issues (13+ languages) |
 | `matcha_stop_tips` | Generate tips from git diff |
-| `matcha_plan_validate` | Validate 5W1H plan |
+| `matcha_plan_validate` | Validate Intent Discovery plan |
 
 ### Start manually
 
@@ -282,7 +281,7 @@ Source of Truth:
 │   ├── matcha-post-write.js     ← Cleanup enforcement
 │   ├── matcha-stop.js           ← End-of-task tips
 │   └── matcha-metrics.js        ← Session metrics tracking
-├── commands/                    ← 8 slash commands
+├── commands/                    ← 7 slash commands
 └── .agents/agents/              ← 6 agent definitions
 ```
 

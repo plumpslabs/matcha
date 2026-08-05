@@ -10,7 +10,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 
 | # | Checkpoint | Rule |
 |---|------------|------|
-| 🎯 | **Purpose** | 5W1H with evidence (`file:line`, metrics). Can't answer Why/How? → STOP. |
+| 🎯 | **Purpose** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP. |
 | 🔎 | **Reuse** | Search codebase first (`src/`, `lib/`, `pkg/`, `app/`). Never duplicate. |
 | 🔍 | **Stack** | Scan manifests (`package.json`, `Cargo.toml`, `go.mod`, etc.) for service overlap. |
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. |
@@ -43,17 +43,18 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 ## Commands
 | Command | Purpose |
 |---------|---------|
-| `/matcha:why` | 5W1H evidence gate — answer before touching code |
+| `/matcha:why` | Intent Discovery — answer before touching code |
 | `/matcha:review` | **Blocking review gate** (L0-L3: Correctness, Security, Performance, Architecture) |
 | `/matcha:audit` | Preemptive stack audit — overlaps, waste, vulnerability sweep |
 | `/matcha:intensity` | Set enforcement level: observe / enforce / audit |
 | `/matcha:status` | Master session health dashboard |
+| `/matcha:markers` | Scan `// matcha:` decision markers by severity |
 | `/matcha:debt` | Technical debt & marker ledger (`// matcha:` comments) |
 
 ## Agents
 | Agent | Role | When to Call |
 |-------|------|--------------|
-| `@matcha-planner` | Plan features through 5W1H checkpoints | Before starting work |
+| `@matcha-planner` | Plan features through Intent Discovery checkpoints | Before starting work |
 | `@matcha-finder` | Hunt existing code before writing new | Before implementing |
 | `@matcha-auditor` | Stack audit for overlaps & security health | Health checks & onboarding |
 | `@matcha-reviewer` | **Blocking review gate** — catches everything | Before merge |

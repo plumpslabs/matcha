@@ -61,7 +61,7 @@ Prove matcha's impact on real code quality by implementing 3 features on an Expr
 
 1. Start with clean codebase + matcha hooks active
 2. Follow matcha workflow:
-   - 5W1H planning gate
+   - Intent Discovery planning
    - Code search before writing (reuse check)
    - Implementation
    - Post-write scan

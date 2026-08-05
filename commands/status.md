@@ -6,6 +6,8 @@ alias: ["matcha:status", "status"]
 
 Master session health dashboard.
 
+**When to use:** mid-session health check or before declaring done — intensity, git diff, tests, markers, and plan status in one view.
+
 ## Instructions for agent
 
 Report:

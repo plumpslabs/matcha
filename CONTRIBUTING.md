@@ -60,7 +60,7 @@ matcha/
 │   ├── matcha-shield.js          # Safety gate
 │   ├── matcha-post-write.js      # Cleanup enforcement
 │   └── matcha-stop.js            # End-of-task tips
-├── commands/                     # 8 slash commands
+├── commands/                     # 7 slash commands
 ├── .agents/agents/               # 6 agent definitions (canonical)
 ├── scripts/
 │   ├── build-adapters.js         # Generate platform files

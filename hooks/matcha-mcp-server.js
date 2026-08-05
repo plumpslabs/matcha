@@ -8,7 +8,7 @@
  *   - matcha_shield_check: Check a command for dangerous patterns
  *   - matcha_post_write_scan: Scan a file for cleanup issues
  *   - matcha_stop_tips: Generate end-of-task tips from git diff
- *   - matcha_plan_validate: Validate a 5W1H plan
+ *   - matcha_plan_validate: Validate an Intent Discovery plan
  *
  * Usage:
  *   node hooks/matcha-mcp-server.js
@@ -152,7 +152,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.10",
+  version: "2.5.11",
 };
 
 const TOOLS = [
@@ -190,7 +190,7 @@ const TOOLS = [
   },
   {
     name: "matcha_plan_validate",
-    description: "Validate a 5W1H plan in <matcha_gate> XML format. Checks for completeness and minimum length.",
+    description: "Validate an Intent Discovery plan in <matcha_gate> XML format. Checks for completeness and minimum length.",
     inputSchema: {
       type: "object",
       properties: {

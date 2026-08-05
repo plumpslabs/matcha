@@ -9,7 +9,7 @@ inclusion: always
 
 ## Core Rules
 
-- **🎯 5W1H Gate** — Confirm What/Why/Who/When/Where/How. Evidence required. Stop if Why/How unclear.
+- **🎯 Intent Discovery** — Confirm What/Why/How. Evidence required. Stop if Why/How unclear.
 - **🔎 Reuse First** — Search existing code (`file:line`). Never write what exists.
 - **🛡️ Type-Safe & Boundary Guard** — Strict types (no `any`). Validate inputs/schemas at entry points.
 - **🏗️ Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

@@ -42,10 +42,10 @@ describe("Core files", () => {
   test("plugin.json (AGY manifest) has current version", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     expect(content.name).toBe("matcha");
-    expect(content.version).toBe("2.5.10");
+    expect(content.version).toBe("2.5.11");
   });
 
-  test("plugin.json (AGY manifest) declares all 8 commands", () => {
+  test("plugin.json (AGY manifest) declares all 7 commands", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     const names = content.commands.map((c) => c.name);
     expect(names).toContain("matcha:why");
@@ -55,7 +55,6 @@ describe("Core files", () => {
     expect(names).toContain("matcha:status");
     expect(names).toContain("matcha:debt");
     expect(names).toContain("matcha:markers");
-    expect(names).toContain("matcha:stats");
   });
 
   test("mcp_config.json (AGY manifest) points to matcha MCP server", () => {
@@ -125,8 +124,8 @@ describe("Content validation", () => {
   const skill = readProjectFile("skills/matcha/SKILL.md");
   const agents = readProjectFile("AGENTS.md");
 
-  test("SKILL.md has 5W1H reference", () => {
-    expect(skill).toContain("5W1H");
+  test("SKILL.md has Intent Discovery reference", () => {
+    expect(skill).toContain("Intent Discovery");
   });
 
   test("SKILL.md references modules that contain matcha pause", () => {
@@ -175,7 +174,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.10");
+    expect(mcp).toContain("2.5.11");
   });
 
   test("has shield check tool", () => {

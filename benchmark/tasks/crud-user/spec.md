@@ -43,7 +43,7 @@ Implement a complete CRUD user feature for the Express API:
 
 ### With Matcha
 - Scout: analyze existing code, find patterns
-- Planner: plan 5W1H, identify edge cases
+- Planner: plan Intent Discovery, identify edge cases
 - Executor: implement per endpoint
 - Reviewer: check error handling, validation, HTTP codes
 - Verifier: run tests, check coverage

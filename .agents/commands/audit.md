@@ -59,6 +59,19 @@ For each: **what does it actually do?** Not just "it exists."
 | **Inconsistent patterns** | Mixed error handling, mixed logging, mixed auth. |
 | **Missing abstractions** | Same boilerplate in 3+ places. Extract. |
 
+## Severity
+
+- **CRITICAL** — production outage, security breach, data loss
+- **HIGH** — major performance/reliability degradation
+- **MEDIUM** — maintainability, complexity, debt
+- **LOW** — minor improvements, hygiene
+
+## Evidence & Correlation
+
+- **Evidence required:** only report findings with concrete `file:line` or manifest references. No evidence = no finding.
+- **Correlate root causes:** group findings sharing the same root cause into one finding — don't report every symptom.
+- **Risk over style:** ignore subjective preferences; report only findings with real impact.
+
 ## Report Format
 
 ```

@@ -68,7 +68,7 @@ const AGENT_NAMES = [
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
 ];
 
-const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers", "stats"];
+const COMMAND_NAMES = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
 
 // ─── .claude/ ────────────────────────────────────────────────────────────────
 

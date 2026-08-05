@@ -5,7 +5,7 @@ This project uses the **matcha** engineering convention. Read the `AGENTS.md` fi
 > Simple. Efficient. Deliberate. Never twice.
 
 Key principles (see AGENTS.md for the full ruleset):
-- **Purpose (5W1H)** — know *why* before *how*. Can't explain why/how? Stop and rethink.
+- **Purpose (Intent Discovery)** — know *why* before *how*. Can't explain why/how? Stop and rethink.
 - **Reuse** — search the codebase before writing new code. Never write what exists.
 - **Implementation** — one function, one job. Explicit errors. No hardcoded values.
 - **Cleanup** — done means working *and* clean. No debug leftovers, no dead code.

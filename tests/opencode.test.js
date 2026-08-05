@@ -47,9 +47,9 @@ describe("Kiro steering", () => {
 describe("Windsurfrules", () => {
   test("exists at root", () => assertFile(".windsurfrules"));
 
-  test("contains matcha + 5W1H Gate", () => {
+  test("contains matcha + Intent Discovery", () => {
     const content = readProjectFile(".windsurfrules");
     expect(content).toContain("matcha");
-    expect(content).toContain("5W1H Gate");
+    expect(content).toContain("Intent Discovery");
   });
 });

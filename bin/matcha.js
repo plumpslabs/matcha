@@ -67,7 +67,6 @@ Commands:
   status     Show version, platform, and installed components
   init       Install matcha into the current project (choose providers)
   init --platforms .opencode,.claude   Install only the listed providers
-  stats      Show session health statistics
   metrics    Show matcha impact metrics
   markers    Scan for // matcha: markers in codebase
   verify     Run verification checks (syntax, typecheck, tests)
@@ -298,82 +297,6 @@ function cmdStatus() {
   console.log(`  Intensity:  ${intensity}`);
 
   console.log(`\n  All systems ${found.length > 0 ? "✅ nominal" : "⏭ pending install"}`);
-}
-
-// ─── Stats — Session Health ───────────────────────────────────────────────────
-function cmdStats() {
-  console.log(`🍵 matcha stats\n`);
-
-  const state = readState();
-
-  // Files changed (git diff)
-  let filesChanged = 0, linesAdded = 0, linesRemoved = 0;
-  try {
-    const diffStat = execSync("git diff --stat", { cwd: CWD, timeout: 3000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
-    const files = diffStat.match(/\d+ file\w+ changed/);
-    filesChanged = files ? parseInt(files[0]) : 0;
-    const additions = diffStat.match(/(\d+) insertion/);
-    linesAdded = additions ? parseInt(additions[1]) : 0;
-    const deletions = diffStat.match(/(\d+) deletion/);
-    linesRemoved = deletions ? parseInt(deletions[1]) : 0;
-  } catch {}
-  console.log(`  Files changed:  ${filesChanged} (+${linesAdded} / -${linesRemoved} lines)`);
-
-  // Tests
-  let testsPassed = "unknown", totalTests = 0;
-  try {
-    const testRun = execSync("npm test 2>&1 || true", { cwd: CWD, timeout: 30000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] });
-    const passMatch = testRun.match(/(\d+) passed/);
-    const failMatch = testRun.match(/(\d+) failed/);
-    totalTests = passMatch ? parseInt(passMatch[1]) : 0;
-    testsPassed = failMatch && parseInt(failMatch[1]) > 0 ? `FAIL (${failMatch[1]} failed)` : `${totalTests} passed`;
-  } catch {}
-  console.log(`  Tests:          ${testsPassed}`);
-
-  // Decisions from log
-  let decisions = 0;
-  try {
-    if (existsSync(DECISIONS_FILE)) {
-      const content = readFileSync(DECISIONS_FILE, "utf-8");
-      decisions = content.split("\n---\n").filter(d => d.trim()).length;
-    }
-  } catch {}
-  console.log(`  Decisions:      ${decisions}`);
-
-  // matcha: markers
-  let markers = 0;
-  try {
-    const markerCount = execSync("grep -r '// matcha:' --include='*.js' --include='*.ts' --include='*.jsx' --include='*.tsx' --include='*.py' --include='*.go' --include='*.rs' . 2>/dev/null | wc -l || echo 0",
-      { cwd: CWD, timeout: 5000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
-    markers = parseInt(markerCount) || 0;
-  } catch {}
-  console.log(`  Matcha markers: ${markers}`);
-
-  // Phases from plan
-  let phases = "none";
-  const planDir = join(CWD, ".agents/plan");
-  try {
-    if (existsSync(planDir)) {
-      const files = execSync("ls .agents/plan/*.yaml .agents/plan/*.log 2>/dev/null || true",
-        { cwd: CWD, timeout: 2000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
-      if (files) phases = files.split("\n").length.toString();
-    }
-  } catch {}
-  console.log(`  Plan artifacts: ${phases}`);
-
-  // Session
-  let duration = "unknown";
-  try {
-    if (existsSync(SESSION_FILE)) {
-      const session = JSON.parse(readFileSync(SESSION_FILE, "utf-8"));
-      if (session.started_at) {
-        const elapsed = Math.round((Date.now() - new Date(session.started_at).getTime()) / 60000);
-        duration = elapsed < 60 ? `${elapsed}m` : `${Math.floor(elapsed / 60)}h ${elapsed % 60}m`;
-      }
-    }
-  } catch {}
-  console.log(`  Duration:       ${duration}`);
-  console.log(`  Intensity:      ${state.intensity || "enforce"}`);
 }
 
 // ─── Markers — Scan for // matcha: comments ─────────────────────────────────
@@ -614,9 +537,6 @@ switch (cmd) {
     break;
   case "status":
     cmdStatus();
-    break;
-  case "stats":
-    cmdStats();
     break;
   case "metrics":
     cmdMetrics();

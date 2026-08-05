@@ -12,7 +12,7 @@ curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh |
 
 This auto-detects your platform and installs:
 - ✅ Agent definitions (6 agents)
-- ✅ Slash commands (8 commands)
+- ✅ Slash commands (7 commands)
 - ✅ Skill modules (5 modules)
 - ✅ Lifecycle hooks (4 hooks — shield, post-write, stop, metrics)
 - ✅ MCP server (4 tools)
@@ -33,7 +33,7 @@ This auto-detects your platform and installs:
 
 **What gets installed:**
 - `.claude/agents/*.md` — 6 agent definitions
-- `.claude/commands/*.md` — 8 slash commands
+- `.claude/commands/*.md` — 7 slash commands
 - `.claude/skills/matcha/SKILL.md` — skill file
 - `.claude/settings.json` — hooks (merged, not overwritten)
 - `hooks/*.js` — lifecycle hooks
@@ -135,7 +135,7 @@ agy plugin install https://github.com/plumpslabs/matcha
 
 **What gets installed:**
 - `.agents/agents/*.md` — 6 agent definitions
-- `.agents/commands/*.md` — 8 slash commands
+- `.agents/commands/*.md` — 7 slash commands
 - `.agents/skills/matcha/SKILL.md` — skill file
 - `AGENTS.md` — cross-tool file
 
@@ -314,7 +314,7 @@ Roo Code — `.roo/mcp.json` (per-project):
 node bin/matcha.js status
 
 # Should show:
-# Version: v2.5.10
+# Version: v2.5.11
 # Platform: [your platform]
 # AGENTS.md: ✅
 # Shield: ✅ active

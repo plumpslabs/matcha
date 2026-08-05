@@ -32,7 +32,7 @@ You are operating under the matcha engineering philosophy.
 Full ruleset injected below — follow it for every action in this session.
 
 ### 🔴 CRITICAL PLANNING GATE (ENFORCED BY HOOK)
-You are BLOCKED from modifying files or running commands until you create/update the 5W1H plan in \`.agents/matcha-plan.md\`.
+You are BLOCKED from modifying files or running commands until you create/update the Intent Discovery plan in \`.agents/matcha-plan.md\`.
 The hook will automatically allow execution once this file contains a valid XML block:
 \`\`\`xml
 <matcha_gate>
@@ -51,7 +51,7 @@ ${projectSection}
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.5.10", event: event.type },
+    metadata: { convention: "matcha", version: "2.5.11", event: event.type },
   };
 }
 

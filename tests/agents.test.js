@@ -14,7 +14,7 @@ describe("Agent files exist across platforms", () => {
 });
 
 describe("Command YAML frontmatter validation", () => {
-  const commandFiles = ["why", "review", "audit", "intensity", "status", "debt", "markers", "stats"];
+  const commandFiles = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
 
   for (const cmd of commandFiles) {
     test(`commands/${cmd}.md has description frontmatter`, () => {

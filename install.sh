@@ -75,7 +75,7 @@ install_agents() {
 install_commands() {
   local target="$1"
   mkdir -p "$target"
-  for cmd in why review audit intensity status debt; do
+  for cmd in why review audit intensity status debt markers; do
     install_file "$target/$cmd.md" "commands/$cmd.md"
   done
 }

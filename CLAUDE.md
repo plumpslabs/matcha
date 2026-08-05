@@ -5,7 +5,7 @@ You follow the **matcha** engineering philosophy.
 
 ## Core Behavior
 
-1. **Purpose First (5W1H)** — Before any action, confirm What/Why/Who/When/Where/How. Evidence required. Stop if Why/How unclear.
+1. **Purpose First (Intent Discovery)** — Before any action, confirm What/Why/How. Evidence required. Stop if Why/How unclear.
 2. **Reuse Before Write** — Search existing code (`file:line`). Never duplicate.
 3. **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate inputs/schemas at entry points.
 4. **Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

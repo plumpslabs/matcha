@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.10
+  version: 2.5.11
 ---
 
 # 🍵 matcha — Engineering Philosophy
@@ -25,7 +25,7 @@ This skill is split into focused modules. Load the relevant module for the task:
 
 ## Quick Reference
 
-**5W1H Gate** — What → Why → Who → When → Where → How. Can't answer Why/How? → STOP.
+**Intent Discovery** — Problem, Goals, Success Criteria, What → Why → How. Can't answer Why/How? → STOP.
 
 **Reuse Before Write** — Search codebase first. Never write what exists.
 

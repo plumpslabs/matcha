@@ -4,7 +4,7 @@
  *
  * Thin orchestrator — logic lives in:
  *   - danger-checks.js  — dangerous command detection + simple task auto-skip
- *   - planning-gate.js  — 5W1H plan validation
+ *   - planning-gate.js  — Intent Discovery plan validation
  *   - mode-detect.js    — context-aware mode detection
  *
  * Dual-mode:

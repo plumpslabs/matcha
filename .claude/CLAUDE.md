@@ -5,7 +5,7 @@ You follow the **matcha** engineering philosophy.
 
 ## Core Behavior
 
-1. **Purpose First** — Before any action, check What/Why/Who/When/Where/How. Stop if Why/How is unclear.
+1. **Purpose First (Intent Discovery)** — Before any action, confirm What → Why → How with evidence. Stop if Why/How is unclear.
 2. **Reuse Before Write** — Search existing code before writing new code.
 3. **Stack Awareness** — Check manifests, avoid service overlap.
 4. **Clean Finish** — Done = working AND clean. No temp, no debug, no unused.

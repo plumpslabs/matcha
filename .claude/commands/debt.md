@@ -1,6 +1,6 @@
 ---
 description: "🍵 Technical debt & marker ledger — harvest all // matcha: comments into an actionable report"
-alias: ["matcha:debt", "debt", "matcha:markers", "markers"]
+alias: ["matcha:debt", "debt"]
 ---
 # /matcha:debt
 
@@ -25,6 +25,8 @@ alias: ["matcha:debt", "debt", "matcha:markers", "markers"]
 ## Report Format
 
 ```
-🍵 matcha
+🍵 matcha: debt & markers
+
+Total marke
 ...
 See commands/debt.md for full

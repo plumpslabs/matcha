@@ -6,6 +6,8 @@ alias: ["matcha:intensity", "intensity"]
 
 Set intensity level for current session.
 
+**When to use:** at session start or when switching work types — observe for exploration, enforce for normal work (default), audit for critical/high-stakes work.
+
 ## Checklists
 
 **observe** — tips only: flag leftover debug statements (e.g. `console.log`/`print`/`println!` via `patterns.json`)/TODO optionally, syntax check optional.

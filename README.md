@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.11-purple" alt="v2.5.11" />
+  <img src="https://img.shields.io/badge/version-2.5.12-purple" alt="v2.5.12" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -163,6 +163,21 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 | **observe** | Tips only. No blocking. |
 | **enforce** | Full filter + review gate. **Default.** |
 | **audit** | Enforce + mandatory cleanup. |
+
+### Session Memory (survive context loss)
+
+Filesystem is durable memory; the context window is volatile. matcha persists gate artifacts so a compacted or fresh session resumes in <500 tokens:
+
+| File | Write | Read |
+|------|-------|------|
+| `.agents/plan/current.md` | Planning gate → **overwrite** (living plan) | Start of every task |
+| `.agents/reports/<agent>-<YYYY-MM>.md` | Review/Audit output → **append** | Resuming or auditing history |
+| `.agents/plan/decisions.log` | `matcha decision <type> <reason>` | `matcha markers` / `/matcha:debt` |
+
+- **Lazy-load only** — memory files are never auto-injected into context; read on demand.
+- **Lifecycle (anti-stale)** — `current.md` holds one active task: intent mismatch at start → overwrite; done → archive to `reports/planner-<YYYY-MM>.md` + reset to empty template.
+- **Living over archive** — `current.md` overwrites, never appends. Reports append monthly; keep latest 5 per agent.
+- **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly.
 
 ---
 

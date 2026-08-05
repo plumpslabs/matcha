@@ -15,6 +15,9 @@ Simple. Efficient. Deliberate. Never twice.
 9. **Loop Guardrail (Self-Termination)** — Halt & ask for guidance if 2 consecutive attempts fail or repeat.
 10. **Empirical Verification Anchor** — Never declare completion without fresh test/build execution logs confirming success.
 
+## Session Memory
+- Read `.agents/plan/current.md` at task start (resume after context loss); overwrite it at the planning gate. Append review/audit output to `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5). Lazy-load only.
+
 ## On-Demand
 - `/matcha:audit` — Stack audit when adding services
 - `/matcha:review` — Post-implementation checklist

@@ -134,7 +134,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.11</span>
+    <span class="header-badge">v2.5.12</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -164,6 +164,7 @@ tr:hover td{background:var(--bg-hover)}
     <a class="sidebar-link" href="#risk" onclick="setActive(this)"><i data-lucide="shield"></i> Risk Tiers</a>
     <a class="sidebar-link" href="#planning" onclick="setActive(this)"><i data-lucide="file-text"></i> Planning Gate</a>
     <a class="sidebar-link" href="#project-constraints" onclick="setActive(this)"><i data-lucide="settings"></i> Project Constraints</a>
+    <a class="sidebar-link" href="#session-memory" onclick="setActive(this)"><i data-lucide="database"></i> Session Memory</a>
   </div>
   <div class="sidebar-section">
     <div class="sidebar-label">Workflow</div>
@@ -794,6 +795,37 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   </ul>
 
   <div class="callout callout-info"><strong>Auto-loading:</strong> matcha automatically loads <code>MATCHA_PROJECT.md</code> from project root when present.</div>
+</div>
+
+<!-- Workflow Guide -->
+<!-- Session Memory -->
+<div class="section" id="session-memory">
+  <h1>Session Memory</h1>
+  <p>Filesystem is durable memory; the context window is volatile. matcha persists gate artifacts so a compacted or fresh session resumes in under 500 tokens.</p>
+
+  <table>
+    <tr><th>File</th><th>Write</th><th>Read</th></tr>
+    <tr><td><code>.agents/plan/current.md</code></td><td>Planning gate → <strong>overwrite</strong> (living plan)</td><td>Start of every task</td></tr>
+    <tr><td><code>.agents/reports/&lt;agent&gt;-&lt;YYYY-MM&gt;.md</code></td><td>Review / Audit output → <strong>append</strong></td><td>Resuming or auditing history</td></tr>
+    <tr><td><code>.agents/plan/decisions.log</code></td><td><code>matcha decision &lt;type&gt; &lt;reason&gt;</code></td><td><code>matcha markers</code> / <code>/matcha:debt</code></td></tr>
+  </table>
+
+  <h3>Rules</h3>
+  <ul>
+    <li><strong>Lazy-load only</strong> — never auto-inject memory files into context; read on demand. Zero token bloat.</li>
+    <li><strong>Living over archive</strong> — <code>current.md</code> overwrites, never appends. Reports append monthly; keep latest 5 per agent, delete older.</li>
+    <li><strong>Format</strong> — YAML frontmatter (<code>title</code>, <code>date</code>, <code>type</code>, <code>agent</code>, <code>status</code>, <code>tags</code>): grep-able, git-friendly, industry standard (same as ADRs & memory banks).</li>
+    <li><strong>Orchestrator writes</strong> — agents are read-only; the main session agent persists their outputs.</li>
+    <li><strong>Gate artifacts only</strong> — persist plan/review/audit (they gate shipping). Skip finder/cleaner/debugger — cheaper to re-run than to archive.</li>
+  </ul>
+
+  <h3>Lifecycle (anti-stale)</h3>
+  <p><code>current.md</code> always holds exactly <strong>one active task</strong>:</p>
+  <ol>
+    <li><strong>Start</strong> — read it. Intent matches the current request? Continue and update in place. Mismatch → <strong>overwrite</strong> (never follow a stale plan).</li>
+    <li><strong>During</strong> — overwrite / check-off in place. Never append (appending bloats the file when re-read).</li>
+    <li><strong>Done</strong> — append content to <code>reports/planner-&lt;YYYY-MM&gt;.md</code>, then <strong>reset</strong> <code>current.md</code> to the empty template (<code>status: active</code>, TBD).</li>
+  </ol>
 </div>
 
 <!-- Workflow Guide -->

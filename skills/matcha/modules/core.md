@@ -170,6 +170,29 @@ See `/matcha:review` for full checklist.
 
 ---
 
+## 🧠 Session Memory (Filesystem = durable memory)
+
+The context window is volatile; the filesystem is not. Persist gate artifacts so a compacted or fresh session resumes in <500 tokens.
+
+| File | Write | Read |
+|------|-------|------|
+| `.agents/plan/current.md` | Planning gate → **overwrite** (living plan, never append) | Start of every task |
+| `.agents/reports/<agent>-<YYYY-MM>.md` | Review/Audit output → **append** | Resuming or auditing history |
+| `.agents/plan/decisions.log` | `matcha decision <type> <reason>` | `matcha markers` / `/matcha:debt` |
+
+Rules:
+- **Lazy-load.** Never auto-inject memory files into context — read on demand.
+- **`current.md` lifecycle (anti-stale) — always holds ONE active task:**
+  1. **Start:** read it. Intent matches the current request? → continue, update in place. Mismatch → **overwrite** (never follow a stale plan).
+  2. **Update:** overwrite / check-off in place. Never append (appending = bloat when re-read).
+  3. **Done (task ships):** append content → `reports/planner-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD).
+- **Living over archive.** Reports append monthly, keep latest 5 per agent, delete older.
+- **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly, standard.
+- Persistence is done by the **orchestrating agent** (agents are read-only; they designate where output goes).
+- **Gate artifacts only.** Persist plan/review/audit outputs — they gate shipping. Skip work artifacts (finder/cleaner/debugger): cheaper to re-run than to archive.
+
+---
+
 ## Execution Modes
 
 ### TDD Mode

@@ -9,6 +9,7 @@
 # Files updated:
 #   package.json              "version": "x.y.z"
 #   plugin.json               "version": "x.y.z" (AGY/Gemini plugin manifest)
+#   gemini-extension.json     "version": "x.y.z" (Gemini extension manifest)
 #   .claude-plugin/plugin.json "version": "x.y.z"
 #   skills/matcha/SKILL.md    metadata.version: x.y.z (agentskills spec-compliant)
 #   hooks/patterns.json       "version": "x.y.z"
@@ -159,7 +160,12 @@ replace_version "plugin.json" \
   "\"version\": \"${SV}\"" \
   "\"version\": \"${NEW_VERSION}\""
 
-# 3. .claude-plugin/plugin.json
+# 3. gemini-extension.json (Gemini extension manifest)
+replace_version "gemini-extension.json" \
+  "\"version\": \"${SV}\"" \
+  "\"version\": \"${NEW_VERSION}\""
+
+# 4. .claude-plugin/plugin.json
 replace_version ".claude-plugin/plugin.json" \
   "\"version\": \"${SV}\"" \
   "\"version\": \"${NEW_VERSION}\""
@@ -233,6 +239,7 @@ check_version() {
 if [ "$DRY_RUN" = false ]; then
   check_version "package.json"
   check_version "plugin.json"
+  check_version "gemini-extension.json"
   check_version ".claude-plugin/plugin.json"
   check_version "skills/matcha/SKILL.md"
   check_version "hooks/patterns.json"

@@ -126,7 +126,7 @@ if (!existsSync(mcpPath)) {
 
 // ─── Command files ───────────────────────────────────────────────────────────
 console.log("\n📋 Checking command file copies...");
-const COMMANDS = ["why", "review", "audit", "intensity", "status", "debt"];
+const COMMANDS = ["why", "review", "audit", "intensity", "status", "debt", "markers"];
 
 for (const cmd of COMMANDS) {
   const canonical = join(ROOT, `commands/${cmd}.md`);

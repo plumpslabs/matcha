@@ -72,6 +72,10 @@ Confidence: HIGH / MEDIUM / LOW
 ```
 </output_schema>
 
+<persistence>
+After the plan is finalized, the orchestrating agent overwrites `.agents/plan/current.md` (YAML frontmatter: title, date, type: plan, agent: matcha-planner, status, tags). It is a LIVING doc — update in place, never append. When the task ships, the orchestrating agent appends the completed plan to `.agents/reports/planner-<YYYY-MM>.md` and resets `current.md` to the empty template.
+</persistence>
+
 <quality_gates>
 A plan is NOT final until: problem ✓, success criteria ✓, context/constraints ✓, reuse analysis ✓, alternatives ✓, decision rationale ✓, impact ✓, risks ✓. Missing any → STOP and complete before handoff.
 </quality_gates>

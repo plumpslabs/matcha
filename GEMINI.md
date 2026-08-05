@@ -27,6 +27,13 @@ This project uses the **matcha** engineering philosophy.
 
 @matcha-planner · @matcha-finder · @matcha-auditor · @matcha-reviewer · @matcha-cleaner · @matcha-debugger
 
+## Session Memory
+
+- Task start → read `.agents/plan/current.md` (resume after context loss).
+- Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
+- Review/Audit output → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
+- Lazy-load only — never auto-inject memory files.
+
 ## Safety
 
 `hooks/matcha-shield.js` blocks dangerous commands. Override: `MATCHA_SHIELD_OFF=true`

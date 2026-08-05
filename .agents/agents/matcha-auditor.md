@@ -87,6 +87,10 @@ Recommendations: [prioritized actions]
 ```
 </output_schema>
 
+<persistence>
+After the report is delivered, the orchestrating agent appends it to `.agents/reports/auditor-<YYYY-MM>.md` (frontmatter: title, date, type: audit, agent: matcha-auditor, health, tags). Keep latest 5 files per agent prefix — delete older.
+</persistence>
+
 <quality_gates>
 A finding is NOT valid without: location ✓, evidence ✓, root cause ✓, impact ✓, recommendation ✓, confidence ✓. The audit is NOT final without: executive summary ✓, overall health ✓, prioritized findings ✓, positive observations ✓, recommendations ✓.
 </quality_gates>

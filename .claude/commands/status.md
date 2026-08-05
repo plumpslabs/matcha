@@ -15,7 +15,8 @@ Report:
 2. **Git Diff Stats** — files changed, lines +/- (`git diff --stat`)
 3. **Test Status** — fresh test runner execution summary
 4. **Markers & Debt** — count of `// matcha:` markers found in session
-5. **Health Verdict** — overall session health (Healthy / Needs Attention / Critical)
+5. **Plan Status** — read `.agents/plan/current.md` — is the live plan up to date with current work?
+6. **Health Verdict** — overall session health (Healthy / Needs Attention / Critical)
 
 ```
 🍵 matcha: status

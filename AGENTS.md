@@ -66,6 +66,13 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 ## Project Constraints & Verification
 - Read project-specific stack, conventions, and verification commands in `MATCHA_PROJECT.md`.
 - Always execute empirical test/build commands defined in `MATCHA_PROJECT.md` before declaring completion.
+
+## Session Memory (survive compaction)
+- Task start → read `.agents/plan/current.md` (resume continuity after context loss). Intent mismatch → overwrite, never follow a stale plan.
+- Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
+- Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
+- Task done → archive `current.md` → `reports/planner-<YYYY-MM>.md`, reset to empty template.
+- Lazy-load only — never auto-inject memory files into context.
 </project_context>
 
 <hard_rules>

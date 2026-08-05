@@ -180,6 +180,36 @@ function ensureMatchaProjectMd(cwd) {
   }
 }
 
+function ensureMemoryScaffold(cwd) {
+  // Session memory: live plan + rotating report archive under .agents/
+  const planFile = join(cwd, ".agents", "plan", "current.md");
+  const reportsDir = join(cwd, ".agents", "reports");
+  const today = new Date().toISOString().slice(0, 10);
+
+  if (!existsSync(planFile)) {
+    try {
+      mkdirSync(join(cwd, ".agents", "plan"), { recursive: true });
+      const content = `---\ntitle: Current plan\ndate: ${today}\ntype: plan\nagent: matcha-planner\nstatus: active\ntags: [matcha, plan]\n---\n# 🍵 Intent Discovery — Current Plan\n\n> Living doc. Overwritten at every planning gate. Read at task start to resume continuity.\n\n- **Problem:** (TBD)\n- **Goals:** (TBD)\n- **Success Criteria:** (TBD)\n- **Assumptions:** (TBD)\n- **Unknowns:** (TBD)\n\n## Plan\n- [ ] Step 1 — (TBD)\n\n## Risks & Mitigations\n- (TBD)\n`;
+      writeFileSync(planFile, content, "utf-8");
+      console.log("  ✓ Generated .agents/plan/current.md (session memory — live plan)");
+    } catch (e) {
+      console.error(`  ✗ Failed to create .agents/plan/current.md: ${e.message}`);
+    }
+  } else {
+    console.log("  ✓ .agents/plan/current.md (exists, kept)");
+  }
+
+  if (!existsSync(reportsDir)) {
+    try {
+      mkdirSync(reportsDir, { recursive: true });
+      writeFileSync(join(reportsDir, ".gitkeep"), "", "utf-8");
+      console.log("  ✓ Generated .agents/reports/ (agent output archive — rotating, keep latest 5)");
+    } catch (e) {
+      console.error(`  ✗ Failed to create .agents/reports/: ${e.message}`);
+    }
+  }
+}
+
 
 
 async function cmdInit() {
@@ -234,6 +264,9 @@ async function cmdInit() {
 
   // 3. Auto-generate MATCHA_PROJECT.md for polyglot stack
   ensureMatchaProjectMd(CWD);
+
+  // 4. Scaffold session memory (live plan + rotating report archive)
+  ensureMemoryScaffold(CWD);
 
   console.log("\n💡 Next steps:");
   console.log("   Verify: ls AGENTS.md GEMINI.md MATCHA_PROJECT.md hooks/matcha-shield.js");

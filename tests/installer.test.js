@@ -38,6 +38,11 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("matcha-post-write.js");
     expect(installer).toContain("matcha-stop.js");
   });
+
+  test("scaffolds session memory (plan + reports)", () => {
+    expect(installer).toContain(".agents/plan/current.md");
+    expect(installer).toContain(".agents/reports");
+  });
 });
 
 

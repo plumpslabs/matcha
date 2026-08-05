@@ -213,6 +213,42 @@ else
 fi
 echo ""
 
+# ─── Scaffold session memory (live plan + rotating report archive) ───────────
+MEM_PLAN="$TARGET/.agents/plan/current.md"
+if [ ! -f "$MEM_PLAN" ]; then
+  mkdir -p "$(dirname "$MEM_PLAN")"
+  cat > "$MEM_PLAN" <<MEM_EOF
+---
+title: Current plan
+date: $(date +%Y-%m-%d)
+type: plan
+agent: matcha-planner
+status: active
+tags: [matcha, plan]
+---
+# 🍵 Intent Discovery — Current Plan
+
+> Living doc. Overwritten at every planning gate. Read at task start to resume continuity.
+
+- **Problem:** (TBD)
+- **Goals:** (TBD)
+- **Success Criteria:** (TBD)
+- **Assumptions:** (TBD)
+- **Unknowns:** (TBD)
+
+## Plan
+- [ ] Step 1 — (TBD)
+
+## Risks & Mitigations
+- (TBD)
+MEM_EOF
+  echo "  ✅ .agents/plan/current.md (session memory — live plan)"
+else
+  echo "  ℹ️  .agents/plan/current.md already exists — kept as-is"
+fi
+mkdir -p "$TARGET/.agents/reports"
+[ -f "$TARGET/.agents/reports/.gitkeep" ] || touch "$TARGET/.agents/reports/.gitkeep"
+
 echo "  💡 MCP server available at: $HOOKS_DIR/matcha-mcp-server.js"
 echo "     Add to your MCP config:"
 echo '     { "mcpServers": { "matcha": { "command": "node", "args": ["hooks/matcha-mcp-server.js"] } } }'

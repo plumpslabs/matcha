@@ -42,7 +42,7 @@ describe("Core files", () => {
   test("plugin.json (AGY manifest) has current version", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     expect(content.name).toBe("matcha");
-    expect(content.version).toBe("2.5.11");
+    expect(content.version).toBe("2.5.12");
   });
 
   test("plugin.json (AGY manifest) declares all 7 commands", () => {
@@ -174,7 +174,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.11");
+    expect(mcp).toContain("2.5.12");
   });
 
   test("has shield check tool", () => {
@@ -195,6 +195,55 @@ describe("MCP server", () => {
 
   test("has DANGER_PATTERNS", () => {
     expect(mcp).toContain("DANGER_PATTERNS");
+  });
+});
+
+describe("Session memory (persist & rehydrate)", () => {
+  test("core.md has Session Memory section", () => {
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    expect(core).toContain("Session Memory");
+    expect(core).toContain(".agents/plan/current.md");
+    expect(core).toContain("Lazy-load");
+  });
+
+  test("AGENTS.md references session memory", () => {
+    const agents = readProjectFile("AGENTS.md");
+    expect(agents).toContain("Session Memory");
+    expect(agents).toContain(".agents/plan/current.md");
+  });
+
+  test("planner persists plan to .agents/plan/current.md", () => {
+    const planner = readProjectFile(".agents/agents/matcha-planner.md");
+    expect(planner).toContain("<persistence>");
+    expect(planner).toContain(".agents/plan/current.md");
+  });
+
+  test("core.md defines current.md lifecycle (archive + reset anti-stale)", () => {
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    expect(core).toContain("lifecycle");
+    expect(core).toContain("reset");
+    expect(core).toContain("reports/planner-");
+  });
+
+  test("reviewer + auditor persist to .agents/reports/", () => {
+    const reviewer = readProjectFile(".agents/agents/matcha-reviewer.md");
+    const auditor = readProjectFile(".agents/agents/matcha-auditor.md");
+    expect(reviewer).toContain("<persistence>");
+    expect(reviewer).toContain(".agents/reports/");
+    expect(auditor).toContain("<persistence>");
+    expect(auditor).toContain(".agents/reports/");
+  });
+
+  test("bin/matcha.js scaffolds memory dirs at init", () => {
+    const bin = readProjectFile("bin/matcha.js");
+    expect(bin).toContain("ensureMemoryScaffold");
+    expect(bin).toContain(".agents/plan/current.md");
+    expect(bin).toContain(".agents/reports");
+  });
+
+  test("check-rule-copies covers markers command", () => {
+    const checker = readProjectFile("scripts/check-rule-copies.js");
+    expect(checker).toContain('"markers"');
   });
 });
 

@@ -79,6 +79,10 @@ Confidence: HIGH / MEDIUM / LOW
 ```
 </output_schema>
 
+<persistence>
+After the verdict is rendered, the orchestrating agent appends it to `.agents/reports/reviewer-<YYYY-MM>.md` (frontmatter: title, date, type: review, agent: matcha-reviewer, verdict, tags). Keep latest 5 files per agent prefix — delete older.
+</persistence>
+
 <example>
 🍵 matcha: review
 

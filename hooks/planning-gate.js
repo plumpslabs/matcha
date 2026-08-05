@@ -1,9 +1,12 @@
 /**
  * 🍵 matcha — planning-gate.js
  * Planning gate validation. Blocks code modifications until Intent Discovery plan exists.
+ * Plan file: .agents/plan/current.md (Session Memory) — legacy .agents/matcha-plan.md still accepted.
+ * Accepts <matcha_gate> XML (legacy) OR markdown Intent Discovery (Problem/Goals/Success Criteria).
  *
  * Exports:
  *   checkPlanningGate(event) — returns { block, message } or null
+ *   validatePlanContent(content) — returns { valid, message }
  */
 
 import { readFileSync, existsSync } from "fs";
@@ -23,6 +26,111 @@ export function getIntensity() {
   return "enforce";
 }
 
+// ─── Plan location (Session Memory first, legacy fallback) ───────────────────
+const PLAN_CANDIDATES = [
+  join(ROOT, ".agents", "plan", "current.md"),
+  join(ROOT, ".agents", "matcha-plan.md"),
+];
+
+export function findPlanPath() {
+  for (const p of PLAN_CANDIDATES) {
+    if (existsSync(p)) return p;
+  }
+  return null;
+}
+
+// ─── Plan validation — <matcha_gate> XML (legacy) OR markdown Intent Discovery ──
+export function validatePlanContent(planContent) {
+  if (!planContent || !planContent.trim()) {
+    return { valid: false, message: "Plan file is empty." };
+  }
+
+  const gateMatch = planContent.match(/<matcha_gate>([\s\S]*?)<\/matcha_gate>/);
+  if (gateMatch) {
+    return validateGateFormat(gateMatch[1]);
+  }
+
+  const md = validateMarkdownPlan(planContent);
+  if (md.valid) return { valid: true };
+
+  return {
+    valid: false,
+    message: `The plan file does not contain a valid <matcha_gate> block or an Intent Discovery markdown plan.\nAccepted formats:\n1. <matcha_gate> XML — <what>/<why>/<how> each ≥15 chars, no placeholders.\n2. Markdown — **Problem:**, **Goals:**, **Success Criteria:** filled in (not TBD).\n\nFound: ${md.reason}`,
+  };
+}
+
+function validateGateFormat(inner) {
+  const grab = (tag) => {
+    const m = inner.match(new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`));
+    return m ? m[1].trim() : "";
+  };
+  const what = grab("what");
+  const why = grab("why");
+  const how = grab("how");
+
+  const isTooShort = what.length < 15 || why.length < 15 || how.length < 15;
+  const hasPlaceholders = isTooShort || [what, why, how].some(text =>
+    text.includes("Describe what") ||
+    text.includes("Why is this") ||
+    text.includes("simplest and most") ||
+    text === "..."
+  );
+
+  if (hasPlaceholders) {
+    return { valid: false, message: "Your Intent Discovery plan is incomplete, too short (must be at least 15 characters per section), or contains placeholder text.\nPlease fill in the <what>, <why>, and <how> sections with actual project details." };
+  }
+
+  // Enhanced validation for larger tasks
+  if (what.length + why.length + how.length < 200) return { valid: true };
+
+  if (!(/\.[a-z]+(:\d+)?\b/i.test(what) || what.includes("/"))) {
+    return { valid: false, message: `The <what> section must reference specific files (e.g. "Optimize sendMessage.js:120")\nFound: "${what.substring(0, 60)}..."` };
+  }
+
+  if (!(/\d+/.test(why) || /\b(profile|benchmark|metric|observe|measured|shows|redundant|slow|N\+1)\b/i.test(why))) {
+    return { valid: false, message: `The <why> section must reference observed evidence (e.g. "Profiling shows 7 redundant queries")\nFound: "${why.substring(0, 60)}..."` };
+  }
+
+  const stepCount = (how.match(/(?:^|\n)\s*[-*]\s/g) || []).length;
+  const numberedSteps = (how.match(/\d+\.\s/g) || []).length;
+  if (stepCount + numberedSteps < 2) {
+    return { valid: false, message: "The <how> section must list 2+ concrete implementation steps (as a list)." };
+  }
+
+  return { valid: true };
+}
+
+function validateMarkdownPlan(content) {
+  const hasIntent = /Intent Discovery/i.test(content) || /\*\*Problem:\*\*/.test(content) || /^- Problem:/im.test(content);
+  if (!hasIntent) {
+    return { valid: false, reason: "no Intent Discovery marker (heading, **Problem:**, or - Problem:)" };
+  }
+
+  // Capture the section after each label until the next `- **` label, heading, or EOF
+  // (handles multi-line values and bullet sub-lists without false-blocks)
+  const section = (label) => {
+    const m = content.match(new RegExp(`\\*\\*${label}:\\*\\*([\\s\\S]*?)(?=\\n\\s*-\\s*\\*\\*|\\n\\s*## |$)`, "i"));
+    return m ? m[1].trim() : "";
+  };
+
+  const isTBD = (v) => {
+    const cleaned = v.replace(/^[-*•]\s*/gm, "").trim();
+    return !cleaned || cleaned.length < 5 || /\(?TBD\)?/i.test(cleaned) || cleaned === "..." || /Describe|Why is this|simplest and most/.test(cleaned);
+  };
+
+  const problem = section("Problem");
+  const goals = section("Goals");
+  const success = section("Success Criteria");
+
+  if (isTBD(problem) || isTBD(goals) || isTBD(success)) {
+    return {
+      valid: false,
+      reason: `TBD/missing fields (Problem: "${problem.slice(0, 40)}" | Goals: "${goals.slice(0, 40)}" | Success Criteria: "${success.slice(0, 40)}")`,
+    };
+  }
+  return { valid: true };
+}
+
 export function checkPlanningGate(event) {
   if (!event) return null;
 
@@ -37,7 +145,8 @@ export function checkPlanningGate(event) {
   const isWriteTool = [
     "WriteFile", "EditFile", "write_to_file", "replace_file_content",
     "multi_replace_file_content", "precise_diff_editor", "batch_file_writer",
-    "edit_symbol", "edit_symbol_surgical", "patch"
+    "edit_symbol", "edit_symbol_surgical", "patch", "edit", "write",
+    "unifiedDiffCreate", "multiEdit"
   ].includes(toolName);
 
   const isCommandTool = [
@@ -46,14 +155,17 @@ export function checkPlanningGate(event) {
 
   if (!isWriteTool && !isCommandTool) return null;
 
-  // Skip if writing plan files
+  // Skip if writing plan/session files (never block writing the plan itself)
   if (isWriteTool) {
     const targetFile = input.path || input.TargetFile || input.filePath || "";
     const files = input.files || [];
-    const isWritingPlan = targetFile.endsWith("matcha-plan.md") ||
-                          targetFile.endsWith("matcha-state.json") ||
-                          files.some(f => f.path?.endsWith("matcha-plan.md") || f.path?.endsWith("matcha-state.json"));
-    if (isWritingPlan) return null;
+    const isPlanFile = (p) => /\bcurrent\.md$/.test(p) ||
+                               (p || "").includes(".agents/plan/") ||
+                               (p || "").includes(".agents/reports/") ||
+                               (p || "").endsWith("matcha-plan.md") ||
+                               (p || "").endsWith("matcha-state.json") ||
+                               (p || "").endsWith("decisions.log");
+    if (isPlanFile(targetFile) || files.some(f => isPlanFile(f.path))) return null;
   }
 
   // Skip safe commands
@@ -63,12 +175,12 @@ export function checkPlanningGate(event) {
     if (isSafe) return null;
   }
 
-  // Check if plan exists
-  const planPath = join(ROOT, ".agents/matcha-plan.md");
-  if (!existsSync(planPath)) {
+  // Check if plan exists (Session Memory path first, legacy fallback)
+  const planPath = findPlanPath();
+  if (!planPath) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nCreate and write your Intent Discovery plan to .agents/matcha-plan.md using the following format:\n\n<matcha_gate>\n  <what>Describe what you are building/fixing</what>\n  <why>Why is this necessary? What is the impact?</why>\n  <how>What is the simplest and most efficient implementation path?</how>\n</matcha_gate>\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n(legacy <matcha_gate> XML at .agents/matcha-plan.md still accepted)\n`
     };
   }
 
@@ -80,71 +192,11 @@ export function checkPlanningGate(event) {
     return null;
   }
 
-  const matchaGateRegex = /<matcha_gate>([\s\S]*?)<\/matcha_gate>/;
-  const match = planContent.match(matchaGateRegex);
-
-  if (!match) {
+  const validation = validatePlanContent(planContent);
+  if (!validation.valid) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nThe file .agents/matcha-plan.md exists, but it does not contain a valid <matcha_gate> block.\nPlease enclose your plan in:\n\n<matcha_gate>\n  <what>...</what>\n  <why>...</why>\n  <how>...</how>\n</matcha_gate>\n`
-    };
-  }
-
-  const innerContent = match[1];
-  const whatMatch = innerContent.match(/<what>([\s\S]*?)<\/what>/);
-  const whyMatch = innerContent.match(/<why>([\s\S]*?)<\/why>/);
-  const howMatch = innerContent.match(/<how>([\s\S]*?)<\/how>/);
-
-  const whatText = (whatMatch ? whatMatch[1] : "").trim();
-  const whyText = (whyMatch ? whyMatch[1] : "").trim();
-  const howText = (howMatch ? howMatch[1] : "").trim();
-
-  // Check for placeholders or too-short sections
-  const isTooShort = whatText.length < 15 || whyText.length < 15 || howText.length < 15;
-  const hasPlaceholders = isTooShort || [whatText, whyText, howText].some(text =>
-    text.includes("Describe what") ||
-    text.includes("Why is this") ||
-    text.includes("simplest and most") ||
-    text === "..."
-  );
-
-  if (hasPlaceholders) {
-    return {
-      block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYour Intent Discovery plan in .agents/matcha-plan.md is incomplete, too short (must be at least 15 characters per section), or contains placeholder text.\nPlease fill in the <what>, <why>, and <how> sections with actual project details.\n`
-    };
-  }
-
-  // Enhanced validation for larger tasks
-  const totalPlanChars = whatText.length + whyText.length + howText.length;
-  if (totalPlanChars < 200) return null; // Simple task, skip enhanced validation
-
-  // <what> must reference specific files
-  const hasFileRef = /\.[a-z]+(:\d+)?\b/i.test(whatText) || whatText.includes("/");
-  if (!hasFileRef) {
-    return {
-      block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nThe <what> section must reference specific files (e.g. "Optimize sendMessage.js:120")\nFound: "${whatText.substring(0, 60)}..."\n`
-    };
-  }
-
-  // <why> must reference observed evidence
-  const hasEvidence = /\d+/.test(whyText) ||
-    /\b(profile|benchmark|metric|observe|measured|shows|redundant|slow|N\+1)\b/i.test(whyText);
-  if (!hasEvidence) {
-    return {
-      block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nThe <why> section must reference observed evidence (e.g. "Profiling shows 7 redundant queries")\nFound: "${whyText.substring(0, 60)}..."\n`
-    };
-  }
-
-  // <how> must list 2+ concrete steps
-  const stepCount = (howText.match(/(?:^|\n)\s*[-*]\s/g) || []).length;
-  const numberedSteps = (howText.match(/\d+\.\s/g) || []).length;
-  if (stepCount + numberedSteps < 2) {
-    return {
-      block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nThe <how> section must list 2+ concrete implementation steps (as a list).\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}`
     };
   }
 

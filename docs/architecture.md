@@ -44,7 +44,7 @@
 | Platform | Adapter | Type |
 |----------|---------|------|
 | **Claude Code** | `.claude/agents/*` + `.claude/commands/*` + hooks | Symlinks + config |
-| **OpenCode** | `.opencode/plugins/matcha.mjs` + agents | Plugin |
+| **OpenCode** | `.opencode/plugins/matcha.js` + agents | Plugin |
 | **Kiro** | `.kiro/steering/matcha*` (3 files) | Steering files |
 | **Codebuff / agy** | `.agents/` | Universal format |
 | **OpenClaw** | `.openclaw/skills/matcha/SKILL.md` | Symlink |

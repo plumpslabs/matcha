@@ -60,10 +60,12 @@ export function checkCommand(command) {
 
 const SIMPLE_TASK_PATTERNS = [
   /^(cat|ls|find|grep|head|tail|wc|echo|pwd|which|env|date)\b/i,
-  /^git\s+(status|log|diff|show|branch|remote|tag)\b/i,
-  /^(npm|npx|yarn|pnpm|vitest|jest|mocha|pytest|go test|cargo test)\b/i,
+  /^git\s+(status|log|diff|show|branch|remote|tag|add|commit|push|pull|fetch|merge|stash|checkout|restore)\b/i,
+  /^(npm|npx|yarn|pnpm|bun|vitest|jest|mocha|pytest|go test|cargo test)\b/i,
+  /^(npm|pnpm|yarn|bun)\s+(install|add|ci|update|remove)\b/i,
   /^(eslint|prettier|black|ruff|gofmt|rustfmt)\b/i,
   /^(npm ls|npm list|pip list|cargo tree|go list)\b/i,
+  /^(mkdir|touch|cp|mv)\b/i,
 ];
 
 const SIMPLE_WRITE_PATTERNS = [
@@ -74,6 +76,7 @@ const SIMPLE_WRITE_PATTERNS = [
   /.*_test\.go$/i,
   /\.gitignore$/i,
   /\.editorconfig$/i,
+  /\bcurrent\.md$/i,
   /matcha-plan\.md$/i,
   /matcha-state\.json$/i,
 ];
@@ -85,7 +88,7 @@ export function isSimpleTask(toolName, input) {
     return SIMPLE_TASK_PATTERNS.some(p => p.test(cmd));
   }
 
-  if (["WriteFile", "EditFile", "write_to_file", "replace_file_content"].includes(toolName)) {
+  if (["WriteFile", "EditFile", "write_to_file", "replace_file_content", "edit", "write", "patch"].includes(toolName)) {
     const targetFile = input?.path || input?.TargetFile || input?.filePath || "";
     if (!targetFile) return false;
     return SIMPLE_WRITE_PATTERNS.some(p => p.test(targetFile));

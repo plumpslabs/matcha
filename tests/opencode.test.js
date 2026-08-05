@@ -2,15 +2,24 @@ import { describe, expect, test } from "vitest";
 import { readProjectFile, assertFile } from "./helpers.js";
 
 describe("OpenCode plugin", () => {
-  const content = readProjectFile(".opencode/plugins/matcha.mjs");
+  const content = readProjectFile(".opencode/plugins/matcha.js");
 
-  test("no longer has prompt-based 'surface 3' instruction", () => {
-    expect(content).not.toContain("surface 3 matcha suggestions");
+  test("uses factory-function format (opencode v1.18+ — export default no longer loads)", () => {
+    expect(content).toContain("export const MatchaPlugin = async");
+    expect(content).not.toContain("export default {");
   });
 
-  test("has lifecycle hooks (before + created)", () => {
+  test("reads tool args from output.args (official location), not input.args", () => {
+    expect(content).toContain("output.args");
+    expect(content).not.toContain("input.args");
+  });
+
+  test("has tool.execute.before hook for shield + planning gate", () => {
     expect(content).toContain("tool.execute.before");
-    expect(content).toContain("session.created");
+  });
+
+  test("no longer relies on dead session.created { system } injection", () => {
+    expect(content).not.toContain("session.created");
   });
 
   test("does not have no-op after hook", () => {

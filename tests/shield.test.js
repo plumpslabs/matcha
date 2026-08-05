@@ -55,44 +55,43 @@ describe("Shield — ALLOW safe commands", () => {
   });
 });
 
-import { writeFileSync, readFileSync, unlinkSync, existsSync } from "fs";
+import { writeFileSync, readFileSync, unlinkSync, existsSync, mkdirSync } from "fs";
 import { join } from "path";
 import { beforeAll, afterAll, beforeEach } from "vitest";
 import { checkPlanningGate } from "../hooks/matcha-shield.js";
 
 describe("Shield — Planning Gate", () => {
-  const planPath = join(process.cwd(), ".agents/matcha-plan.md");
+  const planDir = join(process.cwd(), ".agents", "plan");
+  const planPath = join(planDir, "current.md");
+  const legacyPath = join(process.cwd(), ".agents", "matcha-plan.md");
   const statePath = join(process.cwd(), ".agents/matcha-state.json");
 
   let backupPlan = null;
+  let backupLegacy = null;
   let backupState = null;
 
+  const cleanFiles = () => {
+    try { unlinkSync(planPath); } catch {}
+    try { unlinkSync(legacyPath); } catch {}
+    try { unlinkSync(statePath); } catch {}
+  };
+
   beforeAll(() => {
-    if (existsSync(planPath)) {
-      backupPlan = readFileSync(planPath, "utf-8");
-      try { unlinkSync(planPath); } catch {}
-    }
-    if (existsSync(statePath)) {
-      backupState = readFileSync(statePath, "utf-8");
-      try { unlinkSync(statePath); } catch {}
-    }
+    try { mkdirSync(planDir, { recursive: true }); } catch {}
+    if (existsSync(planPath)) backupPlan = readFileSync(planPath, "utf-8");
+    if (existsSync(legacyPath)) backupLegacy = readFileSync(legacyPath, "utf-8");
+    if (existsSync(statePath)) backupState = readFileSync(statePath, "utf-8");
+    cleanFiles();
   });
 
   afterAll(() => {
-    try { unlinkSync(planPath); } catch {}
-    try { unlinkSync(statePath); } catch {}
-    if (backupPlan !== null) {
-      writeFileSync(planPath, backupPlan, "utf-8");
-    }
-    if (backupState !== null) {
-      writeFileSync(statePath, backupState, "utf-8");
-    }
+    cleanFiles();
+    if (backupPlan !== null) writeFileSync(planPath, backupPlan, "utf-8");
+    if (backupLegacy !== null) writeFileSync(legacyPath, backupLegacy, "utf-8");
+    if (backupState !== null) writeFileSync(statePath, backupState, "utf-8");
   });
 
-  beforeEach(() => {
-    try { unlinkSync(planPath); } catch {}
-    try { unlinkSync(statePath); } catch {}
-  });
+  beforeEach(cleanFiles);
 
   test("blocks write tool if plan does not exist", () => {
     const event = {
@@ -127,7 +126,7 @@ describe("Shield — Planning Gate", () => {
   test("allows writing to plan file even if plan does not exist", () => {
     const event = {
       tool: "WriteFile",
-      input: { path: "path/to/.agents/matcha-plan.md" }
+      input: { path: ".agents/plan/current.md" }
     };
     const result = checkPlanningGate(event);
     expect(result).toBeNull();
@@ -189,6 +188,48 @@ describe("Shield — Planning Gate", () => {
 </matcha_gate>
 `;
     writeFileSync(planPath, plan, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+
+  test("allows markdown Intent Discovery plan in .agents/plan/current.md", () => {
+    const plan = `---
+title: Fix login flow
+date: 2026-08-05
+type: plan
+status: active
+---
+# 🍵 Intent Discovery — Fix login flow
+- **Problem:** Users cannot log in after session expiry.
+- **Goals:** Restore the session refresh flow.
+- **Success Criteria:** Refresh endpoint returns 200 and the test suite passes.`;
+    writeFileSync(planPath, plan, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).toBeNull();
+  });
+
+  test("blocks when current.md is still the empty TBD template", () => {
+    writeFileSync(planPath, `---\ntitle: Current plan\ndate: 2026-08-05\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery — Current Plan\n- **Problem:** (TBD)\n- **Goals:** (TBD)\n- **Success Criteria:** (TBD)`, "utf-8");
+    const event = {
+      tool: "WriteFile",
+      input: { path: "src/index.js" }
+    };
+    const result = checkPlanningGate(event);
+    expect(result).not.toBeNull();
+    expect(result.message).toContain("Planning Gate Blocked");
+  });
+
+  test("legacy .agents/matcha-plan.md still satisfies the gate", () => {
+    const plan = `<matcha_gate>\n  <what>Implement gate validation in matcha-shield.js:120</what>\n  <why>Profiling shows 7 redundant queries per message send</why>\n  <how>- Add file reference check to <what>\n- Add evidence check to <why>\n- Add step count check to <how></how>\n</matcha_gate>\n`;
+    writeFileSync(legacyPath, plan, "utf-8");
     const event = {
       tool: "WriteFile",
       input: { path: "src/index.js" }

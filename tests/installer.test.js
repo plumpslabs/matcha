@@ -29,6 +29,10 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("matcha-debugger");
   });
 
+  test("installs opencode plugin (auto-loaded from .opencode/plugins/)", () => {
+    expect(installer).toContain(".opencode/plugins/matcha.js");
+  });
+
   test("installs all 7 commands", () => {
     expect(installer).toContain("for cmd in why review audit intensity status debt markers");
   });

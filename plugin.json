@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.5.12",
+  "version": "2.5.13",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces Intent Discovery thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",
@@ -50,6 +50,5 @@
       "description": "Scan for // matcha: markers in the codebase",
       "file": "commands/markers.md"
     }
-  ],
-  "hooks": "hooks/hooks.json"
+  ]
 }

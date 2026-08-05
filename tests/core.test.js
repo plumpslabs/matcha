@@ -42,7 +42,7 @@ describe("Core files", () => {
   test("plugin.json (AGY manifest) has current version", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     expect(content.name).toBe("matcha");
-    expect(content.version).toBe("2.5.12");
+    expect(content.version).toBe("2.5.13");
   });
 
   test("plugin.json (AGY manifest) declares all 7 commands", () => {
@@ -174,7 +174,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.12");
+    expect(mcp).toContain("2.5.13");
   });
 
   test("has shield check tool", () => {
@@ -223,6 +223,46 @@ describe("Session memory (persist & rehydrate)", () => {
     expect(core).toContain("lifecycle");
     expect(core).toContain("reset");
     expect(core).toContain("reports/planner-");
+  });
+
+  test("planning gate enforces Session Memory plan location", () => {
+    const gate = readProjectFile("hooks/planning-gate.js");
+    expect(gate).toContain(".agents/plan/current.md");
+    expect(gate).toContain("validatePlanContent");
+  });
+
+  test(".claude/settings.json matcher covers file writes (gate fires on edits)", () => {
+    const settings = readProjectFile(".claude/settings.json");
+    expect(settings).toContain("Bash|Edit|Write|MultiEdit");
+  });
+
+  test("opencode plugin enforces the planning gate (reuses shared hook)", () => {
+    const plugin = readProjectFile(".opencode/plugins/matcha.js");
+    expect(plugin).toContain("checkPlanningGate");
+  });
+
+  test("opencode plugin uses factory-function format (export default is dead)", () => {
+    const plugin = readProjectFile(".opencode/plugins/matcha.js");
+    expect(plugin).toContain("export const MatchaPlugin");
+    expect(plugin).toContain("output.args");
+  });
+
+  test("matcha-instructions.js injects the operational trigger", () => {
+    const inst = readProjectFile("hooks/matcha-instructions.js");
+    expect(inst).toContain("Operational Triggers");
+    expect(inst).toContain("BEFORE the first code edit");
+  });
+
+  test("hooks/hooks.json matcher covers file writes (Claude plugin path)", () => {
+    const hooks = readProjectFile("hooks/hooks.json");
+    expect(hooks).toContain("Bash|Edit|Write|MultiEdit");
+  });
+
+  test("AGY plugin rules/ exists and matches source of truth", () => {
+    const rules = readProjectFile("rules/matcha.md");
+    const canonical = readProjectFile(".agents/rules/matcha.md");
+    expect(rules).toContain("matcha");
+    expect(rules.trim()).toBe(canonical.trim());
   });
 
   test("reviewer + auditor persist to .agents/reports/", () => {

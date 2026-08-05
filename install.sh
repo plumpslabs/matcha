@@ -117,6 +117,7 @@ for p in $PLATFORMS; do
       install_commands "$TARGET/$p/commands"
       install_skill "$TARGET/$p/skills/matcha"
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/rules/matcha.md" ".agents/rules/matcha.md"
+      [ "$p" = ".opencode" ] && install_file "$TARGET/.opencode/plugins/matcha.js" ".opencode/plugins/matcha.js"
       ;;
     .roo)
       install_file "$TARGET/.roo/rules/matcha.md" ".roo/rules/matcha.md"
@@ -263,7 +264,7 @@ if [ -d "$TARGET/.claude" ]; then
 {
   "hooks": {
     "PreToolUse": [
-      { "matcher": "Bash", "hooks": [ { "type": "command", "command": "node hooks/matcha-shield.js", "timeout": 5000 } ] }
+      { "matcher": "Bash|Edit|Write|MultiEdit", "hooks": [ { "type": "command", "command": "node hooks/matcha-shield.js", "timeout": 5000 } ] }
     ],
     "PostToolUse": [
       { "hooks": [ { "type": "command", "command": "node hooks/matcha-post-write.js", "timeout": 3000 } ] }
@@ -292,7 +293,7 @@ MATCHA_EOF
           s.hooks[ev] = s.hooks[ev] || [];
           if (!s.hooks[ev].some(h => JSON.stringify(h).includes("matcha"))) s.hooks[ev].push(hook);
         };
-        push("PreToolUse", { matcher: "Bash", hooks: [{ type: "command", command: "node hooks/matcha-shield.js", timeout: 5000 }] });
+        push("PreToolUse", { matcher: "Bash|Edit|Write|MultiEdit", hooks: [{ type: "command", command: "node hooks/matcha-shield.js", timeout: 5000 }] });
         push("PostToolUse", { hooks: [{ type: "command", command: "node hooks/matcha-post-write.js", timeout: 3000 }] });
         push("Stop", { hooks: [{ type: "command", command: "node hooks/matcha-stop.js", timeout: 5000 }] });
         fs.writeFileSync(p, JSON.stringify(s, null, 2) + "\n");

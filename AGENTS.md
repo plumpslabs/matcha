@@ -69,6 +69,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 
 ## Session Memory (survive compaction)
 - Task start → read `.agents/plan/current.md` (resume continuity after context loss). Intent mismatch → overwrite, never follow a stale plan.
+- **Persist BEFORE the first edit** — the first non-.md write in a task requires `.agents/plan/current.md` filled (Intent Discovery). Don't wait for a user command — the hook blocks writes without it.
 - Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
 - Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
 - Task done → archive `current.md` → `reports/planner-<YYYY-MM>.md`, reset to empty template.

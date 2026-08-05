@@ -34,7 +34,7 @@ Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 
 ### 🔴 PLANNING GATE (ENFORCED BY HOOK)
 
-In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the Intent Discovery plan (Problem, Goals, Success Criteria, What → Why → How).
+In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the Intent Discovery plan at `.agents/plan/current.md` (Problem, Goals, Success Criteria, What → Why → How). **Persist it BEFORE the first code edit — never wait for a user command.** The hook (matcha-shield / opencode plugin) reads `.agents/plan/current.md` and blocks code writes while the plan is missing or still TBD.
 
 **Smart Auto-Skip:** Planning gate is automatically skipped for:
 - Read-only commands (grep, ls, cat, find, git status)

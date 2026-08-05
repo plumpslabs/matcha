@@ -120,7 +120,7 @@ for (const agent of AGENT_NAMES) {
 symlink(".opencode/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 
 // Plugin stays as-is (it's OpenCode-specific)
-// Don't overwrite .opencode/plugins/matcha.mjs
+// Don't overwrite .opencode/plugins/matcha.js
 
 console.log("");
 
@@ -182,6 +182,13 @@ console.log("── agents/ (AGY plugin) ──");
 for (const agent of AGENT_NAMES) {
   write(`agents/${agent}.md`, read(`.agents/agents/${agent}.md`));
 }
+
+// ─── rules/ (AGY plugin rules) ─────────────────────────────────────────────────
+
+console.log("── rules/ (AGY plugin) ──");
+
+// AGY plugin structure scans a root-level `rules/` dir for custom codebase rules.
+write("rules/matcha.md", read(".agents/rules/matcha.md"));
 
 console.log("");
 

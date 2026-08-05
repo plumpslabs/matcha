@@ -199,6 +199,19 @@ for (const agent of AGENT_NAMES) {
   }
 }
 
+// AGY plugin rules/ (must match .agents/rules/matcha.md)
+const rulesCanonical = join(ROOT, ".agents/rules/matcha.md");
+const rulesCopy = join(ROOT, "rules/matcha.md");
+if (!existsSync(rulesCanonical) || !existsSync(rulesCopy)) {
+  console.warn("  ⚠️  MISSING: rules/matcha.md or .agents/rules/matcha.md");
+  allGood = false;
+} else if (hash(readFileSync(rulesCanonical, "utf-8")) !== hash(readFileSync(rulesCopy, "utf-8"))) {
+  console.warn("  ⚠️  OUTDATED: rules/matcha.md (differs from .agents/rules/matcha.md)");
+  allGood = false;
+} else {
+  console.log("  ✓  OK: rules/matcha.md (AGY plugin rules)");
+}
+
 // AGY plugin mcp_config.json
 const agyMcp = join(ROOT, "mcp_config.json");
 if (!existsSync(agyMcp)) {

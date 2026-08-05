@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.12-purple" alt="v2.5.12" />
+  <img src="https://img.shields.io/badge/version-2.5.13-purple" alt="v2.5.13" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -258,7 +258,7 @@ npm run mcp
 | Platform | Integration |
 |----------|-------------|
 | Claude Code | `.claude/settings.json` hooks |
-| OpenCode | `.opencode/plugins/matcha.mjs` |
+| OpenCode | `.opencode/plugins/matcha.js` |
 | Any MCP client | MCP server (see above) |
 | Any platform | `.agents/` universal format |
 
@@ -297,7 +297,9 @@ Source of Truth:
 │   ├── matcha-stop.js           ← End-of-task tips
 │   └── matcha-metrics.js        ← Session metrics tracking
 ├── commands/                    ← 7 slash commands
-└── .agents/agents/              ← 6 agent definitions
+├── .agents/agents/              ← 6 agent definitions
+├── agents/ · rules/ · mcp_config.json      ← AGY plugin package (agy plugin install)
+└── plugin.json · .claude-plugin/ · gemini-extension.json  ← plugin manifests
 ```
 
 ### Build System

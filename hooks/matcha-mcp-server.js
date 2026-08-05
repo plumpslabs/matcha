@@ -28,6 +28,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
+import { validatePlanContent } from "./planning-gate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -62,27 +63,6 @@ function checkCommand(command) {
     }
   }
   return { safe: true };
-}
-
-// Plan validation
-function validatePlan(planContent) {
-  if (!planContent) return { valid: false, message: "No plan content provided." };
-
-  const matchaGateRegex = /<matcha_gate>([\s\S]*?)<\/matcha_gate>/;
-  const match = planContent.match(matchaGateRegex);
-
-  if (!match) return { valid: false, message: "No <matcha_gate> block found." };
-
-  const inner = match[1];
-  const what = (inner.match(/<what>([\s\S]*?)<\/what>/) || [])[1] || "";
-  const why = (inner.match(/<why>([\s\S]*?)<\/why>/) || [])[1] || "";
-  const how = (inner.match(/<how>([\s\S]*?)<\/how>/) || [])[1] || "";
-
-  if (what.trim().length < 15) return { valid: false, message: "<what> is too short (min 15 chars)." };
-  if (why.trim().length < 15) return { valid: false, message: "<why> is too short (min 15 chars)." };
-  if (how.trim().length < 15) return { valid: false, message: "<how> is too short (min 15 chars)." };
-
-  return { valid: true, what: what.trim(), why: why.trim(), how: how.trim() };
 }
 
 // Stop tips
@@ -152,7 +132,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.12",
+  version: "2.5.13",
 };
 
 const TOOLS = [
@@ -190,7 +170,7 @@ const TOOLS = [
   },
   {
     name: "matcha_plan_validate",
-    description: "Validate an Intent Discovery plan in <matcha_gate> XML format. Checks for completeness and minimum length.",
+    description: "Validate an Intent Discovery plan (<matcha_gate> XML or markdown with Problem/Goals/Success Criteria). Checks for completeness and minimum length.",
     inputSchema: {
       type: "object",
       properties: {
@@ -287,7 +267,7 @@ function handleRequest(request) {
     }
 
     if (name === "matcha_plan_validate") {
-      const result = validatePlan(args.planContent);
+      const result = validatePlanContent(args.planContent);
       return {
         jsonrpc: "2.0",
         id,
@@ -295,7 +275,7 @@ function handleRequest(request) {
           content: [{
             type: "text",
             text: result.valid
-              ? `🍵 matcha: ✅ Plan is valid\n\nWhat: ${result.what}\nWhy: ${result.why}\nHow: ${result.how}`
+              ? `🍵 matcha: ✅ Plan is valid`
               : `🍵 matcha: ❌ Plan invalid\n\n${result.message}`,
           }],
         },

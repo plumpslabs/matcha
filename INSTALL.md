@@ -81,7 +81,7 @@ curl -fsSL https://raw.githubusercontent.com/plumpslabs/matcha/main/install.sh |
 **What gets installed:**
 - `.opencode/agents/*.md` — 6 agent definitions
 - `.opencode/skills/matcha/SKILL.md` — skill file
-- `.opencode/plugins/matcha.mjs` — OpenCode plugin
+- `.opencode/plugins/matcha.js` — OpenCode plugin
 - `hooks/*.js` — lifecycle hooks
 
 **MCP Setup:** Per-project or global
@@ -314,7 +314,7 @@ Roo Code — `.roo/mcp.json` (per-project):
 node bin/matcha.js status
 
 # Should show:
-# Version: v2.5.12
+# Version: v2.5.13
 # Platform: [your platform]
 # AGENTS.md: ✅
 # Shield: ✅ active

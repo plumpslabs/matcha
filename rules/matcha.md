@@ -1,0 +1,14 @@
+# 🍵 matcha — Engineering Convention
+
+This project uses the **matcha** engineering convention. Read the `AGENTS.md` file at the project root and follow its philosophy:
+
+> Simple. Efficient. Deliberate. Never twice.
+
+Key principles (see AGENTS.md for the full ruleset):
+- **Purpose (Intent Discovery)** — know *why* before *how*. Can't explain why/how? Stop and rethink.
+- **Reuse** — search the codebase before writing new code. Never write what exists.
+- **Implementation** — one function, one job. Explicit errors. No hardcoded values.
+- **Cleanup** — done means working *and* clean. No debug leftovers, no dead code.
+- **Verify** — run tests, typecheck, and lint before declaring done.
+
+Respect the `// matcha:` decision markers when you find them in code — they are intentional, logged shortcuts.

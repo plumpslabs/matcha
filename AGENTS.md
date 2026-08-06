@@ -73,6 +73,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 - Task start → read `.agents/plan/current.md` (resume continuity after context loss). Intent mismatch → overwrite, never follow a stale plan.
 - **Persist BEFORE the first edit** — the first non-.md write in a task requires `.agents/plan/current.md` filled (Intent Discovery). Don't wait for a user command — the hook blocks writes without it.
 - Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
+- **Step execution:** implement strictly step-by-step from `current.md`'s Plan list; after each step check it off (`[x]`) and update the `**▶ Current:**` line (Step N/M, K done). Never batch-finish without updating; deviation → update the plan first.
 - Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
 - Task done (review PASS) → reviewer archives `current.md` → `reports/planner-<YYYY-MM>.md`, writes verdict → `reports/reviewer-<YYYY-MM>.md`, resets to empty template. Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.
 - Lazy-load only — never auto-inject memory files into context.

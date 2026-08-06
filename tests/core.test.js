@@ -42,7 +42,7 @@ describe("Core files", () => {
   test("plugin.json (AGY manifest) has current version", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     expect(content.name).toBe("matcha");
-    expect(content.version).toBe("2.5.18");
+    expect(content.version).toBe("2.5.19");
   });
 
   test("plugin.json (AGY manifest) declares all 7 commands", () => {
@@ -174,7 +174,7 @@ describe("MCP server", () => {
 
   test("has server info", () => {
     expect(mcp).toContain("matcha");
-    expect(mcp).toContain("2.5.18");
+    expect(mcp).toContain("2.5.19");
   });
 
   test("has shield check tool", () => {
@@ -216,6 +216,25 @@ describe("Session memory (persist & rehydrate)", () => {
     const planner = readProjectFile(".agents/agents/matcha-planner.md");
     expect(planner).toContain("<persistence>");
     expect(planner).toContain(".agents/plan/current.md");
+  });
+
+  test("step execution: template + rules enforce step-by-step handoff", () => {
+    const bin = readProjectFile("bin/matcha.js");
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    const agents = readProjectFile("AGENTS.md");
+    const status = readProjectFile("commands/matcha:status.md");
+    expect(bin).toContain("**▶ Current:**");
+    expect(bin).toContain("- [ ] Step");
+    expect(core).toContain("Step execution");
+    expect(agents).toContain("Step execution");
+    expect(status).toContain("Steps: K/N done");
+    const install = readProjectFile("install.sh");
+    const instructions = readProjectFile("hooks/matcha-instructions.js");
+    const stop = readProjectFile("hooks/matcha-stop.js");
+    expect(install).toContain("**▶ Current:**");
+    expect(install).toContain("- [ ] Step");
+    expect(instructions).toContain("Step execution");
+    expect(stop).toContain("tipStepProgress");
   });
 
   test("core.md defines current.md lifecycle (archive + reset anti-stale)", () => {

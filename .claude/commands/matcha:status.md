@@ -14,7 +14,7 @@ Report:
 2. **Git Diff Stats** — files changed, lines +/- (`git diff --stat`)
 3. **Test Status** — fresh test runner execution summary
 4. **Markers & Debt** — count of `// matcha:` markers found in session
-5. **Plan Status** — read `.agents/plan/current.md` — is the live plan up to date with current work?
+5. **Plan Status** — read `.agents/plan/current.md` — steps done K/N (via `[x]`), `**▶ Current**` step, and is the live plan in sync with current work?
 6. **Health Verdict** — overall session health (Healthy / Needs Attention / Critical)
 
 ```
@@ -24,7 +24,7 @@ Intensity:  [observe|enforce|audit]
 Changes:    N files (+X / -Y lines)
 Tests:      N passed / N failed
 Markers:    N total (HIGH: N, MEDIUM: N)
-Plan:       [satisfied/missing]
+Plan:       [satisfied/missing] · Steps: K/N done (▶ Step N/M)
 
 Health:     ✅ Healthy | ⚠️ Needs Attention | 🔴 Critical
 ```

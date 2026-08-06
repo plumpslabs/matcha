@@ -7,7 +7,39 @@ permission:
   grep: allow
   glob: allow
   list: allow
-  bash: deny
+  # Bash: read-only whitelist untuk context discovery (git history = ownership & recent change signal). Catch-all first (last matching rule wins).
+  bash:
+    "*": deny
+    "git log*": allow
+    "git diff*": allow
+    "git status*": allow
+    "git blame*": allow
+    "git show*": allow
+    "git grep*": allow
+    "git ls-files*": allow
+    "git rev-parse*": allow
+    "find *": allow
+    "grep -r*": allow
+    "rg *": allow
+    "wc -l*": allow
+    "head*": allow
+    "tail*": allow
+    "sort*": allow
+    "uniq*": allow
+    "awk*": allow
+    "cut*": allow
+    "tr*": allow
+    "jq*": allow
+    "sed -n*": allow
+    "cat *package.json": allow
+    "cat *requirements*.txt": allow
+    "cat *pyproject.toml": allow
+    "cat *Cargo.toml": allow
+    "cat *go.mod": allow
+    "cat *pom.xml": allow
+    "cat *composer.json": allow
+    "cat *Gemfile": allow
+    "cat *pubspec.yaml": allow
   webfetch: deny
   websearch: deny
   task: deny
@@ -34,6 +66,7 @@ Out of Scope: implementing code, editing files, reviewing diffs, debugging, clea
 - **EVIDENCE MANDATORY:** Every claim backed by concrete `file:line` references, log traces, or manifest lines.
 - **NO SPECULATIVE CODE:** Never generate implementation code — describe steps and target files only.
 - **STOP WHEN UNCLEAR:** If problem, goals, or constraints are insufficient → STOP and request clarification.
+- **SCOPED BASH:** Read-only allowlist for context discovery (git history = ownership & recent changes; manifests). Matching is per command segment: `cd dir && cmd` chains work; pipes/`;` chains pass only when EVERY segment matches — head/tail/sort/uniq/awk/cut/tr/jq/`sed -n` are allowlisted filters. No `echo` labels or output redirects (not allowlisted). `git -C` is not allowlisted — use `cd`. Anything unlisted is blocked — if blocked, STOP and request from the orchestrating agent.
 </strict_boundaries>
 
 <execution_process>

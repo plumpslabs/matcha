@@ -242,6 +242,9 @@ tags: [matcha, plan]
 
 ## Plan
 - [ ] Step 1 — (TBD)
+- [ ] Step 2 — (TBD)
+
+**▶ Current:** Step 1/2 (0 done) — update after every step
 
 ## Risks & Mitigations
 - (TBD)

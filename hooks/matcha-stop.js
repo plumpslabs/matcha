@@ -10,6 +10,8 @@
  */
 
 import { execSync } from "child_process";
+import { readFileSync } from "fs";
+import { join } from "path";
 
 // ─── Tip generators ──────────────────────────────────────────────────────────
 
@@ -169,6 +171,34 @@ function tipCleanup(cwd) {
   }
 }
 
+/**
+ * Tip 4: Plan step progress — nudge to check off + update ▶ Current in current.md.
+ * Fires only when the plan has unchecked steps AND the ▶ Current marker is stale.
+ */
+function tipStepProgress(cwd) {
+  try {
+    const planPath = join(cwd, ".agents", "plan", "current.md");
+    const plan = readFileSync(planPath, "utf-8");
+    if (!/## Plan/.test(plan)) return null;
+
+    const total = (plan.match(/^- \[[ x]\] Step/gm) || []).length;
+    const done = (plan.match(/^- \[x\] Step/gm) || []).length;
+    if (total === 0 || done === total) return null;
+
+    const m = plan.match(/\*\*▶ Current:\*\*[^\n]*?(\d+)\/(\d+)/);
+    if (m && Number(m[1]) === done + 1 && Number(m[2]) === total) return null;
+
+    return {
+      icon: "📋",
+      title: "Plan step progress",
+      roast: `${done}/${total} steps checked off but ▶ Current: is stale — a compacted session would resume at the wrong step.`,
+      fix: `update .agents/plan/current.md: check off finished steps ([x]) and set ▶ Current: Step ${done + 1}/${total}`,
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 function generateTips(cwd) {
@@ -183,6 +213,8 @@ function generateTips(cwd) {
   const cleanup = tipCleanup(cwd);
   if (cleanup) tips.push(cleanup);
 
+  const stepProgress = tipStepProgress(cwd);
+  if (stepProgress) tips.push(stepProgress);
 
   return tips;
 }

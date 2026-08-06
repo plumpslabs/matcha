@@ -7,6 +7,8 @@ permission:
   grep: allow
   glob: allow
   list: allow
+  # bash: allow is DELIBERATE — the L0/L1 gates must run arbitrary builds/tests/lint to verify a change works.
+  # Whitelisting it risks silently blocking the verification gate. Scope detection uses git read-only.
   bash: allow
   webfetch: deny
   websearch: deny
@@ -30,6 +32,7 @@ Out of Scope: full-project audits (that's auditor), planning implementations, fi
 
 <strict_boundaries>
 - **READ-ONLY:** Never modify any codebase files. Review and render verdict only. (Exception: gate artifacts — `.agents/plan/current.md` + `.agents/reports/**` — are the only writable paths, used solely for the lifecycle handoff on PASS.)
+- **FULL BASH (deliberate):** L0/L1 verification gates must run the project's own builds/tests/lint — bash stays fully allowed. Prefer read-only git commands (`git diff`, `git show`, `git log`) for scope detection; use `cd dir && cmd` for subdirectories.
 - **BLOCKING GATE:** If any 🔴 CRITICAL issues (Correctness, Performance, Security) are found in L2/L3, return verdict BLOCK.
 - **NO L3 AUTO-PASS:** L3 high-risk tier ALWAYS requires domain expert sign-off (`EXPERT_REQUIRED`).
 </strict_boundaries>

@@ -7,7 +7,86 @@ permission:
   grep: allow
   glob: allow
   list: allow
-  bash: allow
+  # Bash: read-only whitelist (pattern = command prefix, glob *). Catch-all first (last matching rule wins).
+  bash:
+    "*": ask
+    "git log*": allow
+    "git diff*": allow
+    "git status*": allow
+    "git blame*": allow
+    "git branch*": allow
+    "git show*": allow
+    "git grep*": allow
+    "git ls-files*": allow
+    "git tag*": allow
+    "git rev-parse*": allow
+    "npm ls*": allow
+    "npm outdated*": allow
+    "npm audit*": allow
+    "npm test*": allow
+    "npm run test*": allow
+    "npm run lint*": allow
+    "npm run typecheck*": allow
+    "npm run build*": allow
+    "npx vitest*": allow
+    "npx tsc*": allow
+    "npx eslint*": allow
+    "npx jest*": allow
+    "pnpm ls*": allow
+    "pnpm outdated*": allow
+    "pnpm audit*": allow
+    "pnpm test*": allow
+    "pnpm run test*": allow
+    "pnpm run lint*": allow
+    "pnpm run build*": allow
+    "yarn list*": allow
+    "yarn outdated*": allow
+    "yarn test*": allow
+    "yarn run test*": allow
+    "yarn run lint*": allow
+    "yarn run build*": allow
+    "bun test*": allow
+    "bun run test*": allow
+    "bun run lint*": allow
+    "bun run build*": allow
+    "pip list*": allow
+    "pip show*": allow
+    "pip-audit*": allow
+    "pytest*": allow
+    "go list*": allow
+    "go test*": allow
+    "cargo audit*": allow
+    "cargo test*": allow
+    "find *": allow
+    "grep -r*": allow
+    "rg *": allow
+    "wc -l*": allow
+    "du -sh*": allow
+    "head*": allow
+    "tail*": allow
+    "sort*": allow
+    "uniq*": allow
+    "awk*": allow
+    "cut*": allow
+    "tr*": allow
+    "jq*": allow
+    "sed -n*": allow
+    "echo *": allow
+    "docker images*": allow
+    "docker ps*": allow
+    "cat *package.json": allow
+    "cat *requirements*.txt": allow
+    "cat *pyproject.toml": allow
+    "cat *Cargo.toml": allow
+    "cat *go.mod": allow
+    "cat *pom.xml": allow
+    "cat *build.gradle*": allow
+    "cat *composer.json": allow
+    "cat *Gemfile": allow
+    "cat *pubspec.yaml": allow
+    "cat *deno.json*": allow
+  # Webfetch: deny — opencode hanya menerima scalar allow/deny/ask (bukan map per-URL).
+  # Advisory lookup (osv.dev, GitHub advisories) → minta orchestrating agent yang fetch.
   webfetch: deny
   websearch: deny
   task: deny
@@ -32,6 +111,7 @@ Out of Scope: reviewing specific diffs/PRs (that's reviewer), planning implement
 - **READ-ONLY:** Never modify any files, dependencies, or configs. Audit and report only.
 - **EVIDENCE MANDATORY:** Every finding must reference exact file paths, line numbers, or manifest entries. Missing evidence = no finding.
 - **STATE UNCERTAINTY:** If evidence is insufficient, state it. Do not guess.
+- **SCOPED TOOLS:** Bash allowlist = read-only inspection (git history, package managers, test runners, manifests). Matching is per command segment: `cd dir && cmd` chains work; pipes (`|`) and `;` chains pass only when EVERY segment matches — head/tail/sort/uniq/awk/cut/tr/jq/`sed -n`/echo are allowlisted filters (echo for output labels only — never redirect output into files). `git -C` is not allowlisted — use `cd dir && git ...` or `workdir`. Unlisted segments are blocked or prompt — if blocked, STOP and request from the orchestrating agent; never work around the gate.
 </strict_boundaries>
 
 <execution_process>

@@ -190,7 +190,7 @@ function ensureMemoryScaffold(cwd) {
   if (!existsSync(planFile)) {
     try {
       mkdirSync(join(cwd, ".agents", "plan"), { recursive: true });
-      const content = `---\ntitle: Current plan\ndate: ${today}\ntype: plan\nagent: matcha-planner\nstatus: active\ntags: [matcha, plan]\n---\n# 🍵 Intent Discovery — Current Plan\n\n> Living doc. Overwritten at every planning gate. Read at task start to resume continuity.\n\n- **Problem:** (TBD)\n- **Goals:** (TBD)\n- **Success Criteria:** (TBD)\n- **Assumptions:** (TBD)\n- **Unknowns:** (TBD)\n\n## Plan\n- [ ] Step 1 — (TBD)\n\n## Risks & Mitigations\n- (TBD)\n`;
+      const content = `---\ntitle: Current plan\ndate: ${today}\ntype: plan\nagent: matcha-planner\nstatus: active\ntags: [matcha, plan]\n---\n# 🍵 Intent Discovery — Current Plan\n\n> Living doc. Overwritten at every planning gate. Read at task start to resume continuity.\n\n- **Problem:** (TBD)\n- **Goals:** (TBD)\n- **Success Criteria:** (TBD)\n- **Assumptions:** (TBD)\n- **Unknowns:** (TBD)\n\n## Plan\n- [ ] Step 1 — (TBD)\n- [ ] Step 2 — (TBD)\n\n**▶ Current:** Step 1/2 (0 done) — update after every step\n\n## Risks & Mitigations\n- (TBD)\n`;
       writeFileSync(planFile, content, "utf-8");
       console.log("  ✓ Generated .agents/plan/current.md (session memory — live plan)");
     } catch (e) {

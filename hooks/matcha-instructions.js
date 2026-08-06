@@ -20,6 +20,7 @@ export function getMatchaInstructions() {
 - **Planning gate fires BEFORE the first code edit.** The moment you are about to write/modify a non-.md file for the first time in a task, you MUST overwrite \`.agents/plan/current.md\` with the Intent Discovery plan first. Do not wait for a user command — the hook blocks writes without it.
 - Plan file: \`.agents/plan/current.md\` (frontmatter + Problem/Goals/Success Criteria/What→Why→How). A legacy \`<matcha_gate>\` XML at \`.agents/matcha-plan.md\` also satisfies the hook.
 - Read \`.agents/plan/current.md\` at task start; intent mismatch → overwrite, never follow a stale plan. Task done → archive to \`.agents/reports/planner-<YYYY-MM>.md\` + reset.
+- **Step execution:** implement strictly step-by-step from \`.agents/plan/current.md\`'s Plan list; after each completed step check it off (\`[x]\`) and update the \`**▶ Current:**\` line (Step N/M, K done). Never batch-finish; deviation → update the plan first.
 `;
 }
 

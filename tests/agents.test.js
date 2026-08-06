@@ -108,6 +108,12 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (agent === "matcha-reviewer") {
+        test("reviewer keeps full bash (L0/L1 gate must run builds/tests)", () => {
+          expect(content).toMatch(/^  bash: allow$/m);
+        });
+      }
+
+      if (agent === "matcha-reviewer") {
         test("reviewer may reset current.md on PASS (lifecycle handoff)", () => {
           expect(content).toMatch(/\.agents\/plan\/current\.md": allow/);
           expect(content).toContain("reset");
@@ -115,8 +121,21 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (["matcha-planner", "matcha-finder"].includes(agent)) {
-        test("planner/finder deny bash", () => {
-          expect(content).toMatch(/bash: deny/);
+        test("planner/finder: read-only bash whitelist (git + manifests, deny fallback)", () => {
+          expect(content).not.toMatch(/^  bash: (allow|deny)$/m);
+          // order-sensitive: catch-all first, then git read-only (opencode: last matching rule wins)
+          expect(content).toContain('bash:\n    "*": deny\n    "git log*": allow');
+          expect(content).toContain('"head*": allow');
+        });
+      }
+
+      if (agent === "matcha-auditor") {
+        test("auditor: bash read-only whitelist with ask fallback", () => {
+          expect(content).not.toMatch(/^  bash: allow$/m);
+          expect(content).toContain('bash:\n    "*": ask\n    "git log*": allow');
+          expect(content).toContain('"npm run test*": allow');
+          expect(content).toContain('"npx jest*": allow');
+          expect(content).toContain('"head*": allow');
         });
       }
 

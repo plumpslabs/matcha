@@ -148,6 +148,45 @@ function scanFile(filePath) {
     }
   }
 
+  // Matcha marker checks (language-agnostic — // matcha: ... comments)
+  if (patterns.markers) {
+    // NOTE: severities must be one of the render buckets in formatFindings
+    // (critical | minor | info) or the finding is counted but never displayed.
+    const markerChecks = [
+      { key: "nonEnglishScript", issue: "Matcha marker not written in English (non-Latin script)", fix: "Rewrite in English: // matcha:explain <reason>", severity: "minor" },
+      { key: "indonesianWords", issue: "Matcha marker contains Indonesian words — must be English", fix: "Rewrite in English: // matcha:explain <reason>", severity: "minor" },
+      { key: "emptyOrPlaceholder", issue: "Matcha marker is empty or placeholder", fix: "Add a real English reason: // matcha:explain <reason>", severity: "info" },
+    ];
+
+    for (const check of markerChecks) {
+      const rawPatterns = patterns.markers.checks?.[check.key]?.patterns;
+      if (!rawPatterns) continue;
+
+      for (let i = 0; i < lines.length; i++) {
+        if (!/matcha:/.test(lines[i])) continue;
+        for (const rawPattern of rawPatterns) {
+          try {
+            if (new RegExp(rawPattern, "i").test(lines[i])) {
+              findings.push({
+                file: filePath,
+                line: i + 1,
+                issue: check.issue,
+                fix: check.fix,
+                severity: check.severity,
+                language: "marker",
+                category: "marker",
+              });
+              break;
+            }
+          } catch {
+            // Skip invalid regex patterns
+          }
+        }
+        if (findings.some((f) => f.issue === check.issue)) break;
+      }
+    }
+  }
+
   // Prose checks (markdown, txt)
   if (patterns.prose) {
     const proseExt = patterns.prose.extensions || [];

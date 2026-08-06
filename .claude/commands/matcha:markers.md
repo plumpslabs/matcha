@@ -14,31 +14,17 @@ description: "🍵 Scan for // matcha: markers in the codebase and group by seve
 | `// matcha:debt [reason], [fix when]` | HIGH | Technical debt — must resolve |
 | `// matcha:adr [ADR-NUMBER]` | INFO | Architecture decision reference |
 
+## Format Rules (enforced)
+
+- **Standard format only**: `matcha:<type> <reason>` — types: `explain`, `todo`, `debt`, `adr`.
+- **English only**: markers written in another language (e.g. Indonesian) are non-compliant. Rewrite: `// matcha:explain <english reason>`.
+- **Real reason**: never leave a placeholder or empty marker.
+
+The post-write hook flags non-English/placeholder markers, and the reviewer reports them as WARNING.
+
 ## Usage
 
 ```
-node bin/matcha.js markers
-```
-Or: `/matcha:markers`
-
-## Output
-
-```
-🍵 matcha: markers
-
-Total: N markers
-  explain: N (LOW)
-  debt:    N (HIGH) ← action needed
-  todo:    N (MEDIUM)
-  adr:     N (INFO)
-
-HIGH items:
-  src/auth/login.ts:42 — workaround for legacy API
-  src/db/queries.ts:87 — N+1 query, refactor when migrating ORM
-
-Run /matcha:debt for full debt report.
-```
-
-## Purpose
-
-Prevents marker drift. Run before commit to ensure all deliberate shortcuts are documented and no HIGH-debt items are forgotten.
+node 
+...
+See commands/matcha:markers.md for full

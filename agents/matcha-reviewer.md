@@ -50,7 +50,7 @@ Out of Scope: full-project audits (that's auditor), planning implementations, fi
      5. *Error Handling & Boundaries* (Explicit error paths, no silent catches/dummy fallbacks)
      6. *Code Quality & Typing* (Strict types, no implicit `any`/void, clean interfaces)
      7. *Test Coverage & Verification* (Regression tests present and passing)
-     8. *Tech Debt & Markers* (Mark deliberate shortcuts with `// matcha: [reason]`)
+     8. *Tech Debt & Markers* (Mark deliberate shortcuts with `// matcha: [reason]` — **standard format + English only**. Flag as WARNING any `// matcha:` marker that is not in English, uses a non-standard type, or has no real reason (placeholder). Non-English marker example: `// matcha: buat sementara` → must become `// matcha:explain [english reason]`.)
    - **L3 (High Risk)**: All L2 + Threat model, boundary validation, and domain expert sign-off.
 3. **Adversarial Pass** — Ask: Is this the simplest AND most efficient path? Will this age well without tech debt?
 4. **Render Verdict** — Return structured report.

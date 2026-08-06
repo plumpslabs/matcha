@@ -1,6 +1,47 @@
-import { describe, test, expect } from "vitest";
+import { describe, test, expect, afterAll } from "vitest";
+import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "fs";
+import { join } from "path";
+import { tmpdir } from "os";
 import { checkCommand, isSimpleTask, DANGER_PATTERNS } from "../hooks/danger-checks.js";
 import { detectMode } from "../hooks/mode-detect.js";
+import { getWorkspaceRoot } from "../hooks/workspace-root.js";
+
+// ─── Monorepo fixture for workspace-root tests ───────────────────────────────
+const fixtureRoot = mkdtempSync(join(tmpdir(), "matcha-ws-"));
+// monorepo root with .agents at root only
+mkdirSync(join(fixtureRoot, ".agents", "plan"), { recursive: true });
+writeFileSync(join(fixtureRoot, ".agents", "plan", "current.md"), "# plan\n");
+// nested sub-project WITHOUT its own .agents
+mkdirSync(join(fixtureRoot, "crm_sales_backend", "src"), { recursive: true });
+// nested sub-project WITH its own .agents (nearest wins)
+mkdirSync(join(fixtureRoot, "nested-app", ".agents"), { recursive: true });
+
+afterAll(() => {
+  try { rmSync(fixtureRoot, { recursive: true, force: true }); } catch {}
+});
+
+describe("workspace-root.js (monorepo resolution)", () => {
+  test("resolves root from a sub-project (no own .agents)", () => {
+    const cwd = join(fixtureRoot, "crm_sales_backend", "src");
+    expect(getWorkspaceRoot(cwd)).toBe(fixtureRoot);
+  });
+
+  test("nearest .agents wins over parent", () => {
+    const cwd = join(fixtureRoot, "nested-app");
+    expect(getWorkspaceRoot(cwd)).toBe(join(fixtureRoot, "nested-app"));
+  });
+
+  test("falls back to cwd when no .agents ancestor exists", () => {
+    const cwd = join(fixtureRoot, "crm_sales_backend");
+    const noAgents = mkdtempSync(join(tmpdir(), "matcha-ws-empty-"));
+    try {
+      expect(getWorkspaceRoot(noAgents)).toBe(noAgents);
+    } finally {
+      rmSync(noAgents, { recursive: true, force: true });
+    }
+  });
+
+});
 
 describe("danger-checks.js", () => {
   describe("DANGER_PATTERNS", () => {

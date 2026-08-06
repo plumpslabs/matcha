@@ -19,10 +19,16 @@ import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createInterface } from "readline";
+import { getWorkspaceRoot } from "../hooks/workspace-root.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
+// CWD = literal launch dir (init/verify/status target the folder the user
+// is standing in). STATE_ROOT = workspace root (monorepo-aware) so state,
+// plan, and metrics resolve at the repo root even when launched from a
+// sub-project.
 const CWD = process.cwd();
+const STATE_ROOT = getWorkspaceRoot();
 const cmd = process.argv[2];
 const subcmd = process.argv[3];
 
@@ -32,7 +38,7 @@ try {
   VERSION = pkg.version;
 } catch {}
 
-const STATE_DIR = join(CWD, ".agents");
+const STATE_DIR = join(STATE_ROOT, ".agents");
 const STATE_FILE = join(STATE_DIR, "matcha-state.json");
 const SESSION_FILE = join(STATE_DIR, "state", "session.json");
 const DECISIONS_FILE = join(STATE_DIR, "plan", "decisions.log");
@@ -322,7 +328,7 @@ function cmdStatus() {
 
   let intensity = process.env.MATCHA_INTENSITY || "enforce (default)";
   try {
-    const statePath = join(CWD, ".agents/matcha-state.json");
+    const statePath = join(STATE_ROOT, ".agents/matcha-state.json");
     if (existsSync(statePath)) {
       const state = JSON.parse(readFileSync(statePath, "utf-8"));
       if (state.intensity) intensity = state.intensity;

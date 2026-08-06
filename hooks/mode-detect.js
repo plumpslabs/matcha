@@ -9,8 +9,9 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
-const ROOT = process.cwd();
+const ROOT = getWorkspaceRoot();
 const STATE_FILE = join(ROOT, ".agents/matcha-state.json");
 
 // ─── Mode Patterns ────────────────────────────────────────────────────────

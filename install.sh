@@ -85,7 +85,7 @@ install_hooks() {
   mkdir -p "$target"
   # All hooks + their runtime dependencies (dependency graph must be complete
   # or every hook crashes on a clean install).
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js matcha-trigger-packs.json matcha-agy-hooks.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }

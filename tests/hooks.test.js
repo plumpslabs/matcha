@@ -11,11 +11,45 @@ const HOOKS = [
   "hooks/matcha-stop.js",
   "hooks/matcha-mcp-server.js",
   "hooks/matcha-agy-hooks.js",
+  "hooks/workspace-root.js",
 ];
 
 describe("Hook syntax", () => {
   test.each(HOOKS)("%s exists", (f) => assertFile(f));
   test.each(HOOKS)(`%s valid Node syntax`, (f) => assertValidSyntax(f));
+});
+
+describe("workspace-root.js (monorepo root resolution)", () => {
+  // Regression: hooks must resolve .agents/ at the workspace root, not cwd,
+  // so launching from a sub-project of a monorepo can't lose the plan/state.
+  const ROOT_HOOKS = [
+    "hooks/planning-gate.js",
+    "hooks/mode-detect.js",
+    "hooks/matcha-metrics.js",
+    "hooks/matcha-stop.js",
+    "hooks/matcha-instructions.js",
+    "hooks/matcha-mcp-server.js",
+    "bin/matcha.js",
+  ];
+
+  // shield delegates to planning-gate/mode-detect/metrics (which all use the
+  // helper) — it holds no .agents path itself.
+  test("matcha-shield.js delegates root resolution (no bare process.cwd())", () => {
+    const content = readProjectFile("hooks/matcha-shield.js");
+    expect(content).not.toMatch(/process\.cwd\(\)/);
+  });
+
+  for (const f of ROOT_HOOKS) {
+    test(`${f} uses getWorkspaceRoot() instead of bare process.cwd()`, () => {
+      const content = readProjectFile(f);
+      expect(content).toContain("getWorkspaceRoot");
+    });
+  }
+
+  test("hooks import the shared helper (not inline duplicates)", () => {
+    const gate = readProjectFile("hooks/planning-gate.js");
+    expect(gate).toContain("from \"./workspace-root.js\"");
+  });
 });
 
 test("matcha-shield.js has danger patterns", () => {
@@ -45,6 +79,13 @@ describe("matcha-post-write.js", () => {
   test("supports multi-language detection via patterns.json", () => {
     expect(content).toContain("detectLanguage");
     expect(content).toContain("loadPatterns");
+  });
+
+  test("scans matcha marker format/language compliance (English-only)", () => {
+    expect(content).toContain("patterns.markers");
+    expect(content).toContain("nonEnglishScript");
+    expect(content).toContain("indonesianWords");
+    expect(content).toContain("emptyOrPlaceholder");
   });
 
   test("has postToolUse export", () => {
@@ -85,6 +126,66 @@ describe("matcha-mcp-server.js", () => {
 test("matcha-stop.js has relevant patterns", () => {
   const content = readProjectFile("hooks/matcha-stop.js");
   expect(content).toContain("matcha");
+});
+
+describe("matcha marker enforcement (English-only, standard format)", () => {
+  const patterns = JSON.parse(readProjectFile("hooks/patterns.json"));
+
+  test("patterns.json defines markers checks", () => {
+    expect(patterns.markers).toBeDefined();
+    expect(patterns.markers.checks.nonEnglishScript).toBeDefined();
+    expect(patterns.markers.checks.indonesianWords).toBeDefined();
+    expect(patterns.markers.checks.emptyOrPlaceholder).toBeDefined();
+  });
+
+  test("non-English marker regex matches Indonesian words", () => {
+    const re = new RegExp(patterns.markers.checks.indonesianWords.patterns[0], "i");
+    expect(re.test("// matcha: buat sementara dulu")).toBe(true);
+    expect(re.test("// matcha:explain untuk sementara pakai cache")).toBe(true);
+    // English markers must NOT match
+    expect(re.test("// matcha:explain temporary cache workaround")).toBe(false);
+  });
+
+  test("non-Latin script regex matches CJK/Arabic", () => {
+    const re = new RegExp(patterns.markers.checks.nonEnglishScript.patterns[0], "i");
+    expect(re.test("// matcha: 暂时用缓存")).toBe(true);
+    expect(re.test("// matcha:explain temporary cache workaround")).toBe(false);
+  });
+
+  test("indonesianWords excludes ambiguous 'di'/'ini' (DI container, INI config are valid English)", () => {
+    const re = new RegExp(patterns.markers.checks.indonesianWords.patterns[0], "i");
+    expect(re.test("// matcha:explain using DI container")).toBe(false);
+    expect(re.test("// matcha:todo parse ini config")).toBe(false);
+    // still catches real Indonesian
+    expect(re.test("// matcha: buat sementara dulu")).toBe(true);
+  });
+
+  test("emptyOrPlaceholder does not flag short valid English markers (escaped dots)", () => {
+    const re = new RegExp(patterns.markers.checks.emptyOrPlaceholder.patterns[0], "i");
+    // empty / placeholder → flagged
+    expect(re.test("// matcha:")).toBe(true);
+    expect(re.test("// matcha:explain")).toBe(true);
+    expect(re.test("// matcha:explain TBD")).toBe(true);
+    // valid short reason → NOT flagged (regression: unescaped '...' matched any 3 chars)
+    expect(re.test("// matcha:explain fix")).toBe(false);
+    expect(re.test("// matcha:explain temporary cache workaround")).toBe(false);
+  });
+
+  test("reviewer agent enforces English-only markers (WARNING)", () => {
+    const reviewer = readProjectFile(".agents/agents/matcha-reviewer.md");
+    expect(reviewer).toContain("English only");
+    expect(reviewer).toContain("WARNING");
+    expect(reviewer).toContain("buat sementara");
+  });
+
+  test("core.md + AGENTS.md + markers command document English-only rule", () => {
+    const core = readProjectFile("skills/matcha/modules/core.md");
+    const agentsMd = readProjectFile("AGENTS.md");
+    const markersCmd = readProjectFile("commands/matcha:markers.md");
+    expect(core).toContain("English only");
+    expect(agentsMd).toContain("English only");
+    expect(markersCmd).toContain("English only");
+  });
 });
 
 describe("matcha-agy-hooks.js (AGY adapter)", () => {

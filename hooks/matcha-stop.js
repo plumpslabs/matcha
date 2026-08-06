@@ -12,6 +12,7 @@
 import { execSync } from "child_process";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
 // ─── Tip generators ──────────────────────────────────────────────────────────
 
@@ -238,7 +239,7 @@ function formatTips(tips) {
 // ─── Exports for programmatic use ────────────────────────────────────────────
 
 export async function onStop(event, context) {
-  const cwd = process.cwd();
+  const cwd = getWorkspaceRoot();
   const tips = generateTips(cwd);
   if (tips.length === 0) return null;
 
@@ -264,7 +265,7 @@ const isDirectInvocation = process.argv[1] && (
 );
 
 if (isDirectInvocation) {
-  const cwd = process.cwd();
+  const cwd = getWorkspaceRoot();
   const tips = generateTips(cwd);
 
   if (tips.length === 0) {

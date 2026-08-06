@@ -1,10 +1,11 @@
 {
-  "version": "2.5.19",
+  "version": "2.5.20",
   "description": "Multi-language pattern registry for matcha checks",
 
 
   "changelog": {
-    "4.0.0": "Added severity/description per pattern, ignoreContext, extensions for sql/commit, new languages (c, cpp, csharp, php, kotlin, dart), new checks (unusedImport, magicNumber, insecureRandom, sqlInjectionRisk, longLine), fixed emptyCatch/hardcodedSecret false positives, deduped printStatement into debugLog"
+    "4.0.0": "Added severity/description per pattern, ignoreContext, extensions for sql/commit, new languages (c, cpp, csharp, php, kotlin, dart), new checks (unusedImport, magicNumber, insecureRandom, sqlInjectionRisk, longLine), fixed emptyCatch/hardcodedSecret false positives, deduped printStatement into debugLog",
+    "2.5.20": "Added markers section: nonEnglishScript (CJK/Arabic/Cyrillic), indonesianWords (unambiguous words only — di/ini excluded to avoid DI/INI false positives), emptyOrPlaceholder (escaped dots to avoid any-3-chars wildcard)"
   },
   "languages": {
     "js": {
@@ -524,6 +525,26 @@
         "enabled": false,
         "severity": "info",
         "description": "Optional: commit message has no ticket/issue reference (disabled by default, opt-in per repo)"
+      }
+    }
+  },
+  "markers": {
+    "description": "Matcha marker (// matcha: ...) format enforcement. Markers must be standard format and written in English.",
+    "checks": {
+      "nonEnglishScript": {
+        "patterns": ["matcha:[^\n]*[\u0600-\u06FF\u4E00-\u9FFF\u3040-\u30FF\u0400-\u04FF\uAC00-\uD7AF\u0E00-\u0E7F\u0E80-\u0EFF]"],
+        "severity": "warning",
+        "description": "Matcha marker contains non-Latin script — must be written in English"
+      },
+      "indonesianWords": {
+        "patterns": ["matcha:[^\n]*\\b(yang|untuk|dengan|dari|tidak|jangan|sudah|belum|bisa|dulu|buat|ganti|ubah|pakai|karena|kalau|apakah|harus|agar|supaya|kita|kami|mereka|seperti|semua|setelah|sebelum|sedang|menjadi|dibuat|saja|juga|lagi|perlu|dipakai|dengan cepat|untuk sementara|buat sementara|biar|dahulu|terlebih dahulu|selanjutnya|berikutnya)\\b"],
+        "severity": "warning",
+        "description": "Matcha marker contains Indonesian words — markers must be written in English. (Short ambiguous words like 'di'/'ini' are intentionally excluded — they are valid English: dependency injection, INI config.)"
+      },
+      "emptyOrPlaceholder": {
+        "patterns": ["matcha:(explain|todo|debt|adr)?\\s*(TBD|TODO|\\.\\.\\.|Describe what|Why is this|simplest and most|\\(TBD\\))?\\s*$"],
+        "severity": "info",
+        "description": "Matcha marker is empty or still a placeholder — add a real English reason"
       }
     }
   },

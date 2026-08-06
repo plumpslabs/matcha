@@ -7,13 +7,18 @@
  * Exports:
  *   checkPlanningGate(event) — returns { block, message } or null
  *   validatePlanContent(content) — returns { valid, message }
+ *
+ * Root resolution: getWorkspaceRoot() — walks up from cwd to the nearest
+ * directory containing `.agents/`, so the gate works when launched from a
+ * sub-project of a monorepo (plan lives at the workspace root).
  */
 
 import { readFileSync, existsSync } from "fs";
 import { join } from "path";
 import { isSimpleTask } from "./danger-checks.js";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
-const ROOT = process.cwd();
+const ROOT = getWorkspaceRoot();
 const STATE_FILE = join(ROOT, ".agents/matcha-state.json");
 
 export function getIntensity() {

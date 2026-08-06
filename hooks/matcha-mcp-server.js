@@ -29,6 +29,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { validatePlanContent } from "./planning-gate.js";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -132,7 +133,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.19",
+  version: "2.5.20",
 };
 
 const TOOLS = [
@@ -236,7 +237,7 @@ function handleRequest(request) {
     }
 
     if (name === "matcha_stop_tips") {
-      const cwd = args.cwd || process.cwd();
+      const cwd = args.cwd || getWorkspaceRoot();
       const tips = generateStopTips(cwd);
       if (tips.length === 0) {
         return {

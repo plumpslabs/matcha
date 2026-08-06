@@ -53,6 +53,11 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("matcha-trigger-packs.json");
   });
 
+  test("installs workspace-root.js (monorepo root resolution helper)", () => {
+    // All root-resolving hooks import ./workspace-root.js — install must copy it
+    expect(installer).toContain("workspace-root.js");
+  });
+
   test("installs AGY hooks adapter + workspace manifest", () => {
     expect(installer).toContain("matcha-agy-hooks.js");
     expect(installer).toContain(".agents/hooks.json");

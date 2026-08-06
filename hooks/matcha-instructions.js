@@ -7,6 +7,7 @@
 import { readFileSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -25,9 +26,9 @@ export function getMatchaInstructions() {
 }
 
 export function getProjectConstraints() {
-  // Look for MATCHA_PROJECT.md in current working directory
+  // Look for MATCHA_PROJECT.md at the workspace root (monorepo-aware)
   const projectPaths = [
-    join(process.cwd(), "MATCHA_PROJECT.md"),
+    join(getWorkspaceRoot(), "MATCHA_PROJECT.md"),
     join(ROOT, "skills", "matcha", "modules", "project.md"),
   ];
   for (const p of projectPaths) {

@@ -26,8 +26,6 @@ import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./
 // Re-export for backward compatibility with tests
 export { DANGER_PATTERNS, checkPlanningGate };
 
-const ROOT = process.cwd();
-
 function parseEvent(event) {
   if (!event) return null;
   const toolName = event.tool || event.toolName || "";

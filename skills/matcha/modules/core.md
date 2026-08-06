@@ -120,7 +120,7 @@ Alternative: [what you found]
 - Remove temp files, debug code, unused imports
 - Split files >300 lines or handling >3 concerns
 - Verify no duplicated logic introduced
-- Mark deliberate shortcuts with `// matcha: [reason]`
+- Mark deliberate shortcuts with `// matcha: [reason]` — **standard format + English only**: `// matcha:explain <reason>`, `// matcha:todo <task>`, `// matcha:debt <reason>, <fix when>`, `// matcha:adr <ref>`. Markers must be written in English (the post-write hook + reviewer flag non-English markers).
 
 ## ✅ Checkpoint 5: Verify (Feedback Harness)
 

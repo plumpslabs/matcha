@@ -16,8 +16,9 @@
 
 import { readFileSync, writeFileSync, mkdirSync, existsSync } from "fs";
 import { join } from "path";
+import { getWorkspaceRoot } from "./workspace-root.js";
 
-const ROOT = process.cwd();
+const ROOT = getWorkspaceRoot();
 const METRICS_DIR = join(ROOT, ".agents");
 const METRICS_FILE = join(METRICS_DIR, "matcha-metrics.json");
 

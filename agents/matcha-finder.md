@@ -7,7 +7,9 @@ permission:
   grep: allow
   glob: allow
   list: allow
-  # Bash: read-only whitelist untuk reuse discovery (git history = signal reuse). Catch-all first (last matching rule wins).
+  # Bash: minimal read-only whitelist — git history (reuse signal: removed code, ownership) +
+  # rg/find search + wc -l + head/tail filters. Read FILE CONTENTS with the `read` tool —
+  # not bash cat/sed. Catch-all first (last matching rule wins).
   bash:
     "*": deny
     "git log*": allow
@@ -19,27 +21,10 @@ permission:
     "git ls-files*": allow
     "git rev-parse*": allow
     "find *": allow
-    "grep -r*": allow
     "rg *": allow
     "wc -l*": allow
     "head*": allow
     "tail*": allow
-    "sort*": allow
-    "uniq*": allow
-    "awk*": allow
-    "cut*": allow
-    "tr*": allow
-    "jq*": allow
-    "sed -n*": allow
-    "cat *package.json": allow
-    "cat *requirements*.txt": allow
-    "cat *pyproject.toml": allow
-    "cat *Cargo.toml": allow
-    "cat *go.mod": allow
-    "cat *pom.xml": allow
-    "cat *composer.json": allow
-    "cat *Gemfile": allow
-    "cat *pubspec.yaml": allow
   webfetch: deny
   websearch: deny
   task: deny
@@ -63,7 +48,7 @@ Out of Scope: planning, reviewing, implementing, debugging, cleanup.
 - **SEMANTIC, NOT NAMING:** Match by responsibility and behavior — not just symbol names.
 - **ARCHITECTURE-AWARE:** Never recommend reuse that breaks ownership boundaries, layer rules, or creates circular dependencies.
 - **STATE UNCERTAINTY:** If the search space wasn't fully inspected, say so. Never assume something doesn't exist.
-- **SCOPED BASH:** Read-only allowlist for reuse discovery (git history = legit reuse signal — e.g. code removed in an old commit; manifests). Matching is per command segment: `cd dir && cmd` chains work; pipes/`;` chains pass only when EVERY segment matches — head/tail/sort/uniq/awk/cut/tr/jq/`sed -n` are allowlisted filters. No `echo` labels or output redirects (not allowlisted). `git -C` is not allowlisted — use `cd`. Anything unlisted is blocked — if blocked, STOP and request from the orchestrating agent.
+- **SCOPED BASH:** Read-only allowlist for reuse discovery — git history (legit reuse signal: code removed in an old commit, ownership), search, `wc -l`, `head`/`tail` filters. **Read file contents with the `read` tool (line-range aware), never via bash `cat`/`sed`/`awk`** — those are not allowlisted. `head`/`tail` are for pipeline filters and quick file peeks only (read-only); anything deeper → `read` tool. **Prefer the native `grep` tool for search — `rg` may not be installed** (it is allowlisted, but a missing binary is not a permission block). Matching is per command segment: `cd dir && cmd` chains work; pipes/`;` chains pass only when EVERY segment matches. No `echo` labels, output redirects, or manifest `cat`s (not allowlisted — use the `read` tool). `git -C` is not allowlisted — use `cd`. Anything unlisted is blocked — if blocked, switch to the `read`/`grep`/`glob` tools; only STOP and request from the orchestrating agent if the tools cannot cover the need.
 </strict_boundaries>
 
 <execution_process>

@@ -27,7 +27,8 @@ permission:
     "npm run test*": allow
     "npm run lint*": allow
     "npm run typecheck*": allow
-    "npm run build*": allow
+    # build variants NOT allowlisted — npm run build writes dist/ (not read-only) and can run arbitrary prebuild scripts.
+    # Falls to "*": ask → user confirms. Reviewer handles builds (it has bash: allow for L0/L1 gates).
     "npx vitest*": allow
     "npx tsc*": allow
     "npx eslint*": allow
@@ -38,17 +39,17 @@ permission:
     "pnpm test*": allow
     "pnpm run test*": allow
     "pnpm run lint*": allow
-    "pnpm run build*": allow
+    # no pnpm run build* (writes dist/) — falls to "*": ask
     "yarn list*": allow
     "yarn outdated*": allow
     "yarn test*": allow
     "yarn run test*": allow
     "yarn run lint*": allow
-    "yarn run build*": allow
+    # no yarn run build* (writes dist/) — falls to "*": ask
     "bun test*": allow
     "bun run test*": allow
     "bun run lint*": allow
-    "bun run build*": allow
+    # no bun run build* (writes dist/) — falls to "*": ask
     "pip list*": allow
     "pip show*": allow
     "pip-audit*": allow
@@ -111,7 +112,7 @@ Out of Scope: reviewing specific diffs/PRs (that's reviewer), planning implement
 - **READ-ONLY:** Never modify any files, dependencies, or configs. Audit and report only.
 - **EVIDENCE MANDATORY:** Every finding must reference exact file paths, line numbers, or manifest entries. Missing evidence = no finding.
 - **STATE UNCERTAINTY:** If evidence is insufficient, state it. Do not guess.
-- **SCOPED TOOLS:** Bash allowlist = read-only inspection (git history, package managers, test runners, manifests). Matching is per command segment: `cd dir && cmd` chains work; pipes (`|`) and `;` chains pass only when EVERY segment matches — head/tail/sort/uniq/awk/cut/tr/jq/`sed -n`/echo are allowlisted filters (echo for output labels only — never redirect output into files). `git -C` is not allowlisted — use `cd dir && git ...` or `workdir`. Unlisted segments are blocked or prompt — if blocked, STOP and request from the orchestrating agent; never work around the gate.
+- **SCOPED TOOLS:** Bash allowlist = read-only inspection (git history, package managers, test runners, manifests). **Build commands are NOT allowlisted** — `npm run build` writes `dist/` (not read-only) and may run arbitrary prebuild scripts; they fall to `*: ask` for user confirmation (reviewer runs builds). Matching is per command segment: `cd dir && cmd` chains work; pipes (`|`) and `;` chains pass only when EVERY segment matches — head/tail/sort/uniq/awk/cut/tr/jq/`sed -n`/echo are allowlisted filters (echo for output labels only — never redirect output into files). `git -C` is not allowlisted — use `cd dir && git ...` or `workdir`. Unlisted segments are blocked or prompt — if blocked, switch to the `read`/`grep`/`glob` tools or STOP and request from the orchestrating agent; never work around the gate.
 </strict_boundaries>
 
 <execution_process>

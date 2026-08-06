@@ -121,11 +121,26 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (["matcha-planner", "matcha-finder"].includes(agent)) {
-        test("planner/finder: read-only bash whitelist (git + manifests, deny fallback)", () => {
+        test("planner/finder: lean read-only bash whitelist (git + rg + find, deny fallback)", () => {
           expect(content).not.toMatch(/^  bash: (allow|deny)$/m);
           // order-sensitive: catch-all first, then git read-only (opencode: last matching rule wins)
           expect(content).toContain('bash:\n    "*": deny\n    "git log*": allow');
           expect(content).toContain('"head*": allow');
+        });
+
+        test("planner/finder: no file-reading bash (sed/cat/awk/grep -r/sort/uniq/echo removed — use read tool)", () => {
+          expect(content).not.toContain('"sed -n*": allow');
+          expect(content).not.toContain('"echo *": allow');
+          expect(content).not.toContain('"cat *package.json": allow');
+          expect(content).not.toContain('"awk*": allow');
+          expect(content).not.toContain('"grep -r*": allow');
+          expect(content).not.toContain('"sort*": allow');
+          expect(content).not.toContain('"uniq*": allow');
+        });
+
+        test("planner/finder: guidance directs file reads to the read tool", () => {
+          expect(content).toContain("`read` tool");
+          expect(content).toContain("never via bash");
         });
       }
 
@@ -137,6 +152,13 @@ describe("Agent YAML frontmatter validation", () => {
           expect(content).toContain('"npx jest*": allow');
           expect(content).toContain('"head*": allow');
         });
+
+        test("auditor: build variants NOT allowlisted (write dist/, falls to *: ask)", () => {
+          expect(content).not.toContain('"npm run build*": allow');
+          expect(content).not.toContain('"pnpm run build*": allow');
+          expect(content).not.toContain('"yarn run build*": allow');
+          expect(content).not.toContain('"bun run build*": allow');
+        });
       }
 
       if (["matcha-debugger", "matcha-cleaner"].includes(agent)) {
@@ -146,6 +168,18 @@ describe("Agent YAML frontmatter validation", () => {
       }
     });
   }
+});
+
+describe("Whitelist consistency (Never Twice)", () => {
+  test("planner and finder bash whitelists are identical (no drift)", () => {
+    const planner = readProjectFile(".claude/agents/matcha-planner.md");
+    const finder = readProjectFile(".claude/agents/matcha-finder.md");
+    const extract = (c) => {
+      const m = c.match(/  bash:\n([\s\S]*?)\n  webfetch/);
+      return m ? m[1].replace(/\s+/g, " ") : "";
+    };
+    expect(extract(planner)).toBe(extract(finder));
+  });
 });
 
 describe("Agent content checks", () => {

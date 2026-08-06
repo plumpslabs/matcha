@@ -119,4 +119,4 @@ export const TASK_IDS = [
 ];
 
 /** Skill module files */
-export const SKILL_MODULES = ["core.md", "project.md", "modes.md", "risk.md", "legacy.md"];
+export const SKILL_MODULES = ["core.md", "project.md", "modes.md", "risk.md", "engineering.md", "legacy.md"];

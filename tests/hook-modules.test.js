@@ -5,6 +5,7 @@ import { tmpdir } from "os";
 import { checkCommand, isSimpleTask, DANGER_PATTERNS } from "../hooks/danger-checks.js";
 import { detectMode } from "../hooks/mode-detect.js";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
+import { validatePlanContent } from "../hooks/planning-gate.js";
 
 // ─── Monorepo fixture for workspace-root tests ───────────────────────────────
 const fixtureRoot = mkdtempSync(join(tmpdir(), "matcha-ws-"));
@@ -155,6 +156,38 @@ describe("danger-checks.js", () => {
     test("returns false for unknown tools", () => {
       expect(isSimpleTask("UnknownTool", {})).toBe(false);
     });
+  });
+});
+
+describe("planning-gate.js — Proportionality (trivial plan pass)", () => {
+  test("plan without Intent Discovery and without trivial marker is rejected", () => {
+    const res = validatePlanContent("# Notes\nsome random text without any problem statement");
+    // no <matcha_gate>, no Intent Discovery marker, no trivial marker → must fail
+    expect(res.valid).toBe(false);
+  });
+
+  test("trivial-marked plan passes with just a problem statement", () => {
+    const res = validatePlanContent(
+      "<!-- trivial -->\n# 🍵 Intent Discovery\n- **Problem:** Rename `foo` to `bar` in src/x.js"
+    );
+    expect(res.valid).toBe(true);
+  });
+
+  test("trivial-marked plan passes via frontmatter type", () => {
+    const res = validatePlanContent(
+      "---\ntitle: typo fix\ntype: plan-trivial\nstatus: active\n---\n- **Problem:** Fix typo in README.md"
+    );
+    expect(res.valid).toBe(true);
+  });
+
+  test("trivial-marked plan without problem is rejected", () => {
+    const res = validatePlanContent("<!-- trivial -->\njust some notes");
+    expect(res.valid).toBe(false);
+  });
+
+  test("empty plan is rejected", () => {
+    const res = validatePlanContent("   ");
+    expect(res.valid).toBe(false);
   });
 });
 

@@ -134,7 +134,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.21</span>
+    <span class="header-badge">v2.5.22</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -205,7 +205,7 @@ tr:hover td{background:var(--bg-hover)}
     <tr><td><strong>Planning Gate</strong></td><td>Blocks code until Intent Discovery plan exists</td><td>Before any implementation</td></tr>
     <tr><td><strong>Safety Shield</strong></td><td>Blocks dangerous commands (rm -rf, git push --force)</td><td>On every command</td></tr>
     <tr><td><strong>Post-Write Scan</strong></td><td>Checks files for cleanup issues (13+ languages)</td><td>After every file write</td></tr>
-    <tr><td><strong>Review Gate</strong></td><td>8-category review with risk-based routing</td><td>Before shipping</td></tr>
+    <tr><td><strong>Review Gate</strong></td><td>9-category review with risk-based routing</td><td>Before shipping</td></tr>
   </table>
 
   <h3>Who Is It For?</h3>
@@ -259,7 +259,7 @@ tr:hover td{background:var(--bg-hover)}
   <h3>What's Inside</h3>
   <table>
     <tr><th>Component</th><th>Count</th><th>Description</th></tr>
-    <tr><td>Modules</td><td>5</td><td>Core, project, modes, risk, legacy</td></tr>
+    <tr><td>Modules</td><td>6</td><td>Core, project, modes, risk, engineering, legacy</td></tr>
     <tr><td>Commands</td><td>7</td><td>why, review, audit, intensity, status, debt, markers</td></tr>
     <tr><td>Agents</td><td>6</td><td>planner, finder, auditor, reviewer, cleaner, debugger</td></tr>
     <tr><td>Hooks</td><td>4</td><td>shield, post-write, stop, metrics</td></tr>
@@ -273,7 +273,7 @@ tr:hover td{background:var(--bg-hover)}
     <tr><th>Without matcha</th><th>With matcha</th></tr>
     <tr><td>Agent writes code immediately</td><td>Agent plans first (Intent Discovery)</td></tr>
     <tr><td>Duplicates existing functions</td><td>Searches codebase, reuses existing</td></tr>
-    <tr><td>Ships without review</td><td>8-category review gate</td></tr>
+    <tr><td>Ships without review</td><td>9-category review gate</td></tr>
     <tr><td>No security checks</td><td>Automated security scanning</td></tr>
     <tr><td>Same process for all tasks</td><td>Adaptive modes (explore/implement/debug)</td></tr>
     <tr><td>Breaks legacy code</td><td>Incremental batching with safety</td></tr>
@@ -366,7 +366,7 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
   <h3>What Gets Installed</h3>
   <table>
     <tr><th>Target</th><th>Contents</th><th>For</th></tr>
-    <tr><td><code>AGENTS.md</code> + <code>GEMINI.md</code></td><td>Primary rules files</td><td>Every agent (Antigravity, Qwen, Gemini, Codex, Zed, ...)</td></tr>
+    <tr><td><code>AGENTS.md</code> + <code>CLAUDE.md</code> + <code>GEMINI.md</code> + <code>QWEN.md</code></td><td>Root context files (per-runtime: Claude Code, Antigravity/Gemini, Qwen Code, + universal AGENTS.md)</td><td>Every agent (Claude, Antigravity, Qwen, Gemini, Codex, Zed, ...)</td></tr>
     <tr><td><code>.github/copilot-instructions.md</code></td><td>Custom instructions</td><td>GitHub Copilot</td></tr>
     <tr><td><code>.claude/</code></td><td>6 agents, 7 commands, skill + modules, hooks + settings.json</td><td>Claude Code</td></tr>
     <tr><td><code>.opencode/</code></td><td>6 agents, 7 commands, skill + modules</td><td>OpenCode</td></tr>
@@ -729,7 +729,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <tr><th>Tier</th><th>Risk</th><th>Review Level</th></tr>
     <tr><td><strong>L0</strong></td><td>Disposable</td><td>Output check only</td></tr>
     <tr><td><strong>L1</strong></td><td>Low</td><td>Lint + typecheck</td></tr>
-    <tr><td><strong>L2</strong></td><td>Product Logic</td><td>Full 8-category review</td></tr>
+    <tr><td><strong>L2</strong></td><td>Product Logic</td><td>Full 9-category review</td></tr>
     <tr><td><strong>L3</strong></td><td>High Risk</td><td>Expert review + threat model</td></tr>
   </table>
 
@@ -899,7 +899,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <div class="step-num">6</div>
     <div class="step-body">
       <h4>Review gate — before "done"</h4>
-      <p><code>/matcha:review</code> or <code>@matcha-reviewer</code>. Risk-based routing: L0 output check → L1 lint/typecheck → L2 full review (8 categories) → L3 expert + threat model. Verdict: <code>BLOCK</code> / <code>PASS_WITH_FIXES</code> / <code>PASS</code> / <code>EXPERT_REQUIRED</code>. If blocked, use <code>@matcha-debugger</code> to find the root cause.</p>
+      <p><code>/matcha:review</code> or <code>@matcha-reviewer</code>. Risk-based routing: L0 output check → L1 lint/typecheck → L2 full review (9 categories) → L3 expert + threat model. Verdict: <code>BLOCK</code> / <code>PASS_WITH_FIXES</code> / <code>PASS</code> / <code>EXPERT_REQUIRED</code>. If blocked, use <code>@matcha-debugger</code> to find the root cause.</p>
     </div>
   </div>
 
@@ -1001,19 +1001,16 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 <!-- Modules Reference -->
 <div class="section" id="modules">
   <h1>Modules Reference</h1>
-  <p>5 focused modules loaded on-demand.</p>
+  <p>6 focused modules loaded on-demand.</p>
 
   <table>
     <tr><th>Module</th><th>When to Load</th><th>Content</th></tr>
     <tr><td><code>core.md</code></td><td>Always</td><td>6-checkpoint filter, intensity, planning gate</td></tr>
-    <tr><td><code>project.md</code></td><td>Always</td><td>Project-specific constraints</td></tr>
+    <tr><td><code>project.md</code></td><td>Always</td><td>Project-specific constraints (MATCHA_PROJECT.md template)</td></tr>
     <tr><td><code>modes.md</code></td><td>Always</td><td>Context-aware mode switching</td></tr>
     <tr><td><code>risk.md</code></td><td>During review</td><td>Risk-based review routing (L0-L3)</td></tr>
+    <tr><td><code>engineering.md</code></td><td>Implement + review</td><td>Universal engineering bar: errors, logging, validation, API contracts, state, concurrency</td></tr>
     <tr><td><code>legacy.md</code></td><td>Legacy codebases</td><td>Incremental batching, impact analysis</td></tr>
-
-    <tr><td><code>tdd.md</code></td><td>TDD requested</td><td>Test-driven development flow</td></tr>
-    <tr><td><code>loop.md</code></td><td>Complex tasks</td><td>Loop mode with retry/escalation</td></tr>
-
   </table>
 </div>
 

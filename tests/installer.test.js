@@ -108,6 +108,16 @@ describe("install.sh — platform coverage", () => {
     expect(installer).toContain(".trae");
   });
 
+  test(".claude agents are installed from Claude Code-native files, not canonical (OpenCode format is ignored by Claude)", () => {
+    // .claude/agents/*.md use tools:/disallowedTools: frontmatter — copying the canonical
+    // OpenCode-format .agents/agents/*.md there would make Claude ignore the permission block.
+    // install_agents gets an explicit source dir: .claude/agents for Claude Code, canonical otherwise.
+    expect(installer).toContain('install_agents "$TARGET/$p/agents"');
+    expect(installer).toContain("echo .claude/agents");
+    expect(installer).toContain("echo .agents/agents");
+    expect(installer).toContain('.claude/agents || echo .agents/agents');
+  });
+
   test("GEMINI.md + AGENTS.md cover Antigravity and Qwen (root files)", () => {
     expect(installer).toContain("GEMINI.md");
     expect(installer).toContain("AGENTS.md");
@@ -120,6 +130,36 @@ describe("QWEN.md", () => {
   test("has matcha reference", () => {
     const content = readProjectFile("QWEN.md");
     expect(content).toContain("matcha");
+  });
+});
+
+describe("install.sh — root context files (CLAUDE.md + QWEN.md)", () => {
+  const installer = readProjectFile("install.sh");
+
+  test("installs CLAUDE.md (Claude Code reads root CLAUDE.md)", () => {
+    // Regression: Claude Code reads CLAUDE.md at project root; install must copy it.
+    expect(installer).toContain("install_file_if_missing \"$TARGET/CLAUDE.md\" \"CLAUDE.md\"");
+  });
+
+  test("installs QWEN.md (Qwen Code reads root QWEN.md)", () => {
+    // Regression: Qwen Code reads QWEN.md at project root; install must copy it.
+    expect(installer).toContain("install_file_if_missing \"$TARGET/QWEN.md\" \"QWEN.md\"");
+  });
+
+  test("CLAUDE.md and QWEN.md are real files in the repo", () => {
+    assertFile("CLAUDE.md");
+    assertFile("QWEN.md");
+  });
+
+  test("npm package files array includes all root context files (QWEN.md regression)", () => {
+    // Regression: QWEN.md was added to install.sh but missing from package.json files array
+    // → matcha init via npm silently failed to install QWEN.md (fetch uses cat $HERE/$1).
+    const pkg = JSON.parse(readProjectFile("package.json"));
+    const files = pkg.files || [];
+    expect(files).toContain("AGENTS.md");
+    expect(files).toContain("CLAUDE.md");
+    expect(files).toContain("GEMINI.md");
+    expect(files).toContain("QWEN.md");
   });
 });
 

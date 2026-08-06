@@ -17,6 +17,10 @@
 - **Type Safety:** [e.g., Strict types. NO `any`/`void*`/`interface{}`, NO `@ts-ignore`/`unsafe` blocks, NO unwrap on Option/Result without context].
 
 - **Error Boundary:** [e.g., Return explicit Result types. NEVER throw or swallow exceptions].
+- **Runtime Validation:** [e.g., Zod at API edges — never trust external input].
+- **API Style:** [e.g., REST (error envelope shape, pagination) / GraphQL (schema, cursor pagination) / gRPC].
+- **Logging:** [e.g., structured (pino), levels, correlation ID, never log secrets/PII].
+- **Error Messages:** [e.g., user-facing errors in clear English with context + suggested action].
 - **Security:** All queries MUST be parameterized. Credentials isolation via env vars `[APPNAME]_VAR_NAME`.
 
 ## 3. Verification Commands

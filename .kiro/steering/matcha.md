@@ -9,7 +9,8 @@ inclusion: always
 
 ## Core Rules
 
-- **🎯 Intent Discovery** — Confirm What/Why/How. Evidence required. Stop if Why/How unclear.
+- **⚖️ Proportionality** — Match effort to risk: trivial (≤5 LOC, 1 file, no logic) → minimal plan, fast pass; small (1-3 files) → short plan + light review; large (cross-cutting/prod risk) → full gate. Planning > implementation = over-planning. Exit conditions beat STOP — proceed on a recorded assumption rather than blocking on trivia.
+- **🎯 Intent Discovery** — Confirm What/Why/How. Evidence required. Stop if Why/How unclear — unless trivial, then proceed on a recorded assumption.
 - **🔎 Reuse First** — Search existing code (`file:line`). Never write what exists.
 - **🛡️ Type-Safe & Boundary Guard** — Strict types (no `any`). Validate inputs/schemas at entry points.
 - **🏗️ Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

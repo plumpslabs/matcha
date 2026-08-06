@@ -1,0 +1,26 @@
+---
+description: Kuma MCP — safety and context runtime for AI agents
+alwaysApply: true
+---
+
+Kuma MCP tools are available (kuma_context, kuma_memory, kuma_safety).
+**Before coding, call `kuma_context({ action: "init" })`** to load project context.
+
+⚡ **DEFAULT WORKFLOW (Lean — 3 steps):**
+  1. `init` — load context
+  2. *(edit/read using native tools)*
+  3. `changes` — review session
+
+📝 **RECORD when needed (don't force it):**
+  • Found a bug? → `kuma_memory({ action: "gotcha" })` (IMMEDIATELY)
+  • Traced a flow? → `kuma_memory({ action: "arch_flow" })` (max 5 files)
+  • Chose between options? → `kuma_memory({ action: "decision" })`
+
+📖 Full rules: `.kuma/init.md`
+
+📖 **Usage:**
+  • `kuma_context({ action: "init" })` — load project context (call first)
+  • `kuma_safety({ action: "guard" })` — safety check before risky ops
+  • `kuma_safety({ action: "verify", scope: "<area>" })` — verify after edits
+  • `.kuma/init.md` — full behavioral rules
+  • `.kuma/memories/` — persistent project knowledge

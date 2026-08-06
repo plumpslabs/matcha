@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.21
+  version: 2.5.22
 ---
 
 # 🍵 matcha — Engineering Philosophy
@@ -21,11 +21,14 @@ This skill is split into focused modules. Load the relevant module for the task:
 | `modules/project.md` | **Always** | Project-specific constraints (fill in once per project) |
 | `modules/modes.md` | **Always** | Context-aware mode switching (explore/implement/refactor/debug/review) |
 | `modules/risk.md` | During review | Risk-based review routing (L0-L3) |
+| `modules/engineering.md` | During implement + review | Universal engineering bar: errors, logging, validation, API contracts, state, concurrency |
 | `modules/legacy.md` | Legacy/large codebases | Incremental batching, impact analysis, regression safety |
 
 ## Quick Reference
 
-**Intent Discovery** — Problem, Goals, Success Criteria, What → Why → How. Can't answer Why/How? → STOP.
+**Proportionality** — Match effort to risk. Trivial (≤5 LOC, 1 file, no logic): no plan, fast pass. Small (1-3 files): short plan + lint review. Large (cross-cutting/prod risk): full gate. Planning > implementation = over-planning. Exit conditions beat STOP — proceed on a recorded assumption rather than blocking on trivia.
+
+**Intent Discovery** — Problem, Goals, Success Criteria, What → Why → How. Can't answer Why/How? → STOP unless trivial.
 
 **Reuse Before Write** — Search codebase first. Never write what exists.
 

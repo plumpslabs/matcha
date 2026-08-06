@@ -13,7 +13,7 @@ Not all code needs the same review. Matcha auto-detects risk tier and routes acc
 |------|------|------|--------|
 | **L0** | Disposable | Spikes, scripts, temp | Output check only |
 | **L1** | Low | Copy, fixtures, UI text | Lint + typecheck |
-| **L2** | Product Logic | Features, API, business logic | **Full review (8 categories)** |
+| **L2** | Product Logic | Features, API, business logic | **Full review (9 categories)** |
 | **L3** | High Risk | Auth, payments, DB, crypto | **Expert review + threat model** |
 
 ## Auto-Detection
@@ -48,21 +48,22 @@ Diff-size heuristic: tiny diffs (≤10 lines) stay low; large diffs (>100 lines 
 - No obvious issues
 - **Verdict: PASS** if clean.
 
-### L2 — Full Review (8 categories)
+### L2 — Full Review (9 categories)
 
 #### 🔴 Must Fix
 1. **Correctness** — Logic changed intentionally? Edge cases? Off-by-one? Race conditions? Dead code?
 2. **Performance** — O(n²+)? N+1 queries? Re-render loops? Memory leaks? Unbounded operations?
-3. **Security** — Injection? Secrets? Auth bypass? Unvalidated input?
+3. **Security** — Trust boundaries? AuthN/AuthZ + IDOR? Output encoding? Secrets in code/logs/responses? Fail-closed?
 
 #### 🟡 Should Fix
 4. **Architecture** — God object? Circular deps? Over-engineering?
-5. **Errors** — Empty catches? Missing error paths? No retry?
-6. **Quality** — Duplication? Magic numbers? Deep nesting?
+5. **Errors, Logging & Validation** — Empty catches? Generic messages? Secrets/PII in logs? Missing boundary validation?
+6. **Resilience & Data** — Missing timeouts? Retry without backoff on non-idempotent ops? No circuit breaker? Transactions? Migrations with rollback?
+7. **Quality** — Duplication? Magic numbers? Deep nesting?
 
 #### 🟢 Nice to Have
-7. **Testing** — New code tested? Edge cases covered?
-8. **Maintainability** — WHY comments? Config via env vars?
+8. **Testing** — New code tested? Behavior-not-implementation? Edge cases covered?
+9. **Maintainability** — WHY comments? Config via env vars?
 
 **Verdict:** BLOCK / PASS_WITH_FIXES / PASS
 

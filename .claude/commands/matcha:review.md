@@ -13,7 +13,7 @@ Not all code needs the same review. Matcha auto-detects risk tier and routes acc
 |------|------|------|--------|
 | **L0** | Disposable | Spikes, scripts, temp | Output check only |
 | **L1** | Low | Copy, fixtures, UI text | Lint + typecheck |
-| **L2** | Product Logic | Features, API, business logic | **Full review (8 categories)** |
+| **L2** | Product Logic | Features, API, business logic | **Full review (9 categories)** |
 | **L3** | High Risk | Auth, payments, DB, crypto | **Expert review + threat model** |
 
 ## Auto-Detection

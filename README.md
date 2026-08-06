@@ -10,13 +10,13 @@
 
 <p align="center">
   <b>Engineering philosophy for AI coding agents.</b><br />
-  5 modules · 7 commands · 6 agents · 10 hooks · 1 MCP server
+  6 modules · 7 commands · 6 agents · 10 hooks · 1 MCP server
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.21-purple" alt="v2.5.21" />
+  <img src="https://img.shields.io/badge/version-2.5.22-purple" alt="v2.5.22" />
   <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -138,7 +138,7 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 | Command | Purpose |
 |---------|---------|
 | `/matcha:why` | Intent Discovery — answer before coding |
-| `/matcha:review` | **Blocking review gate** — 8 categories |
+| `/matcha:review` | **Blocking review gate** — 9 categories |
 | `/matcha:audit` | Stack health — overlaps, waste, security |
 | `/matcha:intensity` | Set level: observe / enforce / audit |
 | `/matcha:status` | Session dashboard |
@@ -288,6 +288,7 @@ Source of Truth:
 │       ├── project.md           ← Project constraints (fill in once)
 │       ├── modes.md             ← Context-aware mode switching
 │       ├── risk.md              ← Risk-based review routing (L0-L3)
+│       ├── engineering.md       ← Universal engineering bar (errors, logging, validation, API, state)
 │       ├── legacy.md            ← Legacy code protocol
 
 ├── hooks/

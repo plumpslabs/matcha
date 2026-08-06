@@ -228,6 +228,64 @@ describe("matcha-agy-hooks.js (AGY adapter)", () => {
     expect(out.decision).toBe("allow");
   });
 
+  test("never blocks bash/python commands that WRITE the plan file (anti-deadlock)", () => {
+    // Regression: agent can't create current.md when the gate blocks the very
+    // command that writes it → deadlock. python3/tee/node -e heredocs must pass.
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+    const commands = [
+      "python3 -c \"open('.agents/plan/current.md','w').write('x')\"",
+      "tee .agents/plan/current.md",
+      "node -e \"require('fs').writeFileSync('.agents/plan/current.md','x')\"",
+      "mkdir -p .agents/plan && cat << 'EOF' > .agents/plan/current.md",
+      "echo plan > /abs/path/.agents/plan/current.md",
+    ];
+    for (const CommandLine of commands) {
+      const out = run({ toolCall: { name: "run_command", args: { CommandLine } } }, tmp);
+      expect(out.decision).toBe("allow");
+    }
+  });
+
+  test("maps real AGY 1.1.10 tool names (view_file, Edit, replace, grep_search)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+
+    // read tools always allow
+    expect(
+      run({ toolCall: { name: "view_file", args: { filePath: "src/x.ts" } } }, tmp).decision
+    ).toBe("allow");
+    expect(
+      run({ toolCall: { name: "grep_search", args: { query: "x" } } }, tmp).decision
+    ).toBe("allow");
+
+    // edit/write tools are gated when no plan exists (PascalCase + snake_case)
+    expect(
+      run({ toolCall: { name: "Edit", args: { TargetFile: join(tmp, "src/x.ts") } } }, tmp).decision
+    ).toBe("deny");
+    expect(
+      run({ toolCall: { name: "replace", args: { TargetFile: join(tmp, "src/x.ts") } } }, tmp).decision
+    ).toBe("deny");
+    expect(
+      run({ toolCall: { name: "write_file", args: { filePath: join(tmp, "src/x.ts") } } }, tmp).decision
+    ).toBe("deny");
+  });
+
+  test("Edit/replace tools targeting the plan file (TargetFile) are never blocked", () => {
+    // AGY passes TargetFile (not FilePath) for its edit tools — plan writes via
+    // Edit/replace must be exempt too, otherwise the deadlock returns.
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+    expect(
+      run(
+        { toolCall: { name: "Edit", args: { TargetFile: join(tmp, ".agents/plan/current.md") } } },
+        tmp
+      ).decision
+    ).toBe("allow");
+    expect(
+      run(
+        { toolCall: { name: "replace", args: { TargetFile: join(tmp, ".agents/plan/current.md") } } },
+        tmp
+      ).decision
+    ).toBe("allow");
+  });
+
   test("fail-open on malformed input", () => {
     const res = spawnSync("node", [join(ROOT, "hooks/matcha-agy-hooks.js")], {
       input: "not-json{",

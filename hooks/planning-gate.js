@@ -44,10 +44,47 @@ export function findPlanPath() {
   return null;
 }
 
+// ─── Plan-file detection — shared by write-tool AND command-tool branches ─────
+// Never Twice: one source of truth for what counts as a matcha session file.
+// Used to (a) exempt write tools targeting plan files and (b) exempt bash/python
+// commands that write the plan file (anti-deadlock: the gate must never block
+// the agent from creating the very plan it demands).
+export function isPlanFilePath(value) {
+  const s = String(value || "");
+  return (
+    /\.agents[\\/]plan[\\/]/.test(s) ||
+    /\.agents[\\/]reports[\\/]/.test(s) ||
+    s.includes("matcha-plan.md") ||
+    s.includes("matcha-state.json") ||
+    s.includes("decisions.log") ||
+    /current\.md$/.test(s)
+  );
+}
+
 // ─── Plan validation — <matcha_gate> XML (legacy) OR markdown Intent Discovery ──
 export function validatePlanContent(planContent) {
   if (!planContent || !planContent.trim()) {
     return { valid: false, message: "Plan file is empty." };
+  }
+
+  // ⚖️ Proportionality: a plan marked trivial (≤5 LOC, 1 file, no logic change) only
+  // needs a problem statement — not the full <what>/<why>/<how> gate. This keeps the
+  // mechanical hook from blocking typo-fix-level tasks (the exact paralysis the
+  // Proportionality principle exists to prevent). Markers: `<!-- trivial -->` or
+  // `type: plan-trivial` in frontmatter.
+  const isTrivial =
+    /<!--\s*trivial\s*-->/.test(planContent) || /type:\s*plan-trivial/i.test(planContent);
+  if (isTrivial) {
+    const hasProblem =
+      /\*\*Problem:\*\*/i.test(planContent) || /^- Problem:/im.test(planContent) || /<problem>/i.test(planContent);
+    const tooShort = planContent.trim().length < 15;
+    if (hasProblem && !tooShort) {
+      return { valid: true };
+    }
+    return {
+      valid: false,
+      message: "Trivial plan must include a **Problem:** statement (e.g. **Problem:** Rename `foo` to `bar` in src/x.js).",
+    };
   }
 
   const gateMatch = planContent.match(/<matcha_gate>([\s\S]*?)<\/matcha_gate>/);
@@ -164,20 +201,16 @@ export function checkPlanningGate(event) {
   if (isWriteTool) {
     const targetFile = input.path || input.TargetFile || input.filePath || "";
     const files = input.files || [];
-    const isPlanFile = (p) => /\bcurrent\.md$/.test(p) ||
-                               (p || "").includes(".agents/plan/") ||
-                               (p || "").includes(".agents/reports/") ||
-                               (p || "").endsWith("matcha-plan.md") ||
-                               (p || "").endsWith("matcha-state.json") ||
-                               (p || "").endsWith("decisions.log");
-    if (isPlanFile(targetFile) || files.some(f => isPlanFile(f.path))) return null;
+    if (isPlanFilePath(targetFile) || files.some(f => isPlanFilePath(f.path))) return null;
   }
 
-  // Skip safe commands
+  // Skip safe commands — INCLUDING any command that writes the plan file itself.
+  // The plan file must always be writable, even via bash/python/tee/heredoc:
+  // blocking it deadlocks the agent (it can't create the plan the gate demands).
   if (isCommandTool) {
     const cmd = (input.command || input.code || "").trim();
     const isSafe = /^(git status|git diff|npm test|vitest|find |ls |cat |grep |agy status)/i.test(cmd);
-    if (isSafe) return null;
+    if (isSafe || isPlanFilePath(cmd)) return null;
   }
 
   // Check if plan exists (Session Memory path first, legacy fallback)

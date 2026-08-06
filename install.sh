@@ -66,9 +66,14 @@ install_skill() {
 
 install_agents() {
   local target="$1"
+  # Source of truth: canonical OpenCode-format agents live in .agents/agents/.
+  # Claude Code has its own native frontmatter (tools:/disallowedTools:) in
+  # .claude/agents/ — copying the canonical there would make Claude ignore the
+  # permission block entirely. Pick the right source per platform.
+  local src="${2:-.agents/agents}"
   mkdir -p "$target"
   for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger; do
-    install_file "$target/$agent.md" ".agents/agents/$agent.md"
+    install_file "$target/$agent.md" "$src/$agent.md"
   done
 }
 
@@ -105,9 +110,14 @@ else
 fi
 
 # ─── Install to each platform ─────────────────────────────────────────────────
-# ─── AGENTS.md + GEMINI.md + Copilot: always installed (read by every modern agent) ──
+# ─── AGENTS.md + CLAUDE.md + GEMINI.md + QWEN.md + Copilot: always installed ──
+# Each major agent runtime reads its own root context file:
+#   Claude Code → AGENTS.md + CLAUDE.md · OpenCode/Cursor/Windsurf/Roo → AGENTS.md
+#   Antigravity/Gemini → GEMINI.md · Qwen Code → QWEN.md · Copilot → .github/copilot-instructions.md
 install_context "$TARGET"
+install_file_if_missing "$TARGET/CLAUDE.md" "CLAUDE.md"
 install_file "$TARGET/GEMINI.md" "GEMINI.md"
+install_file_if_missing "$TARGET/QWEN.md" "QWEN.md"
 install_file_if_missing "$TARGET/.github/copilot-instructions.md" ".github/copilot-instructions.md"
 
 # ─── Install to each platform ─────────────────────────────────────────────────
@@ -115,7 +125,8 @@ for p in $PLATFORMS; do
   echo "── $p ──"
   case "$p" in
     .claude | .opencode | .agents)
-      install_agents "$TARGET/$p/agents"
+      # .claude gets the Claude Code-native agents; others get the canonical OpenCode format.
+      install_agents "$TARGET/$p/agents" "$([ "$p" = ".claude" ] && echo .claude/agents || echo .agents/agents)"
       install_commands "$TARGET/$p/commands"
       install_skill "$TARGET/$p/skills/matcha"
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/rules/matcha.md" ".agents/rules/matcha.md"

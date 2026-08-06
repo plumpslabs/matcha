@@ -33,7 +33,7 @@ const SUBAGENT_AGENTS = ["matcha-debugger", "matcha-cleaner"];
 describe("Agent YAML frontmatter validation", () => {
   for (const agent of AGENT_NAMES) {
     describe(agent, () => {
-      const content = readProjectFile(`.claude/agents/${agent}.md`);
+      const content = readProjectFile(`.agents/agents/${agent}.md`);
 
       test("has YAML frontmatter", () => {
         expect(content.startsWith("---")).toBe(true);
@@ -77,9 +77,8 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (READ_ONLY_AGENTS.includes(agent)) {
-        test("read-only: denies source edits + Claude disallowedTools", () => {
+        test("read-only: denies source edits (OpenCode permission block)", () => {
           expect(content).not.toMatch(/^  edit: allow$/m);
-          expect(content).toMatch(/disallowedTools: Write, Edit/);
           expect(content).toMatch(/task: deny/);
           expect(content).toMatch(/webfetch: deny/);
         });
@@ -170,10 +169,56 @@ describe("Agent YAML frontmatter validation", () => {
   }
 });
 
+describe("Claude Code agent format (transformed from canonical)", () => {
+  for (const agent of AGENT_NAMES) {
+    describe(agent, () => {
+      const content = readProjectFile(`.claude/agents/${agent}.md`);
+
+      test("uses Claude Code frontmatter: tools: + disallowedTools: + permissionMode", () => {
+        expect(content).toMatch(/^tools: /m);
+        expect(content).toMatch(/^disallowedTools: /m);
+        expect(content).toMatch(/^permissionMode: default/m);
+      });
+
+      test("has NO OpenCode/AGY keys (mode:/permission:/mainAgent:)", () => {
+        expect(content).not.toMatch(/^mode: /m);
+        expect(content).not.toMatch(/^permission:/m);
+        expect(content).not.toMatch(/^mainAgent:/m);
+        expect(content).not.toMatch(/^subagent:/m);
+      });
+
+      test("tools always include Read", () => {
+        expect(content).toMatch(/^tools: .*\bRead\b/m);
+      });
+
+      if (READ_ONLY_AGENTS.includes(agent)) {
+        test("read-only: Edit/Write/WebFetch/WebSearch/Task disallowed", () => {
+          expect(content).toMatch(/^disallowedTools: .*\bEdit\b.*\bWrite\b/m);
+          expect(content).toMatch(/^disallowedTools: .*\bWebFetch\b.*\bWebSearch\b/m);
+          expect(content).toMatch(/^disallowedTools: .*\bTask\b/m);
+        });
+      }
+
+      if (["matcha-debugger", "matcha-cleaner"].includes(agent)) {
+        test("writer: Edit + Write allowed", () => {
+          expect(content).toMatch(/^tools: .*\bEdit\b.*\bWrite\b/m);
+          expect(content).not.toMatch(/^disallowedTools: .*\bEdit\b/m);
+        });
+      }
+
+      if (["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer"].includes(agent)) {
+        test("keeps Bash (git inspection / L0-L1 gates)", () => {
+          expect(content).toMatch(/^tools: .*\bBash\b/m);
+        });
+      }
+    });
+  }
+});
+
 describe("Whitelist consistency (Never Twice)", () => {
   test("planner and finder bash whitelists are identical (no drift)", () => {
-    const planner = readProjectFile(".claude/agents/matcha-planner.md");
-    const finder = readProjectFile(".claude/agents/matcha-finder.md");
+    const planner = readProjectFile(".agents/agents/matcha-planner.md");
+    const finder = readProjectFile(".agents/agents/matcha-finder.md");
     const extract = (c) => {
       const m = c.match(/  bash:\n([\s\S]*?)\n  webfetch/);
       return m ? m[1].replace(/\s+/g, " ") : "";

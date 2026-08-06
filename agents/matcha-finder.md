@@ -65,7 +65,7 @@ Out of Scope: planning, reviewing, implementing, debugging, cleanup.
 </execution_process>
 
 <decision_framework>
-- Responsibility unclear? → STOP, ask.
+- Responsibility unclear? → STOP, ask — unless trivial (≤5 LOC, 1 file, no logic), then proceed on a stated assumption.
 - Search space not fully inspected? → Continue searching.
 - Existing implementation solves the same responsibility? → REUSE
 - Can it be safely extended? → EXTEND

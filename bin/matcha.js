@@ -240,7 +240,7 @@ async function cmdInit() {
       const mark = existing.includes(o.dir) ? " (detected)" : "";
       console.log(`  ${o.num}. ${o.label}${mark}`);
     }
-    console.log("  ℹ️  GEMINI.md + AGENTS.md + Copilot instructions are always installed (Antigravity, Qwen, Gemini, Copilot, Codex, Zed).");
+    console.log("  ℹ️  AGENTS.md + CLAUDE.md + GEMINI.md + QWEN.md + Copilot instructions are always installed (Claude, Antigravity, Qwen, Gemini, Copilot, Codex, Zed).");
     console.log("  a. All platforms");
     console.log("  0. Auto (detected providers, or Universal if none) — default");
     console.log("");

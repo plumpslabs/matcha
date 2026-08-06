@@ -6,7 +6,8 @@ This project uses the **matcha** engineering philosophy.
 
 ## Core Rules
 
-1. **Purpose First (Intent Discovery)** — Before any code, confirm What/Why/How. Evidence required. Stop if Why/How unclear.
+0. **⚖️ Proportionality (effort ↔ risk)** — Match ceremony to task size. Trivial (≤5 LOC, 1 file, no logic): minimal plan, fast pass. Small (1-3 files): short plan + light review. Large (cross-cutting/prod risk): full gate. Planning > implementation = over-planning. Exit conditions beat STOP — proceed on a recorded assumption rather than blocking on trivia.
+1. **Purpose First (Intent Discovery)** — Before any code, confirm What/Why/How. Evidence required. Stop if Why/How unclear — unless trivial, then proceed on a recorded assumption.
 2. **Reuse Before Write** — Search existing code (`file:line`). Never duplicate.
 3. **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate inputs/schemas at entry points.
 4. **Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

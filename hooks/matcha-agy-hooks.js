@@ -16,18 +16,35 @@
 import { checkCommand } from "./danger-checks.js";
 import { checkPlanningGate } from "./planning-gate.js";
 
-// AGY tool names → matcha internal tool names (already understood by the engine)
+// AGY tool names → matcha internal tool names (already understood by the engine).
+// Names are lowercased before lookup (mapEvent does name.toLowerCase()), so
+// PascalCase display names (Edit, Bash) and snake_case internal names (view_file,
+// replace, grep_search) both land here.
 const TOOL_MAP = {
+  // command execution
   run_command: "execute_command",
+  bash: "execute_command",
+  // write/edit tools (agy: Edit, replace, write_file)
+  edit: "edit",
+  edit_file: "edit",
+  replace: "edit",
+  apply_patch: "edit",
   write_file: "write_to_file",
   write_to_file: "write_to_file",
   create_file: "write_to_file",
-  edit_file: "edit",
-  apply_patch: "edit",
   replace_file_content: "replace_file_content",
+  // read tools (agy: view_file = Read)
+  read: "read",
   read_file: "read",
+  view_file: "read",
+  // search/list tools
+  list: "list",
   list_files: "list",
+  list_directory: "list",
+  glob: "glob",
   glob_code: "glob",
+  grep: "grep",
+  grep_search: "grep",
   grep_code: "grep",
 };
 
@@ -37,7 +54,9 @@ function mapEvent(event) {
   const args = toolCall.args || {};
   const tool = TOOL_MAP[name] || name || "unknown";
   const command = args.CommandLine || args.command || args.code || "";
-  const filePath = args.FilePath || args.filePath || args.path || "";
+  // AGY's edit tools (Edit, replace) pass the target via `TargetFile`, not
+  // FilePath — without this, plan-file writes via Edit would still deadlock.
+  const filePath = args.FilePath || args.filePath || args.TargetFile || args.path || "";
   return { tool, input: { command, path: filePath, filePath } };
 }
 

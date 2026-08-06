@@ -73,26 +73,38 @@ For each: **what does it actually do?** Not just "it exists."
 
 ## Report Format
 
+Identical to `@matcha-auditor` output schema so results consolidate into one ledger.
+
 ```
-🍵 matcha: stack audit
+🍵 matcha: auditor
 
-Inventory: N services, N dependencies, N config files
+Executive Summary: [1-2 sentence overview]
 
-Overlaps:
-  - [A] and [B] both handle [X]
-    → Recommendation: [consolidate/remove/keep]
+Inventory: N services, N dependencies, N config manifests
 
-Waste:
-  - [dep/service] installed but unused
-    → Recommendation: [remove]
+Overall Health: CLEAN / NEEDS ATTENTION / CRITICAL
 
-Security:
-  - [vulnerability/issue]
-    → Recommendation: [fix/upgrade/audit]
+🔴 CRITICAL:
+  - [file:line] — [finding] [CONFIDENCE] → [recommended action]
 
-Architecture:
-  - [issue]
-    → Recommendation: [refactor/split/extract]
+🟡 HIGH / OVERLAPS & WASTE:
+  - [manifest:entry] — [finding] [CONFIDENCE] → [consolidation plan]
 
-Health: CLEAN / NEEDS ATTENTION / CRITICAL
+🟢 MEDIUM / LOW / ARCHITECTURE HEALTH:
+  - [file:line] — [finding] [CONFIDENCE] → [advice]
+
+Positive Observations:
+  - [what's done well — with evidence]
+
+Quick Wins:
+  - [cheap, high-value fixes]
+
+Technical Debt:
+  - [accumulating debt — severity]
+
+Recommendations: [prioritized actions]
 ```
+
+## Persistence
+
+Persist the report to `.agents/reports/auditor-<YYYY-MM>.md` (frontmatter: title, date, type: audit, agent: matcha-auditor, health, tags). Same format as `@matcha-auditor` output — results from the command and the agent land in the same monthly ledger. Keep latest 5 files — delete older.

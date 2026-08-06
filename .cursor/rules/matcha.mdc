@@ -11,9 +11,10 @@ This project uses the **matcha** engineering convention. Read the `AGENTS.md` fi
 > Simple. Efficient. Deliberate. Never twice.
 
 Key principles (see AGENTS.md for the full ruleset):
-- **Purpose (Intent Discovery)** — know *why* before *how*. Can't explain why/how? Stop and rethink.
+- **⚖️ Proportionality (effort ↔ risk)** — match ceremony to task size. Trivial (≤5 LOC, 1 file, no logic): minimal plan, fast pass. Small (1-3 files): short plan + light review. Large (cross-cutting/prod risk): full gate. Planning > implementation = over-planning. Exit conditions beat STOP — proceed on a recorded assumption rather than blocking on trivia.
+- **Purpose (Intent Discovery)** — know *why* before *how*. Can't explain why/how? Stop and rethink — unless the task is trivial, then proceed on a recorded assumption.
 - **Reuse** — search the codebase before writing new code. Never write what exists.
-- **Implementation** — one function, one job. Explicit errors. No hardcoded values.
+- **Implementation** — one function, one job. Explicit errors. No hardcoded values. Validate inputs at boundaries. Never log secrets/PII.
 - **Cleanup** — done means working *and* clean. No debug leftovers, no dead code.
 - **Verify** — run tests, typecheck, and lint before declaring done.
 

@@ -10,7 +10,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 
 | # | Checkpoint | Rule |
 |---|------------|------|
-| 🎯 | **Purpose** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP. |
+| 🎯 | **Purpose** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption. |
 | 🔎 | **Reuse** | Search codebase first (`src/`, `lib/`, `pkg/`, `app/`). Never duplicate. |
 | 🔍 | **Stack** | Scan manifests (`package.json`, `Cargo.toml`, `go.mod`, etc.) for service overlap. |
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. |
@@ -22,6 +22,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 <core_principles>
 ## Core Principles
 
+0. **Proportionality (effort ↔ risk)** — Match ceremony to task size: trivial (≤5 LOC, 1 file, no logic) → no plan, fast pass; small (1-3 files) → short plan + lint review; large (cross-cutting/prod risk) → full gate. Planning > implementation = over-planning. Exit conditions beat STOP: proceed on a recorded assumption rather than blocking on trivia.
 1. **Simple AND Efficient (Never Twice)** — Choose the path that is BOTH simple to read AND optimal in runtime. Naive code causing future refactoring is a failure.
 2. **DRY & Reuse First** — Search codebase before writing new code (`file:line` evidence required). Never duplicate existing functions.
 3. **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate schemas and inputs at entry points (fail fast).

@@ -36,7 +36,9 @@ Detection works in two layers:
 
 **Resolution order:** explicit markers > highest matching tier from any triggered signal > default L2 for anything that touches logic but matches nothing > L1 for non-logic files > L0 only if explicitly in a disposable path.
 
-**Default tier if no pack is loaded:** L2. matcha should never silently under-review just because no trigger pack matched — unmatched code defaults to full review, not to a free pass.
+**Proportionality override (diff-size heuristic):** a **trivial change (≤5 LOC, 1 file, no logic/branching change — typo, rename, copy, config value, docs)** auto-routes to **L0/L1** — output check or lint/typecheck, not the full 9-category review. **EXCEPTION: the override applies only when no trigger-pack signal matches.** If a pack signal fires (auth/payments/DB/security paths, schema changes, etc.), the pack tier wins — a 4-LOC change inside an auth or payment file is still L3. A small contained change (1-3 files) stays L2 but review depth is applied to the touched lines, not the whole codebase. Full review applies to large/cross-cutting/prod-risk changes. Never over-review a typo; never under-review auth/payments/DB.
+
+**Default tier if no pack is loaded:** L2. matcha should never silently under-review just because no trigger pack matched — unmatched logic defaults to full review, not a free pass (but see the Proportionality override above for trivials).
 
 ---
 
@@ -51,17 +53,18 @@ Detection works in two layers:
 - [ ] Typecheck passes (if applicable to the language)
 - [ ] No obvious issues on a quick read
 
-### L2 — Full Review (8 categories)
+### L2 — Full Review (9 categories)
 1. 🔴 Correctness — logic, edge cases, race conditions
 2. 🔴 Performance — complexity, N+1-style repeated work, memory/resource leaks
-3. 🔴 Security — injection, secrets, access-control bypass
+3. 🔴 Security — trust boundaries, authN/authZ + IDOR, output encoding, secrets, fail-closed
 4. 🟡 Architecture — god objects, circular deps, coupling
-5. 🟡 Errors — swallowed exceptions, missing paths
-6. 🟡 Quality — duplication, magic numbers, excessive nesting
-7. 🟢 Testing — coverage, edge cases, isolation
-8. 🟢 Maintainability — docs, naming, config
+5. 🟡 Errors, Logging & Validation — swallowed exceptions, missing paths, generic messages, secrets/PII in logs, missing boundary validation
+6. 🟡 Resilience & Data — timeouts, retry with backoff, circuit breaker, transactions, migrations with rollback
+7. 🟡 Quality — duplication, magic numbers, excessive nesting
+8. 🟢 Testing — coverage, edge cases, isolation
+9. 🟢 Maintainability — docs, naming, config
 
-These 8 categories are intentionally domain-neutral. A trigger pack can *add* domain-specific checklist items (e.g. "threat model documented" for security-heavy domains) but should not need to replace the base 8.
+These 9 categories are intentionally domain-neutral. A trigger pack can *add* domain-specific checklist items (e.g. "threat model documented" for security-heavy domains) but should not need to replace the base 9.
 
 ### L3 — Expert Review + Threat Model
 All L2 checks, plus whatever domain-specific high-risk checklist the active trigger pack defines (see each pack's `l3ChecklistAdditions`). No L3 review auto-passes — it always requires a domain expert to sign off, regardless of pack.
@@ -85,7 +88,7 @@ When a review is triggered:
 
 1. **Load the active trigger pack** for this project (or fall back to the L2 default if none is configured)
 2. **Auto-detect tier** from changed files/content using the pack's signals
-3. **Apply the appropriate checklist** — base 8 categories for L2, plus any pack-specific additions for L3
+3. **Apply the appropriate checklist** — base 9 categories for L2, plus any pack-specific additions for L3
 4. **Report tier and which pack/signal caused it** in the review output, for auditability
 5. **L3 requires escalation** — cannot auto-pass regardless of pack
 

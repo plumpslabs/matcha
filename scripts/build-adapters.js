@@ -25,6 +25,7 @@
 import { readFileSync, writeFileSync, mkdirSync, existsSync, symlinkSync, rmSync, lstatSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { truncateCommand } from "./command-truncate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "..");
@@ -36,6 +37,12 @@ function read(relPath) {
 function write(relPath, content) {
   const fullPath = join(ROOT, relPath);
   mkdirSync(dirname(fullPath), { recursive: true });
+  // Never write THROUGH a stale symlink (would corrupt its target — e.g. a
+  // previously-symlinked .claude/agents/*.md pointing at the canonical file).
+  // Remove the link first so we create a real file.
+  try {
+    if (lstatSync(fullPath).isSymbolicLink()) rmSync(fullPath);
+  } catch {}
   writeFileSync(fullPath, content, "utf-8");
   console.log(`  ✓ ${relPath}`);
 }
@@ -86,6 +93,62 @@ const COMMAND_NAMES = [
   "matcha:status", "matcha:debt", "matcha:markers",
 ];
 
+// ─── Claude Code agent frontmatter transform ────────────────────────────────
+// OpenCode `permission:` block → Claude Code `tools:` allowlist + `disallowedTools:`.
+// Claude Code has no per-path or per-command bash patterns; the prompt body (kept intact)
+// carries the finer guidance. Tool names are Claude Code's: Read, Grep, Glob, List, Bash,
+// Edit, Write, Task, WebFetch, WebSearch.
+function toClaudeFormat(canonical, agent) {
+  const lines = canonical.split("\n");
+  const body = canonical.slice(canonical.indexOf("---", canonical.indexOf("---") + 1) + 4);
+  const fm = canonical.slice(0, canonical.indexOf("---", 3));
+
+  // Parse permission flags from the canonical frontmatter (name: <tool>: allow lines).
+  const allow = new Set();
+  const deny = new Set();
+  const map = {
+    read: "Read", grep: "Grep", glob: "Glob", list: "List",
+    webfetch: "WebFetch", websearch: "WebSearch", task: "Task",
+  };
+  const fmLines = fm.split("\n");
+  for (let i = 0; i < fmLines.length; i++) {
+    const line = fmLines[i].trim();
+    if (line === "bash: allow" || line === "bash:") { allow.add("Bash"); continue; }
+    if (line === "edit: allow") { allow.add("Edit"); allow.add("Write"); continue; }
+    if (line.startsWith("edit:") && !line.includes("allow")) {
+      // path-scoped edit (e.g. only reports) — Claude Code can't express this;
+      // keep the tool but the prompt body restricts usage.
+      if (/"[^"]*\.md"/.test(line) || /reports|current\.md/.test(line)) allow.add("Edit");
+      continue;
+    }
+    const m = line.match(/^(\w+):\s*(allow|deny)$/);
+    if (m && map[m[1]]) {
+      if (m[2] === "allow") allow.add(map[m[1]]);
+      else deny.add(map[m[1]]);
+    }
+  }
+  if (allow.has("Edit")) allow.add("Write");
+
+  const tools = ["Read", "Grep", "Glob", "List"].concat(
+    allow.has("Bash") ? ["Bash"] : [],
+    allow.has("Edit") ? ["Edit", "Write"] : []
+  ).filter((t, i, a) => a.indexOf(t) === i);
+  const disallowed = [...deny].filter(t => !tools.includes(t));
+  if (!allow.has("Edit")) disallowed.push("Edit", "Write");
+
+  return [
+    "---",
+    `name: ${agent}`,
+    `description: ${fm.match(/description:\s*(.+)/)?.[1]?.trim() ?? ""}`,
+    `tools: ${tools.join(", ")}`,
+    `disallowedTools: ${disallowed.length ? disallowed.join(", ") : "none"}`,
+    "permissionMode: default",
+    "---",
+    body.trim(),
+    "",
+  ].join("\n");
+}
+
 // ─── .claude/ ────────────────────────────────────────────────────────────────
 
 console.log("── .claude/ ──");
@@ -98,9 +161,19 @@ if (!existsSync(join(ROOT, ".claude/CLAUDE.md"))) {
   console.log("  ✓ .claude/CLAUDE.md (exists, not overwritten)");
 }
 
-// Agents: symlink to .agents/agents/
+// Agents: REAL FILES in Claude Code's native format.
+// Claude Code does NOT support OpenCode's `mode:`/`permission:` frontmatter keys — it uses
+// `tools:` (allowlist) + `disallowedTools:` + `permissionMode:`. A symlink to the canonical
+// OpenCode-format file would make Claude ignore `permission:` entirely (no read-only
+// enforcement, no bash whitelist) — misleading. So we transform the frontmatter here,
+// and must REMOVE any stale symlink first (writeFileSync would otherwise write THROUGH
+// the symlink into the canonical file, corrupting it).
 for (const agent of AGENT_NAMES) {
-  symlink(`.claude/agents/${agent}.md`, `../../.agents/agents/${agent}.md`);
+  const p = join(ROOT, `.claude/agents/${agent}.md`);
+  try {
+    if (lstatSync(p).isSymbolicLink()) rmSync(p);
+  } catch {}
+  write(`.claude/agents/${agent}.md`, toClaudeFormat(read(`.agents/agents/${agent}.md`), agent));
 }
 
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .claude/skills/matcha/)
@@ -108,16 +181,10 @@ symlink(".claude/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".claude/skills/matcha/modules", "../../../skills/matcha/modules");
 
 // Commands: regular files (truncated for Claude Code context window)
-const CMD_MAX = 1200;
+// Truncation rule lives in scripts/command-truncate.js — single source of truth.
 cleanLegacyCommands(".claude/commands");
 for (const cmd of COMMAND_NAMES) {
-  const content = read(`commands/${cmd}.md`).trim();
-  if (content.length <= CMD_MAX) {
-    write(`.claude/commands/${cmd}.md`, content);
-  } else {
-    const truncated = content.substring(0, 1000) + "\n...\nSee commands/" + cmd + ".md for full";
-    write(`.claude/commands/${cmd}.md`, truncated);
-  }
+  write(`.claude/commands/${cmd}.md`, truncateCommand(read(`commands/${cmd}.md`).trim(), cmd));
 }
 
 // Settings: use safe merge (don't overwrite existing hooks)

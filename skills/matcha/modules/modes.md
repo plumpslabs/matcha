@@ -51,23 +51,7 @@ Auto-detect from user intent + actions:
 
 ## Integration
 
-### With Planning Gate
-| Mode | Planning Gate |
-|------|--------------|
-| Explore | ⏭️ Skip |
-| Implement | ✅ Enforce |
-| Refactor | ✅ Enforce + legacy protocol |
-| Debug | ⏭️ Skip (investigation, not implementation) |
-| Review | ⏭️ Skip (read-only) |
-
-### With Review Gate
-| Mode | Review Gate |
-|------|------------|
-| Explore | ⏭️ Skip |
-| Implement | ✅ Enforce |
-| Refactor | ✅ Enforce + regression check |
-| Debug | ⏭️ Skip |
-| Review | ✅ IS the review |
+**Mode × gate matrix is defined once in `modules/core.md`** (Context-Aware Modes table) — that is the single source of truth. This section only adds what core.md does not cover: legacy protocol activation.
 
 ### With Legacy Protocol
 | Mode | Legacy Protocol |

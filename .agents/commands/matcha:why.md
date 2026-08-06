@@ -3,7 +3,7 @@ description: "🍵 Intent Discovery — problem, goals, success criteria, What �
 ---
 # /matcha:why
 
-**Intent Discovery.** Before planning or touching code, discover the intent: what problem is being solved, what success looks like, and the What → Why → How with evidence. Can't answer Why or How? → STOP.
+**Intent Discovery.** Before planning or touching code, discover the intent: what problem is being solved, what success looks like, and the What → Why → How with evidence. Can't answer Why or How? → **STOP unless trivial** (≤5 LOC, 1 file, no logic change) — for trivia, proceed on a stated assumption and flag it. Never stop the user for a typo.
 
 ## Process
 
@@ -25,8 +25,8 @@ description: "🍵 Intent Discovery — problem, goals, success criteria, What �
 | Confidence | Action |
 |------------|--------|
 | **HIGH** on Problem/Why/How | ✅ Proceed to planning |
-| **MEDIUM** on Why or How | ⚠️ Ask user to clarify |
-| **LOW** on any | 🛑 STOP. Don't guess. |
+| **MEDIUM** on Why or How | ⚠️ Ask user to clarify (skip for trivial tasks — proceed on assumption) |
+| **LOW** on any | 🛑 STOP for nontrivial. For trivial (≤5 LOC, 1 file): proceed on a recorded assumption and flag it. Don't block a typo on missing "Why evidence". |
 
 ## Report Format
 
@@ -49,9 +49,13 @@ Confidence: HIGH / MEDIUM / LOW
 [If MEDIUM/LOW: what's unclear → ask user]
 ```
 
+## Persistence
+
+Persist the Intent Discovery into `.agents/plan/current.md` (overwrite — living plan, never append). Already a plan for this task? Update it in place; mismatch → overwrite. This satisfies the planning gate BEFORE the first code edit — never wait for a user command.
+
 ## Red Flags
 
-If any of these appear → STOP and ask:
+If any of these appear → STOP and ask (skip for trivial tasks — ≤5 LOC, 1 file, no logic — proceed on a recorded assumption and flag it):
 - "I think it might be..." → You don't know. Ask.
 - "Probably related to..." → You're guessing. Verify.
 - "Should be simple..." → You haven't analyzed. Think first.

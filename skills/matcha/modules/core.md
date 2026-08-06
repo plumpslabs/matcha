@@ -6,6 +6,26 @@ Always take the **easiest AND most efficient path** — not just one. Easy witho
 
 ---
 
+## ⚖️ Proportionality (effort ↔ risk)
+
+The gates exist to protect — not to slow you down. **Match effort to risk.** Over-analysis is not rigor; it is waste. When in doubt between two adequate options → pick the simpler, note the alternative, move on. Perfectionism ≠ rigor. Rigor = right-sized evidence for the decision at hand.
+
+**Task sizing (decide BEFORE planning):**
+
+| Size | Shape | Ceremony |
+|------|-------|----------|
+| 🟢 **Trivial** | ≤5 LOC, 1 file, no logic change (typo, rename, copy, config value) | **2-line plan** (problem + done condition) in `current.md` to satisfy the gate, **NO full review.** Do it, run existing tests. Fast pass. |
+| 🟡 **Small** | 1-3 files, contained logic | Plan = 5 lines max in `current.md`. Review = L1 (lint+typecheck). No deep audit. |
+| 🔴 **Large** | >3 files, cross-cutting, prod/security risk, DB, auth | Full gate: intent, plan, risk review. |
+
+**Speed rules:**
+- Planning takes longer than the implementation would → you are over-planning. Stop, shrink the plan.
+- The standards are a checklist for **risk** — check the ones the change touches, not every line of every rule.
+- **Exit conditions beat STOP.** Before STOP, ask: *is this actually blocking, or can I proceed on a recorded assumption?* Prefer proceeding with a visible assumption over stopping the user for trivia. **Record assumptions in the plan's Assumptions field** so they survive context compaction.
+- Never block on things you can't verify cheaply — state uncertainty, proceed, flag it for review.
+
+---
+
 ## Context-Aware Modes
 
 Agent auto-switches behavior based on what it's doing:
@@ -14,7 +34,7 @@ Agent auto-switches behavior based on what it's doing:
 |------|---------|---------------|-------------|
 | **🔍 Explore** | Reading, greping | ⏭️ Skip | ⏭️ Skip |
 | **🛠️ Implement** | Writing new code | ✅ Enforce | ✅ Enforce |
-| **🔄 Refactor** | Changing existing code | ✅ Enforce + legacy | ✅ Enforce |
+| **🔄 Refactor** | Changing existing code | ✅ Enforce + legacy | ✅ Enforce + regression check |
 | **🐛 Debug** | Error, investigating | ⏭️ Skip | ⏭️ Skip |
 | **🔒 Review** | Finished implementing | ⏭️ Skip | ✅ IS the review |
 
@@ -35,6 +55,8 @@ Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 ### 🔴 PLANNING GATE (ENFORCED BY HOOK)
 
 In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the Intent Discovery plan at `.agents/plan/current.md` (Problem, Goals, Success Criteria, What → Why → How). **Persist it BEFORE the first code edit — never wait for a user command.** The hook (matcha-shield / opencode plugin) reads `.agents/plan/current.md` and blocks code writes while the plan is missing or still TBD.
+
+**Trivial plan (⚖️ Proportionality):** for trivial tasks (≤5 LOC, 1 file, no logic), write a minimal plan **REQUIRED to carry the `<!-- trivial -->` marker** (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line — the hook accepts it without the full gate. **Without the marker, the hook still requires Problem + Goals + Success Criteria.** This keeps typo-fix-level tasks moving.
 
 **Smart Auto-Skip:** Planning gate is automatically skipped for:
 - Read-only commands (grep, ls, cat, find, git status)
@@ -62,7 +84,7 @@ In **enforce** and **audit** levels, you are blocked from modifying code until y
 
 ## 🎯 Checkpoint 1: Purpose + Reuse
 
-**Intent Discovery** — Before planning, confirm Problem, Goals, Success Criteria, and What → Why → How with evidence. What/Why/How is one technique; the container also captures Assumptions and Unknowns. Can't answer Why/How with evidence? → STOP.
+**Intent Discovery** — Before planning, confirm Problem, Goals, Success Criteria, and What → Why → How with evidence. What/Why/How is one technique; the container also captures Assumptions and Unknowns. Can't answer Why/How with evidence? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption (see ⚖️ Proportionality).
 
 **Hunter Protocol** — Search codebase for existing logic before writing new code. Function exists? Utility handles it? → **Reuse. Don't rewrite.** Report exact `path:line`.
 
@@ -103,6 +125,8 @@ See `modules/legacy.md` for full protocol.
 - Idempotency — operations should be safe to retry.
 - Error handling — no empty catches, explicit error paths, structured logging.
 
+**Universal engineering bar** — errors, logging, validation, API contracts, state, concurrency: see `modules/engineering.md` (loaded during implement + review).
+
 **After writing** — pause and ask: *"Is there a simpler or more efficient path?"* Can any code be removed? Any logic duplicated? Would a different structure simplify this?
 
 **Mid-task check:** Found a better path? → STOP with `matcha pause`:
@@ -136,7 +160,7 @@ Auto-detect test framework → run tests → typecheck → lint. Test fail → S
 |------|------|-------------|
 | **L0** | Disposable | Output check only |
 | **L1** | Low | Lint + typecheck |
-| **L2** | Product Logic | **Full review (8 categories)** |
+| **L2** | Product Logic | **Full review (9 categories)** |
 | **L3** | High Risk | **Expert review + threat model** |
 
 Tier meaning is fixed. What *maps* to each tier is defined by the active **trigger pack** (see `hooks/matcha-trigger-packs.json`). No domain is assumed.
@@ -154,7 +178,7 @@ See `modules/risk.md` for full detection framework.
 
 - **L0**: Runs? → PASS
 - **L1**: Lint + typecheck clean? → PASS
-- **L2**: 8-category review (correctness, performance, security, architecture, errors, quality, testing, maintainability)
+- **L2**: 9-category review (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability)
 - **L3**: All L2 + threat model + expert sign-off required
 
 See `/matcha:review` for full checklist.

@@ -1,6 +1,6 @@
 {
   "name": "@plumpslabs/matcha",
-  "version": "2.5.21",
+  "version": "2.5.22",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
 
 
@@ -70,6 +70,7 @@
     "AGENTS.md",
     "CLAUDE.md",
     "GEMINI.md",
+    "QWEN.md",
     "README.md",
     "install.sh"
   ],

@@ -1,8 +1,8 @@
 /**
  * 🍵 matcha — planning-gate.js
  * Planning gate validation. Blocks code modifications until Intent Discovery plan exists.
- * Plan file: .agents/plan/current.md (Session Memory) — legacy .agents/matcha-plan.md still accepted.
- * Accepts <matcha_gate> XML (legacy) OR markdown Intent Discovery (Problem/Goals/Success Criteria).
+ * Plan file: .agents/plan/current.md (Session Memory) — legacy .agents/matcha-plan.md still accepted for backward compatibility.
+ * Accepts markdown Intent Discovery (Problem/Goals/Success Criteria) OR <matcha_gate> XML (legacy).
  *
  * Exports:
  *   checkPlanningGate(event) — returns { block, message } or null
@@ -62,7 +62,7 @@ export function isPlanFilePath(value) {
   );
 }
 
-// ─── Plan validation — <matcha_gate> XML (legacy) OR markdown Intent Discovery ──
+// ─── Plan validation — markdown Intent Discovery OR <matcha_gate> XML (legacy) ──
 export function validatePlanContent(planContent) {
   if (!planContent || !planContent.trim()) {
     return { valid: false, message: "Plan file is empty." };
@@ -98,7 +98,7 @@ export function validatePlanContent(planContent) {
 
   return {
     valid: false,
-    message: `The plan file does not contain a valid <matcha_gate> block or an Intent Discovery markdown plan.\nAccepted formats:\n1. <matcha_gate> XML — <what>/<why>/<how> each ≥15 chars, no placeholders.\n2. Markdown — **Problem:**, **Goals:**, **Success Criteria:** filled in (not TBD).\n\nFound: ${md.reason}`,
+    message: `The plan file does not contain a valid <matcha_gate> block or an Intent Discovery markdown plan.\nRequired format in .agents/plan/current.md:\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\nFound: ${md.reason}`,
   };
 }
 
@@ -149,11 +149,7 @@ function validateMarkdownPlan(content) {
     return { valid: false, reason: "no Intent Discovery marker (heading, **Problem:**, or - Problem:)" };
   }
 
-  // Robust & Forgiving section extractor:
-  // Supports:
-  // - List items: `- **Problem:**`, `* **Problem:**`, `- Problem:`, `* Problem:`
-  // - Bold titles: `**Problem:**`, `**Problem**:`
-  // - Headings: `## Problem`, `### Problem:`
+  // Robust & Forgiving section extractor
   const section = (label) => {
     const pattern = new RegExp(
       `(?:^|\\n)(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?${label}(?:\\*\\*|__)?\\s*:\\s*([\\s\\S]*?)(?=\\n(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?(?:Problem|Goals|Success Criteria|Plan|Risks|Reuse Ledger)(?:\\*\\*|__)?\\s*:|\\n\\s*## |$)`,
@@ -213,8 +209,6 @@ export function checkPlanningGate(event) {
   }
 
   // Skip safe commands — INCLUDING any command that writes the plan file itself.
-  // The plan file must always be writable, even via bash/python/tee/heredoc:
-  // blocking it deadlocks the agent (it can't create the plan the gate demands).
   if (isCommandTool) {
     const cmd = (input.command || input.code || "").trim();
     const isSafe = /^(git status|git diff|npm test|vitest|find |ls |cat |grep |agy status)/i.test(cmd);
@@ -226,7 +220,7 @@ export function checkPlanningGate(event) {
   if (!planPath) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n(legacy <matcha_gate> XML at .agents/matcha-plan.md still accepted)\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n`
     };
   }
 

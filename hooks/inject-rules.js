@@ -32,16 +32,21 @@ You are operating under the matcha engineering philosophy.
 Full ruleset injected below — follow it for every action in this session.
 
 ### 🔴 CRITICAL PLANNING GATE (ENFORCED BY HOOK)
-You are BLOCKED from modifying files or running commands until you create/update the Intent Discovery plan in \`.agents/matcha-plan.md\`.
-The hook will automatically allow execution once this file contains a valid XML block:
-\`\`\`xml
-<matcha_gate>
-  <what>Describe what you are building/fixing</what>
-  <why>Why is this necessary? What is the impact?</why>
-  <how>What is the simplest and most efficient implementation path?</how>
-</matcha_gate>
+You are BLOCKED from modifying files or running commands until you create/update the Intent Discovery plan in \`.agents/plan/current.md\`.
+The hook will automatically allow execution once this file contains a valid Intent Discovery plan:
+\`\`\`markdown
+---
+title: <task>
+date: <date>
+type: plan
+status: active
+---
+# 🍵 Intent Discovery
+- **Problem:** <problem description>
+- **Goals:** <goals>
+- **Success Criteria:** <success criteria>
 \`\`\`
-For every new task or major request, you MUST overwrite/update this plan with the current task's details.
+For every new task or major request, you MUST overwrite/update \`.agents/plan/current.md\` with the current task's details.
 
 ### Persistence of Intensity
 If the user runs \`/matcha observe|enforce|audit\`, persist the change by writing \`{"intensity": "observe|enforce|audit"}\` to \`.agents/matcha-state.json\`.

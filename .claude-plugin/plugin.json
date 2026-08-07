@@ -1,6 +1,6 @@
 {
   "name": "matcha",
-  "version": "2.5.22",
+  "version": "2.5.23",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces Intent Discovery thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",

@@ -8,6 +8,7 @@ permissionMode: default
 <agent_persona>
 You are a matcha cleaner. Post-implementation codebase hygiene.
 Core Directive: Done = working AND clean.
+Companion: If 🐻 Kuma MCP is available, use it for context/memory (`kuma_context` init, `kuma_memory` gotcha/decision). Never block if unavailable.
 </agent_persona>
 
 <responsibility>

@@ -1,30 +1,31 @@
 ---
 name: kuma-mcp
-description: Kuma safety toolkit for AI coding agents. Research with kuma_context, record knowledge with kuma_memory, verify safety with kuma_safety.
+description: Kuma MCP — context, memory & safety for AI coding agents. Standalone-first; matcha integration optional.
 ---
 
-# Kuma MCP — AI Agent Usage Guidelines
+# Kuma MCP — 6 Core Actions
 
-Kuma MCP is a safety-first context & shadow memory engine. It provides **3 coarse-grained tools**:
+Kuma works standalone in any agent. Record what matters, skip what doesn't.
 
-## 🧠 `kuma_context` — Context & Research
-- **init:** `kuma_context({ action: "init" })` — Load lean project brief + session memory (**CALL FIRST** if available)
-- **research:** `kuma_context({ action: "research", scope: "<path>" })` — Run 5-step research pipeline before editing unfamiliar code
-- **history:** `kuma_context({ action: "history", target: "<file>" })` — Trace cross-session history & rationale for a file
-- **changes:** `kuma_context({ action: "changes" })` — Review modified files in current session
+## 🧠 `kuma_context` — Context & Recall
+- **init** (CALL FIRST each session): `kuma_context({ action: "init" })` — project brief + session state
+- **research** (before unfamiliar code): `kuma_context({ action: "research", scope: "<area>" })`
+- **history** (why is this file written this way): `kuma_context({ action: "history", target: "<file>" })`
 
-## 💾 `kuma_memory` — Decision & Knowledge
-- **gotcha:** `kuma_memory({ action: "gotcha", scope: "<file>", content: "<bug/quirk>", status: "medium" })` — Record bugs/quirks IMMEDIATELY
-- **arch_flow:** `kuma_memory({ action: "arch_flow", content: "domain: <Name> | hops: <file1> → <file2>" })` — Record architecture flow (max 5 core files)
-- **decision:** `kuma_memory({ action: "decision", title: "<title>", rationale: "<rationale>" })` — Record ADR-style decisions
+## 💾 `kuma_memory` — Persistent Knowledge
+- **gotcha** (IMMEDIATELY on bug/quirk): `kuma_memory({ action: "gotcha", scope: "<file>", content: "<bug>", status: "medium" })`
+- **decision** (chose between options): `kuma_memory({ action: "decision", title: "<title>", rationale: "<why>" })`
+- **arch_flow** (traced a flow, max 5 files): `kuma_memory({ action: "arch_flow", content: "domain: <Name> | hops: <file1> → <file2>" })`
 
 ## 🛡️ `kuma_safety` — Safety & Verification
-- **guard:** `kuma_safety({ action: "guard", guardGoal: "<goal>" })` — Pre-execution anti-pattern & runaway loop check
-- **verify:** `kuma_safety({ action: "verify", scope: "<area>" })` — Auto-run scoped verification after edits
+- **guard** (before risky work): `kuma_safety({ action: "guard", guardGoal: "<goal>" })`
+- **verify** (after edits): `kuma_safety({ action: "verify", scope: "<area>" })`
 
-## Workflow Pattern (Matcha + Kuma Combo)
-1. Task start → `kuma_context({ action: "init" })`
+## Workflow
+1. Session start → `kuma_context({ action: "init" })`
 2. Unfamiliar code → `kuma_context({ action: "research" })`
-3. Edit code using native tools
-4. Found bug/decision → `kuma_memory({ action: "gotcha" | "decision" })`
-5. Finish → `kuma_safety({ action: "verify" })`
+3. Edit using native tools
+4. Bug / choice / flow → `kuma_memory({ action: "gotcha" | "decision" | "arch_flow" })`
+5. After edits → `kuma_safety({ action: "verify" })`
+
+> 🐻 Matcha is optional: matcha enforces planning/review gates, Kuma supplies memory & context. Either works alone.

@@ -9,6 +9,7 @@
  *   - matcha_post_write_scan: Scan a file for cleanup issues
  *   - matcha_stop_tips: Generate end-of-task tips from git diff
  *   - matcha_plan_validate: Validate an Intent Discovery plan
+ *   - matcha_review_validate: Validate a review verdict (tier, scope, file:line evidence, counts, verdict)
  *
  * Usage:
  *   node hooks/matcha-mcp-server.js
@@ -29,6 +30,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { validatePlanContent } from "./planning-gate.js";
+import { validateReviewContent } from "./review-validate.js";
 import { getWorkspaceRoot } from "./workspace-root.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -180,6 +182,17 @@ const TOOLS = [
       required: ["planContent"],
     },
   },
+  {
+    name: "matcha_review_validate",
+    description: "Validate a review verdict structurally: Risk Tier (L0-L3), Scope, file:line evidence on every finding, severity counts matching findings, and a valid verdict (PASS / PASS_WITH_FIXES / BLOCK / EXPERT_REQUIRED). L2 must cover all 9 categories; L3 can never auto-pass. Blocks rubber-stamped reviews.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        reviewContent: { type: "string", description: "The full review verdict text (🍵 matcha: review output)" },
+      },
+      required: ["reviewContent"],
+    },
+  },
 ];
 
 function handleRequest(request) {
@@ -278,6 +291,22 @@ function handleRequest(request) {
             text: result.valid
               ? `🍵 matcha: ✅ Plan is valid`
               : `🍵 matcha: ❌ Plan invalid\n\n${result.message}`,
+          }],
+        },
+      };
+    }
+
+    if (name === "matcha_review_validate") {
+      const result = validateReviewContent(args.reviewContent);
+      return {
+        jsonrpc: "2.0",
+        id,
+        result: {
+          content: [{
+            type: "text",
+            text: result.valid
+              ? `🍵 matcha: ✅ Verdict is valid (Tier: ${result.tier}, Verdict: ${result.verdict})`
+              : `🍵 matcha: ❌ Verdict invalid\n\n${result.message}`,
           }],
         },
       };

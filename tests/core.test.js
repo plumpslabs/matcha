@@ -193,6 +193,10 @@ describe("MCP server", () => {
     expect(mcp).toContain("matcha_plan_validate");
   });
 
+  test("has review validate tool", () => {
+    expect(mcp).toContain("matcha_review_validate");
+  });
+
   test("has DANGER_PATTERNS", () => {
     expect(mcp).toContain("DANGER_PATTERNS");
   });

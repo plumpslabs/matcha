@@ -21,6 +21,7 @@
 - **API Style:** [e.g., REST (error envelope shape, pagination) / GraphQL (schema, cursor pagination) / gRPC].
 - **Logging:** [e.g., structured (pino), levels, correlation ID, never log secrets/PII].
 - **Error Messages:** [e.g., user-facing errors in clear English with context + suggested action].
+- **Message Language:** [e.g., internal code/comments/logs = English; user-facing messages = English (default) or the product language, e.g. id-ID].
 - **Security:** All queries MUST be parameterized. Credentials isolation via env vars `[APPNAME]_VAR_NAME`.
 
 ## 3. Verification Commands

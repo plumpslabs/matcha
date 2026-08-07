@@ -178,10 +178,10 @@ See `modules/risk.md` for full detection framework.
 
 - **L0**: Runs? → PASS
 - **L1**: Lint + typecheck clean? → PASS
-- **L2**: 9-category review (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability)
+- **L2**: 9-category review (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability). **Every category is addressed explicitly — PASS or FINDINGS with `file:line` evidence. No silent category skips.**
 - **L3**: All L2 + threat model + expert sign-off required
 
-See `/matcha:review` for full checklist.
+See `/matcha:review` for full checklist. Verify the verdict with `matcha_review_validate` (rejects missing tier/scope/evidence/counts) before finalizing.
 
 ### Verdicts
 

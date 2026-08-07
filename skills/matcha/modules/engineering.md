@@ -4,11 +4,16 @@
 > the *concrete rules* (which Result type, which validation lib, which logger) live in
 > `MATCHA_PROJECT.md`. Load during **implement + review**.
 
+## Scope & Analysis Boundary (Anti-Paranoid Guard)
+- **Scope limitation:** Check and enforce directives ONLY for code lines and areas directly touched by the change. Do NOT perform full-codebase audits for localized edits.
+- **Library Discipline:** Prefer standard library / native platform capabilities first. Ask and confirm before introducing new third-party dependencies or abstractions.
+
 ## Errors
 
 - **Explicit error paths.** Never swallow. Empty catch → log + rethrow or handle; no dummy fallbacks.
 - **Every error carries context** — WHAT failed, WHERE (module/function), WHY (root cause). A bare `Error`/`Invalid input` is a bug report nobody can act on.
-- **Messages in clear English, actionable** — say what happened *and* what to do next. No generic strings.
+- **Message language** — *internal* (comments, logs, error details, variable/function names, commit messages): **English always** — code outlives teams, and AI reads it too. *User-facing* messages (UI strings, API responses shown to end users): follow the product language declared in `MATCHA_PROJECT.md` (default English if unset).
+- **Actionable** — say what happened *and* what to do next. No generic strings.
 - **Recoverable vs fatal.** Recoverable → handle and continue; fatal → fail fast. Fail at the boundary, not mid-flow.
 - **Typed/result errors** at boundaries where the project's Error Boundary rule (see `MATCHA_PROJECT.md`) requires them — never throw in service layers if the project convention says Result types.
 
@@ -27,14 +32,21 @@
 - **Fail fast with a clear message** naming the invalid field + expected shape.
 - **One validation source per input shape** — don't re-validate the same thing differently in 3 layers.
 
-## API Contracts
+## API Contracts, Pagination & Caching
 
 - **Consistent error envelope** across endpoints (same shape: error code, message, field, request id).
 - **Correct status codes** — 4xx for client errors, 5xx for server errors. Never 200 with an error payload.
-- **Lists: pagination + limits. Mutations: idempotency** for retryable operations.
+- **Pagination convention:** Use cursor-based pagination for large/real-time feeds; offset-based for static bounded lists. Always include explicit `limit` and `total` / `has_more` indicators.
+- **Caching convention:** Use Cache-Aside pattern with explicit TTL, stale-while-revalidate where suitable, and deterministic invalidation keys on mutation.
+- **Mutations: idempotency** for retryable operations.
 - **Version breaking changes**; keep backward compatibility for the public contract.
 - **Document the request/response shape** at the boundary (schema/contract file, not prose).
-- **API style is project-defined** — REST vs GraphQL vs gRPC differ in envelope, pagination, and versioning mechanics. Set the style + its rules in `MATCHA_PROJECT.md` (API Style row); the principles above (consistent errors, correct codes, documented contract) hold in every style.
+
+## Component & Presentation (UI / Web)
+
+- **Semantic HTML & Accessibility (a11y):** Use proper HTML5 elements (`<header>`, `<main>`, `<nav>`, `<button>`). Ensure keyboard navigation, focus management, and ARIA attributes where semantic HTML is insufficient.
+- **Internationalization (i18n):** Never hardcode user-facing text strings. Use structured locale dictionaries / ICU patterns. Confirm library choice (e.g. i18next) before adding heavy dependencies.
+- **State & Hooks:** Single source of truth. Derive computed values, keep local UI state transient, and isolate framework/platform side-effects cleanly.
 
 ## State
 

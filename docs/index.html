@@ -749,10 +749,11 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <table>
     <tr><th>Severity</th><th>Category</th><th>Checks</th></tr>
     <tr><td>🔴 Must Fix</td><td>Correctness</td><td>Logic, edge cases, race conditions, dead code</td></tr>
-    <tr><td>🔴 Must Fix</td><td>Performance</td><td>O(n²+), N+1, re-render loops, memory leaks</td></tr>
-    <tr><td>🔴 Must Fix</td><td>Security</td><td>Injection, secrets, auth bypass</td></tr>
+    <tr><td>🔴 Must Fix</td><td>Performance</td><td>O(n²+), N+1, unbatched I/O, unbounded operations, re-render loops, memory leaks</td></tr>
+    <tr><td>🔴 Must Fix</td><td>Security</td><td>Injection, secrets, authN/authZ + IDOR, fail-closed</td></tr>
     <tr><td>🟡 Should Fix</td><td>Architecture</td><td>God objects, circular deps, over-engineering</td></tr>
-    <tr><td>🟡 Should Fix</td><td>Errors</td><td>Empty catches, missing paths, no retry</td></tr>
+    <tr><td>🟡 Should Fix</td><td>Errors, Logging & Validation</td><td>Empty catches, generic messages, secrets/PII in logs, missing boundary validation</td></tr>
+    <tr><td>🟡 Should Fix</td><td>Resilience & Data</td><td>Timeouts, retry + backoff, circuit breaker, transactions, migrations with rollback</td></tr>
     <tr><td>🟡 Should Fix</td><td>Quality</td><td>Duplication, magic numbers, deep nesting</td></tr>
     <tr><td>🟢 Nice to Have</td><td>Testing</td><td>Coverage, edge cases</td></tr>
     <tr><td>🟢 Nice to Have</td><td>Maintainability</td><td>WHY comments, env vars</td></tr>

@@ -54,8 +54,11 @@ Detection works in two layers:
 - [ ] No obvious issues on a quick read
 
 ### L2 — Full Review (9 categories)
+
+**Every category must be addressed explicitly — PASS or FINDINGS with `file:line` evidence. No category may be silently skipped.** The `matcha_review_validate` MCP tool rejects a verdict missing tier, scope, per-finding evidence, category coverage, or consistent counts.
+
 1. 🔴 Correctness — logic, edge cases, race conditions
-2. 🔴 Performance — complexity, N+1-style repeated work, memory/resource leaks
+2. 🔴 Performance — complexity, N+1-style repeated work, unbatched I/O, unbounded operations, memory/resource leaks
 3. 🔴 Security — trust boundaries, authN/authZ + IDOR, output encoding, secrets, fail-closed
 4. 🟡 Architecture — god objects, circular deps, coupling
 5. 🟡 Errors, Logging & Validation — swallowed exceptions, missing paths, generic messages, secrets/PII in logs, missing boundary validation

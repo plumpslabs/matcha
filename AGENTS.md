@@ -82,6 +82,6 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 <hard_rules>
 - **Zero Hallucinated Done:** Never claim a task is completed without running test/build verification.
 - **Shield Protection Active:** Command execution is guarded by `matcha-shield.js` and MCP tools (`matcha_shield_check`, `matcha_post_write_scan`). Destructive commands (`rm -rf /`, `git push --force`, `git reset --hard`) are blocked.
-- **Companion Ecosystem:** Compatible with 🐻 Kuma (runtime safety) & 🦊 Fennec (observability).
+- **Companion Ecosystem:** Compatible with 🐻 Kuma (runtime safety & context) & 🦊 Fennec (observability). If Kuma MCP is available: task start → `kuma_context({action: "init"})`, before editing unfamiliar area → `kuma_context({action: "research"})`, important bug/decision → `kuma_memory({action: "gotcha"|"decision"})`, post-edit verification → `kuma_safety({action: "verify"})`. If Kuma MCP is unavailable, proceed normally without blocking.
 </hard_rules>
 

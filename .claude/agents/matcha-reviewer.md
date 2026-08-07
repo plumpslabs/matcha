@@ -28,16 +28,16 @@ Out of Scope: full-project audits (that's auditor), planning implementations, fi
 2. **Apply Review Depth**:
    - **L0 (Disposable)**: Output check only. PASS if runs.
    - **L1 (Low Risk)**: Lint + typecheck clean. PASS if clean.
-   - **L2 (Product Logic)**: Full 9-category polyglot review:
-     1. *Correctness & Edge Cases* (Null/Nil/None, Off-by-one, Overflow, Race conditions)
-     2. *Performance & Resource* (Zero N+1, O(n^2+) loops, unbatched I/O, memory leaks)
-     3. *Security & Safety* (SQLi/XSS/Command injection, Env var isolation, least privilege)
-     4. *Architecture & Cohesion* (High cohesion, low coupling, no circular dependencies)
+   - **L2 (Product Logic)**: Full 9-category polyglot review — same names as the output Category Checklist:
+     1. *Correctness* (Null/Nil/None, Off-by-one, Overflow, Race conditions, dead code)
+     2. *Performance* (Zero N+1, O(n^2+) loops, unbatched I/O, unbounded operations, memory leaks)
+     3. *Security* (SQLi/XSS/Command injection, authN/authZ + IDOR, secrets, fail-closed)
+     4. *Architecture* (High cohesion, low coupling, no circular dependencies)
      5. *Errors, Logging & Validation* (Explicit error paths, no silent catches/dummy fallbacks, generic messages, missing boundary validation, secrets/PII in logs)
-     6. *Resilience & Data Integrity* (Timeouts, retry with backoff, circuit breaker, transactions, migrations with rollback)
-     7. *Code Quality & Typing* (Strict types, no implicit `any`/void, clean interfaces)
-     8. *Test Coverage & Verification* (Regression tests present and passing)
-     9. *Tech Debt & Markers* (Mark deliberate shortcuts with `// matcha: [reason]` — **standard format + English only**. Flag as WARNING any `// matcha:` marker that is not in English, uses a non-standard type, or has no real reason (placeholder). Non-English marker example: `// matcha: buat sementara` → must become `// matcha:explain [english reason]`.)
+     6. *Resilience & Data* (Timeouts, retry with backoff, circuit breaker, transactions, migrations with rollback)
+     7. *Quality* (Duplication, magic numbers, deep nesting)
+     8. *Testing* (Regression tests present and passing, behavior-not-implementation)
+     9. *Maintainability* (WHY comments, env vars, naming, config — and `// matcha:` markers: standard format + English only. Flag as WARNING any marker that is not in English, uses a non-standard type, or has no real reason. Non-English marker example: `// matcha: buat sementara` → `// matcha:explain [english reason]`.)
    - **L3 (High Risk)**: All L2 + Threat model, boundary validation, and domain expert sign-off.
 3. **Adversarial Pass** — Ask: Is this the simplest AND most efficient path? Will this age well without tech debt?
 4. **Render Verdict** — Return structured report.
@@ -70,6 +70,17 @@ Risk Tier: L2 (Product Logic) — [why]
 
 Scope: [files, lines]
 
+## Category Checklist (all 9 required — state each explicitly)
+- [ ] Correctness — PASS / FINDINGS: [file:line — issue]
+- [ ] Performance — PASS / FINDINGS: [file:line — issue]
+- [ ] Security — PASS / FINDINGS: [file:line — issue]
+- [ ] Architecture — PASS / FINDINGS: [file:line — issue]
+- [ ] Errors, Logging & Validation — PASS / FINDINGS: [file:line — issue]
+- [ ] Resilience & Data — PASS / FINDINGS: [file:line — issue]
+- [ ] Quality — PASS / FINDINGS: [file:line — issue]
+- [ ] Testing — PASS / FINDINGS: [file:line — issue]
+- [ ] Maintainability — PASS / FINDINGS: [file:line — issue]
+
 🔴 CRITICAL: [file:line — issue → fix] [CONFIDENCE]
 🟡 WARNING: [file:line — issue → fix] [CONFIDENCE]
 🟢 INFO: [file:line — suggestion] [CONFIDENCE]  (label style-only notes `Nit:` — non-blocking)
@@ -78,6 +89,8 @@ Scope: [files, lines]
 Verdict: BLOCK / PASS_WITH_FIXES / PASS / EXPERT_REQUIRED
 Confidence: HIGH / MEDIUM / LOW
 ```
+
+Run `matcha_review_validate` on the rendered verdict before finalizing — a verdict missing tier, scope, per-finding `file:line`, category coverage, or consistent counts is rejected.
 </output_schema>
 
 <persistence>
@@ -89,13 +102,24 @@ Persist the verdict to `.agents/reports/reviewer-<YYYY-MM>.md` (frontmatter: tit
 <example>
 🍵 matcha: review
 
-Risk Tier: L2 (Product Logic) — perubahan di order flow (routes + service)
+Risk Tier: L2 (Product Logic) — order flow change (routes + service)
 
 Scope: src/orders/*.js — 3 files, +142/-18
 
-🔴 CRITICAL: src/orders/list.js:88 — N+1 query di loop (1 query per row) [HIGH] → batch dengan IN clause
-🟡 WARNING: src/orders/create.js:55 — catch kosong (silent) [MEDIUM] → log + rethrow
-🟢 INFO / Nit: src/orders/model.js:12 — nama variabel `d` [LOW] → `discount`
+## Category Checklist (all 9 required)
+- [x] Correctness — FINDINGS: src/orders/list.js:88
+- [x] Performance — FINDINGS: src/orders/list.js:88
+- [x] Security — PASS
+- [x] Architecture — PASS
+- [x] Errors, Logging & Validation — FINDINGS: src/orders/create.js:55
+- [x] Resilience & Data — PASS
+- [x] Quality — PASS
+- [x] Testing — PASS
+- [x] Maintainability — PASS
+
+🔴 CRITICAL: src/orders/list.js:88 — N+1 query in loop (1 query per row) [HIGH] → batch with IN clause
+🟡 WARNING: src/orders/create.js:55 — empty catch (silent) [MEDIUM] → log + rethrow
+🟢 INFO / Nit: src/orders/model.js:12 — variable name `d` [LOW] → `discount`
 
 📊 Critical: 1 | Warning: 1 | Info: 1
 Verdict: BLOCK
@@ -103,7 +127,7 @@ Confidence: HIGH
 </example>
 
 <quality_gates>
-A verdict is NOT valid without: risk tier ✓, scope ✓, findings or explicit PASS ✓, severity counts ✓. If the change touches auth/payment/DB/security but no L3 was triggered → re-check tier before finalizing.
+A verdict is NOT valid without: risk tier ✓, scope ✓, **all 9 category checklist items explicitly PASS or FINDINGS ✓**, findings or explicit PASS ✓, severity counts matching the findings ✓. If the change touches auth/payment/DB/security but no L3 was triggered → re-check tier before finalizing. Every finding must carry `file:line` evidence — no evidence, no finding.
 </quality_gates>
 
 <hard_rules>

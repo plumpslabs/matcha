@@ -50,9 +50,11 @@ Diff-size heuristic: tiny diffs (≤10 lines) stay low; large diffs (>100 lines 
 
 ### L2 — Full Review (9 categories)
 
+**Every category must be addressed explicitly — PASS or FINDINGS with `file:line` evidence. No category may be silently skipped.** Run `matcha_review_validate` on the final verdict (rejects missing tier/scope/evidence/counts).
+
 #### 🔴 Must Fix
 1. **Correctness** — Logic changed intentionally? Edge cases? Off-by-one? Race conditions? Dead code?
-2. **Performance** — O(n²+)? N+1 queries? Re-render loops? Memory leaks? Unbounded operations?
+2. **Performance** — O(n²+)? N+1 queries? Unbatched I/O? Unbounded operations? Memory leaks?
 3. **Security** — Trust boundaries? AuthN/AuthZ + IDOR? Output encoding? Secrets in code/logs/responses? Fail-closed?
 
 #### 🟡 Should Fix
@@ -117,16 +119,25 @@ Risk Tier: L2 (Product Logic) — auto-detected from [reason]
 
 Scope: [files, lines +/-]
 
-🔴 CRITICAL (must fix):
-  file:line — [issue]
-  → [fix]
+## Category Checklist (all 9 required)
+- [ ] Correctness — PASS / FINDINGS: [file:line]
+- [ ] Performance — PASS / FINDINGS: [file:line]
+- [ ] Security — PASS / FINDINGS: [file:line]
+- [ ] Architecture — PASS / FINDINGS: [file:line]
+- [ ] Errors, Logging & Validation — PASS / FINDINGS: [file:line]
+- [ ] Resilience & Data — PASS / FINDINGS: [file:line]
+- [ ] Quality — PASS / FINDINGS: [file:line]
+- [ ] Testing — PASS / FINDINGS: [file:line]
+- [ ] Maintainability — PASS / FINDINGS: [file:line]
 
-🟡 WARNING (should fix):
-  file:line — [issue]
-  → [fix]
+CRITICAL (must fix):
+  🔴 file:line — [issue] → [fix]
 
-🟢 INFO:
-  file:line — [suggestion]  (label style-only notes `Nit:` — non-blocking)
+WARNING (should fix):
+  🟡 file:line — [issue] → [fix]
+
+INFO:
+  🟢 file:line — [suggestion]  (label style-only notes `Nit:` — non-blocking)
 
 📊 Critical: N | Warning: N | Info: N
 Verdict: BLOCK / PASS_WITH_FIXES / PASS / EXPERT_REQUIRED

@@ -6,6 +6,7 @@ import { checkCommand, isSimpleTask, DANGER_PATTERNS } from "../hooks/danger-che
 import { detectMode } from "../hooks/mode-detect.js";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
 import { validatePlanContent } from "../hooks/planning-gate.js";
+import { validateReviewContent } from "../hooks/review-validate.js";
 
 // ─── Monorepo fixture for workspace-root tests ───────────────────────────────
 const fixtureRoot = mkdtempSync(join(tmpdir(), "matcha-ws-"));
@@ -188,6 +189,112 @@ describe("planning-gate.js — Proportionality (trivial plan pass)", () => {
   test("empty plan is rejected", () => {
     const res = validatePlanContent("   ");
     expect(res.valid).toBe(false);
+  });
+});
+
+describe("review-validate.js — matcha_review_validate", () => {
+  const fullReview = `🍵 matcha: review
+
+Risk Tier: L2 (Product Logic) — order flow change
+
+Scope: src/orders/*.js — 3 files, +142/-18
+
+## Category Checklist (all 9 required)
+- [x] Correctness — PASS
+- [x] Performance — FINDINGS: src/orders/list.js:88
+- [x] Security — PASS
+- [x] Architecture — PASS
+- [x] Errors, Logging & Validation — PASS
+- [x] Resilience & Data — PASS
+- [x] Quality — PASS
+- [x] Testing — PASS
+- [x] Maintainability — PASS
+
+🔴 CRITICAL: src/orders/list.js:88 — N+1 query in loop [HIGH]
+🟡 WARNING: src/orders/create.js:55 — empty catch [MEDIUM]
+
+📊 Critical: 1 | Warning: 1 | Info: 0
+Verdict: BLOCK
+Confidence: HIGH`;
+
+  test("valid complete L2 verdict passes", () => {
+    const res = validateReviewContent(fullReview);
+    expect(res.valid).toBe(true);
+    expect(res.tier).toBe("L2");
+    expect(res.verdict).toBe("BLOCK");
+  });
+
+  test("missing risk tier is rejected", () => {
+    const res = validateReviewContent("Scope: src/x.js\nVerdict: PASS");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Risk Tier");
+  });
+
+  test("missing scope is rejected", () => {
+    const res = validateReviewContent("Risk Tier: L2\nVerdict: PASS");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Scope");
+  });
+
+  test("invalid verdict is rejected", () => {
+    const res = validateReviewContent("Risk Tier: L2\nScope: src/x.js\nVerdict: MAYBE");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Verdict");
+  });
+
+  test("finding without file:line evidence is rejected", () => {
+    const bad = `Risk Tier: L2\nScope: src/x.js\n\n🔴 CRITICAL: something is broken [HIGH]\n\n📊 Critical: 1 | Warning: 0 | Info: 0\nVerdict: BLOCK`;
+    const res = validateReviewContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("file:line");
+  });
+
+  test("BLOCK verdict without CRITICAL finding is rejected", () => {
+    const bad = `Risk Tier: L2\nScope: src/x.js\n\n🟡 WARNING: src/x.js:1 — nit [MEDIUM]\n\n📊 Critical: 0 | Warning: 1 | Info: 0\nVerdict: BLOCK`;
+    const res = validateReviewContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("BLOCK");
+  });
+
+  test("severity count mismatch is rejected", () => {
+    const bad = fullReview.replace("Critical: 1 | Warning: 1 | Info: 0", "Critical: 0 | Warning: 1 | Info: 0");
+    const res = validateReviewContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Critical count mismatch");
+  });
+
+  test("L3 cannot auto-pass — EXPERT_REQUIRED required", () => {
+    const l3 = fullReview.replace("Risk Tier: L2", "Risk Tier: L3").replace("Verdict: BLOCK", "Verdict: PASS");
+    const res = validateReviewContent(l3);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("L3");
+
+    const l3Expert = fullReview.replace("Risk Tier: L2", "Risk Tier: L3").replace("Verdict: BLOCK", "Verdict: EXPERT_REQUIRED");
+    expect(validateReviewContent(l3Expert).valid).toBe(true);
+  });
+
+  test("L2 with missing category coverage is rejected", () => {
+    const missingCat = fullReview.replace("- [x] Performance — FINDINGS: src/orders/list.js:88", "");
+    const res = validateReviewContent(missingCat);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("categories");
+  });
+
+  test("emoji section headers do NOT inflate counts (bug: header emoji counted as findings)", () => {
+    const withHeaders = `Risk Tier: L2\nScope: src/x.js\n\n## Category Checklist (all 9 required)\n- [x] Correctness — PASS\n- [x] Performance — PASS\n- [x] Security — PASS\n- [x] Architecture — PASS\n- [x] Errors, Logging & Validation — PASS\n- [x] Resilience & Data — PASS\n- [x] Quality — PASS\n- [x] Testing — PASS\n- [x] Maintainability — PASS\n\nCRITICAL (must fix):\n  🔴 src/x.js:1 — N+1 query [HIGH]\n\n📊 Critical: 1 | Warning: 0 | Info: 0\nVerdict: BLOCK\nConfidence: HIGH`;
+    const res = validateReviewContent(withHeaders);
+    expect(res.valid).toBe(true);
+  });
+
+  test("category named but blank (no PASS/FINDINGS) is rejected — no rubber-stamp", () => {
+    const blankCat = fullReview.replace("- [x] Performance — FINDINGS: src/orders/list.js:88", "- [ ] Performance —");
+    const res = validateReviewContent(blankCat);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("PASS or FINDINGS");
+  });
+
+  test("empty verdict is rejected", () => {
+    expect(validateReviewContent("").valid).toBe(false);
   });
 });
 

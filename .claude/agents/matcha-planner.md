@@ -64,6 +64,15 @@ Out of Scope: implementing code, editing files, reviewing diffs, debugging, clea
 ## Risks & Mitigations
 - [Risk tier / impact] → [Mitigation strategy]
 
+## Risk Assessment (by category — which review categories does this change touch?)
+- Correctness: [touched? why — e.g. new validation logic]
+- Performance: [touched? why — e.g. new DB query in loop]
+- Security: [touched? why — e.g. new auth endpoint]
+- Architecture: [touched? why]
+- Errors, Logging & Validation: [touched? why]
+- Resilience & Data: [touched? why — e.g. new external call, migration]
+- Quality / Testing / Maintainability: [touched? why]
+
 ## Reuse Ledger
 - [file:line] — [existing logic] → [how to reuse]
 
@@ -78,7 +87,7 @@ Persist the final plan to `.agents/plan/current.md` (YAML frontmatter: title, da
 </persistence>
 
 <quality_gates>
-A plan is NOT final until: problem ✓, success criteria ✓, context/constraints ✓, reuse analysis ✓, alternatives ✓, decision rationale ✓, impact ✓, risks ✓. Missing any → STOP and complete before handoff.
+A plan is NOT final until: problem ✓, success criteria ✓, context/constraints ✓, reuse analysis ✓, alternatives ✓, decision rationale ✓, impact ✓, risks ✓, **risk assessment by category ✓** (flags which review categories the change touches — auth/payments/DB/performance/resilience). Missing any → STOP and complete before handoff.
 </quality_gates>
 
 <hard_rules>

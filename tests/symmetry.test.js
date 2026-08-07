@@ -184,7 +184,7 @@ describe("Semantic consistency — command ↔ agent alignment", () => {
     const core = readProjectFile("skills/matcha/modules/core.md");
     const risk = readProjectFile("skills/matcha/modules/risk.md");
     expect(reviewer).toContain("Full 9-category");
-    expect(reviewer).toContain("Resilience & Data Integrity");
+    expect(reviewer).toContain("Resilience & Data");
     expect(core).toContain("9-category review");
     expect(core).not.toContain("8-category");
     expect(risk).toContain("Full Review (9 categories)");

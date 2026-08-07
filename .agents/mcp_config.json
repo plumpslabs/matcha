@@ -1,5 +1,12 @@
 {
   "mcpServers": {
+    "matcha": {
+      "command": "node",
+      "args": [
+        "bin/matcha.js"
+      ],
+      "env": {}
+    },
     "kuma": {
       "command": "npx",
       "args": [

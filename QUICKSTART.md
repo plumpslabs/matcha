@@ -117,7 +117,7 @@ Follow this 4-phase lifecycle for every feature or bugfix:
 | Command | Purpose |
 |---------|---------|
 | `/matcha:why` | Intent Discovery |
-| `/matcha:review` | Review gate (8 categories) |
+| `/matcha:review` | Review gate (9 categories) |
 | `/matcha:audit` | Stack audit |
 | `/matcha:intensity` | Set level |
 | `/matcha:status` | Session dashboard |
@@ -134,7 +134,7 @@ Follow this 4-phase lifecycle for every feature or bugfix:
 | **enforce** | Full filter (default) |
 | **audit** | Enforce + mandatory cleanup |
 
-Set: `/matcha:enforce` or `node bin/matcha.js state save`
+Set: `/matcha:intensity` or `node bin/matcha.js state save`
 
 ---
 

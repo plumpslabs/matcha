@@ -4,7 +4,7 @@
 
 ### What changed
 
-- Multi-platform adapter pattern (Claude Code → 12 platforms)
+- Multi-platform adapter pattern (Claude Code → 11 platforms)
 - 6 dedicated agents (planner, finder, auditor, reviewer, cleaner, debugger)
 - Kuma MCP safety shield
 - Symlink-based canonical source (`docs/architecture.md`)
@@ -13,7 +13,7 @@
 
 1. Run `install.sh` with your platform:
    ```bash
-   bash install.sh --platform claude --profile full
+   bash install.sh --platforms ".claude"
    ```
 
 2. If you had custom rules in `CLAUDE.md`, create your own directory for them.
@@ -37,7 +37,7 @@
 No action needed. If you cloned the repo, re-run `install.sh` to get symlinks:
 
 ```bash
-bash install.sh --platform claude --profile minimal
+bash install.sh --platforms ".claude"
 ```
 
 Or manually:

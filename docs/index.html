@@ -379,7 +379,7 @@ npx matcha init</code><button class="code-copy" onclick="copyCode(this)">Copy</b
     <tr><td><code>.trae/rules/</code></td><td><code>matcha.md</code> rule</td><td>Trae IDE</td></tr>
     <tr><td><code>.agents/</code></td><td>6 agents, 7 commands, skill + modules + <code>rules/</code></td><td>Universal / Antigravity (AGY)</td></tr>
     <tr><td><code>agents/</code> + <code>rules/</code> + <code>mcp_config.json</code></td><td>AGY plugin package structure (per official plugin layout)</td><td>Antigravity — <code>agy plugin install</code></td></tr>
-    <tr><td><code>hooks/</code></td><td>Shield, post-write, stop, metrics, MCP server</td><td>Every agent (server-side safety)</td></tr>
+    <tr><td><code>hooks/</code></td><td>Planning-gate, shield, post-write, stop, metrics, agy-hooks, instructions, MCP server</td><td>Every agent (server-side safety)</td></tr>
   </table>
 
   <div class="callout callout-info"><strong>Safety:</strong> matcha uses safe-merge for settings. It will NOT overwrite existing hooks from other tools (Kuma, Fennec, etc.).</div>

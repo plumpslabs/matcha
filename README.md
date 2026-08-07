@@ -10,14 +10,14 @@
 
 <p align="center">
   <b>Engineering philosophy for AI coding agents.</b><br />
-  6 modules · 7 commands · 6 agents · 10 hooks · 1 MCP server
+  6 modules · 7 commands · 6 agents · 7 hooks · 1 MCP server
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
   <img src="https://img.shields.io/badge/version-2.5.22-purple" alt="v2.5.22" />
-  <img src="https://img.shields.io/badge/tests-353-passing-brightgreen" alt="353 tests" />
+  <img src="https://img.shields.io/badge/tests-554-passing-brightgreen" alt="554 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
 
@@ -41,8 +41,7 @@ Every implementation passes through:
 
 | # | Check | What it prevents |
 |---|-------|-----------------|
-| 🎯 | **Purpose** | Building the wrong thing |
-| 🔎 | **Reuse** | Duplicating existing code |
+| 🎯 | **Purpose + Reuse** | Building the wrong thing, duplicating existing code |
 | 🔍 | **Stack** | Adding overlapping dependencies |
 | 🛠️ | **Implementation** | Over-engineering, hardcoding |
 | 🧹 | **Cleanup** | Shipping debug code, temp files |
@@ -84,7 +83,7 @@ node bin/matcha.js status
 
 ---
 
-## Project Constraints (NEW in v4.0.0)
+## Project Constraints
 
 matcha now supports **project-specific rules** — things the agent must know that can't be inferred from reading code.
 
@@ -251,9 +250,13 @@ npm run mcp
 
 | Hook | When | What it does |
 |------|------|-------------|
-| `matcha-shield.js` | Before tool use | Blocks dangerous commands + enforces planning gate |
+| `planning-gate.js` | Before first edit | Blocks code until an Intent Discovery plan exists |
+| `matcha-shield.js` | Before tool use | Blocks dangerous commands + mode detection |
 | `matcha-post-write.js` | After file write | Scans for debug code, secrets, empty catches |
 | `matcha-stop.js` | Task complete | Generates tips from git diff |
+| `matcha-metrics.js` | Session | Tracks session metrics |
+| `matcha-agy-hooks.js` | Antigravity tool use | Routes agy tool names to gate decisions |
+| `matcha-instructions.js` | Session start | Injects matcha rules into agent context |
 
 ### Platform Support
 
@@ -294,6 +297,10 @@ Source of Truth:
 ├── hooks/
 │   ├── patterns.json            ← Multi-language pattern registry (13+)
 │   ├── matcha-trigger-packs.json ← Domain-specific risk signals
+│   ├── planning-gate.js         ← Planning gate enforcement (blocks edits before plan)
+│   ├── danger-checks.js         ← Danger pattern detection (shield/planning support)
+│   ├── mode-detect.js           ← Context-aware mode detection
+│   ├── matcha-agy-hooks.js      ← Antigravity (agy) hook adapter
 │   ├── matcha-mcp-server.js     ← MCP server (4 tools)
 │   ├── matcha-shield.js         ← Safety gate + mode detection
 │   ├── matcha-post-write.js     ← Cleanup enforcement

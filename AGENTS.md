@@ -10,8 +10,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 
 | # | Checkpoint | Rule |
 |---|------------|------|
-| 🎯 | **Purpose** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption. |
-| 🔎 | **Reuse** | Search codebase first (`src/`, `lib/`, `pkg/`, `app/`). Never duplicate. |
+| 🎯 | **Purpose + Reuse** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption. Search codebase first (`src/`, `lib/`, `pkg/`, `app/`). Never duplicate. |
 | 🔍 | **Stack** | Scan manifests (`package.json`, `Cargo.toml`, `go.mod`, etc.) for service overlap. |
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. |
 | 🧹 | **Cleanup** | Done = working AND clean. Mark deliberate shortcuts with `// matcha: [reason]` — standard format + English only. |

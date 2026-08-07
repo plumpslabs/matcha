@@ -44,12 +44,17 @@
 | Platform | Adapter | Type |
 |----------|---------|------|
 | **Claude Code** | `.claude/agents/*` + `.claude/commands/*` + hooks | Real files (Claude-native frontmatter) + config |
-| **OpenCode** | `.opencode/plugins/matcha.js` + agents | Plugin |
+| **OpenCode** | `.opencode/agents/` + `.opencode/commands/` + `.opencode/plugins/matcha.js` | Plugin |
+| **Cursor** | `.cursor/rules/matcha.mdc` | Rule file |
+| **Windsurf** | `.windsurfrules` + `.windsurf/rules/matcha.md` | Rule files |
+| **Cline** | `.clinerules/matcha.md` | Rule file |
+| **Roo Code** | `.roo/rules/matcha.md` | Rule file |
+| **Qoder** | `.qoder/rules/matcha.md` | Rule file |
+| **Trae** | `.trae/rules/matcha.md` | Rule file |
 | **Kiro** | `.kiro/steering/matcha*` (3 files) | Steering files |
-| **Codebuff / agy** | `.agents/` | Universal format |
+| **Universal / Codebuff / agy** | `.agents/` | Universal format |
 | **OpenClaw** | `.openclaw/skills/matcha/SKILL.md` | Symlink |
-| **Windsurf** | `.windsurfrules` (root) | Root config |
-| **Antigravity CLI** | `GEMINI.md` | Config |
+| **Antigravity CLI** | `GEMINI.md` + `.agents/` + hooks | Config + universal + hooks |
 
 ---
 

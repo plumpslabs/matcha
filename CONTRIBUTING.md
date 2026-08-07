@@ -48,11 +48,12 @@ matcha/
 ├── AGENTS.md                     # Primary cross-tool file
 ├── skills/matcha/
 │   ├── SKILL.md                  # Router (references modules)
-│   └── modules/                  # 5 modular skill components
+│   └── modules/                  # 6 modular skill components
 │       ├── core.md               # 6-checkpoint filter + TDD + loops + format
 │       ├── project.md            # Project constraints template
 │       ├── modes.md              # Context-aware mode switching
 │       ├── risk.md               # Risk-based review routing (L0-L3)
+│       ├── engineering.md        # Universal engineering bar
 │       └── legacy.md             # Legacy code protocol
 ├── hooks/                        # Lifecycle hooks
 │   ├── patterns.json             # Multi-language pattern registry

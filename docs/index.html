@@ -1089,5 +1089,121 @@ function copyCode(btn) {
 // Init icons
 lucide.createIcons();
 </script>
+<style>
+/* ── ⭐ Star CTA (bottom-right card) ─────────────────────────────────────── */
+#matcha-star-card{position:fixed;right:20px;bottom:20px;width:346px;max-width:calc(100vw - 32px);z-index:300;font-family:var(--font);background:linear-gradient(165deg,var(--bg-elevated) 0%,var(--bg-card) 62%);border:1px solid var(--border-hover);border-radius:16px;box-shadow:0 24px 64px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.35),0 0 48px rgba(234,179,8,.07);padding:18px 18px 16px;overflow:hidden;transform:translateY(30px) scale(.97);opacity:0;pointer-events:none;transition:transform .5s cubic-bezier(.16,1,.3,1),opacity .35s ease}
+#matcha-star-card::before{content:"";position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(234,179,8,.7),transparent)}
+#matcha-star-card.show{transform:translateY(0) scale(1);opacity:1;pointer-events:auto}
+#matcha-star-card.hide{transform:translateY(16px) scale(.98);opacity:0;pointer-events:none}
+.msc-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.msc-logo{width:32px;height:32px;border-radius:9px;flex-shrink:0;background:var(--accent-dim);border:1px solid rgba(234,179,8,.25);display:flex;align-items:center;justify-content:center;font-size:17px}
+.msc-title{font-size:13.5px;font-weight:600;color:var(--text);letter-spacing:-.01em}
+.msc-sub{font-size:11px;color:var(--text-tertiary);margin-top:1px}
+.msc-close{margin-left:auto;background:none;border:none;color:var(--text-tertiary);cursor:pointer;width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.msc-close:hover{color:var(--text);background:var(--bg-hover)}
+.msc-close svg{width:14px;height:14px}
+.msc-body{font-size:13px;color:var(--text-secondary);line-height:1.55;margin-bottom:16px}
+.msc-body strong{color:var(--text);font-weight:600}
+.msc-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;background:linear-gradient(135deg,#facc15 0%,var(--accent) 100%);color:#1c1500;font-weight:700;font-size:13px;font-family:var(--font);border:none;border-radius:10px;padding:12px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(234,179,8,.28);transition:transform .15s,box-shadow .15s,filter .15s}
+.msc-btn:hover{transform:translateY(-1px);box-shadow:0 10px 26px rgba(234,179,8,.42);filter:brightness(1.06)}
+.msc-btn:active{transform:translateY(0) scale(.98)}
+.msc-btn:disabled{opacity:.85;cursor:default;filter:saturate(.85)}
+.msc-btn svg{width:16px;height:16px}
+.msc-count{margin-left:2px;background:rgba(0,0,0,.16);border-radius:100px;padding:2px 9px;font-size:11px;font-weight:700;letter-spacing:.02em}
+@media(prefers-reduced-motion:reduce){#matcha-star-card{transition:none}}
+@media(max-width:480px){#matcha-star-card{right:12px;bottom:12px}}
+</style>
+<script>
+// ⭐ Star CTA widget — bottom-right card, 12h dismiss cooldown via localStorage
+(function () {
+  'use strict';
+  var GH_URL = 'https://github.com/plumpslabs/matcha';
+  var KEY_DISMISS = 'matcha_star_cta_dismissed_at';
+  var KEY_RATED = 'matcha_star_cta_rated_at';
+  var KEY_CNT = 'matcha_star_cta_stars';
+  var KEY_CNT_AT = 'matcha_star_cta_stars_at';
+  var D_COOLDOWN = 12 * 60 * 60 * 1000;       // X → re-appear after 12h
+  var R_COOLDOWN = 30 * 24 * 60 * 60 * 1000;  // starred → re-appear after 30d
+  var GH_SVG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
+  var X_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg>';
+
+  function ls(k) { try { return window.localStorage.getItem(k); } catch (e) { return null; } }
+  function lss(k, v) { try { window.localStorage.setItem(k, v); } catch (e) {} }
+  function now() { return Date.now(); }
+
+  if (now() - (parseInt(ls(KEY_DISMISS) || '0', 10)) < D_COOLDOWN) return;
+  if (now() - (parseInt(ls(KEY_RATED) || '0', 10)) < R_COOLDOWN) return;
+
+  var el = document.createElement('div');
+  el.id = 'matcha-star-card';
+  el.setAttribute('role', 'dialog');
+  el.setAttribute('aria-label', 'Support matcha on GitHub');
+  el.innerHTML =
+    '<div class="msc-head">' +
+      '<div class="msc-logo">🍵</div>' +
+      '<div><div class="msc-title">Enjoying matcha?</div><div class="msc-sub">Free &amp; open source · MIT</div></div>' +
+      '<button class="msc-close" type="button" title="Not now — remind me later" aria-label="Dismiss, remind again in 12 hours">' + X_SVG + '</button>' +
+    '</div>' +
+    '<div class="msc-body">It takes <strong>2 seconds</strong> to star the repo — and it helps matcha reach more developers.</div>' +
+    '<button class="msc-btn" id="msc-cta" type="button">' + GH_SVG + 'Star on GitHub<span class="msc-count" id="msc-count"></span></button>';
+  document.body.appendChild(el);
+
+  var cta = el.querySelector('#msc-cta');
+  var close = el.querySelector('.msc-close');
+  var done = false;
+
+  function openGh() {
+    var a = document.createElement('a');
+    a.href = GH_URL;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+
+  function hide() {
+    el.classList.add('hide');
+    setTimeout(function () { el.remove(); }, 400);
+  }
+
+  cta.addEventListener('click', function () {
+    if (done) return;
+    done = true;
+    lss(KEY_RATED, String(now()));
+    cta.disabled = true;
+    cta.innerHTML = '⭐ Thanks for the star!';
+    openGh();
+    setTimeout(hide, 2200);
+  });
+
+  close.addEventListener('click', function () {
+    lss(KEY_DISMISS, String(now()));
+    hide();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && el.isConnected) close.click();
+  });
+
+  function showCount(n) {
+    var c = document.getElementById('msc-count');
+    if (c) c.textContent = n >= 1000 ? (n / 1000).toFixed(1) + 'k' : String(n);
+  }
+  function loadCount() {
+    var cached = ls(KEY_CNT), at = parseInt(ls(KEY_CNT_AT) || '0', 10);
+    if (cached && now() - at < 3600 * 1000) return showCount(cached);
+    fetch('https://api.github.com/repos/plumpslabs/matcha', { headers: { Accept: 'application/vnd.github+json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var n = d && d.stargazers_count;
+        if (typeof n === 'number' && n > 0) { lss(KEY_CNT, String(n)); lss(KEY_CNT_AT, String(now())); showCount(n); }
+      })
+      .catch(function () {});
+  }
+
+  setTimeout(function () { el.classList.add('show'); loadCount(); }, 6500);
+})();
+</script>
 </body>
 </html>

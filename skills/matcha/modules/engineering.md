@@ -6,7 +6,9 @@
 
 ## Scope & Analysis Boundary (Anti-Paranoid Guard)
 - **Scope limitation:** Check and enforce directives ONLY for code lines and areas directly touched by the change. Do NOT perform full-codebase audits for localized edits.
+- **Context-triggered principles:** Evaluate guidelines (such as API breaking changes, distributed tracing, or ADRs) ONLY when the active change directly touches those domains. Never block simple edits with unrelated rules.
 - **Library Discipline:** Prefer standard library / native platform capabilities first. Ask and confirm before introducing new third-party dependencies or abstractions.
+- **Architectural Decisions (ADR):** For major structural or library choices, record inline rationale: `// matcha:adr <decision> (rationale: <why>)`.
 
 ## Errors
 
@@ -21,7 +23,7 @@
 
 - **Structured, leveled** (debug/info/warn/error) — level matches severity.
 - **Log at boundaries + failures** — entry/exit for critical paths; errors carry stack + context.
-- **Correlation/request ID** on multi-step flows so one failure is traceable end-to-end.
+- **Correlation/request ID (Distributed Tracing)** — include correlation/request ID (e.g. W3C traceparent) on multi-step/microservice flows so failure is traceable end-to-end.
 - **NEVER log secrets, tokens, passwords, or PII** — redact before logging. This is a security finding, not style.
 - **Log each error once**, with context — not the same trace in 3 places.
 
@@ -39,7 +41,7 @@
 - **Pagination convention:** Use cursor-based pagination for large/real-time feeds; offset-based for static bounded lists. Always include explicit `limit` and `total` / `has_more` indicators.
 - **Caching convention:** Use Cache-Aside pattern with explicit TTL, stale-while-revalidate where suitable, and deterministic invalidation keys on mutation.
 - **Mutations: idempotency** for retryable operations.
-- **Version breaking changes**; keep backward compatibility for the public contract.
+- **Breaking changes & backward compatibility:** Maintain backward compatibility for public contracts via explicit deprecation warnings/windows before removing fields.
 - **Document the request/response shape** at the boundary (schema/contract file, not prose).
 
 ## Component & Presentation (UI / Web)

@@ -56,6 +56,7 @@ export function isPlanFilePath(value) {
     /\.agents[\\/]reports[\\/]/.test(s) ||
     s.includes("matcha-plan.md") ||
     s.includes("matcha-state.json") ||
+    s.includes("mcp_config.json") ||
     s.includes("decisions.log") ||
     /current\.md$/.test(s)
   );
@@ -76,7 +77,7 @@ export function validatePlanContent(planContent) {
     /<!--\s*trivial\s*-->/.test(planContent) || /type:\s*plan-trivial/i.test(planContent);
   if (isTrivial) {
     const hasProblem =
-      /\*\*Problem:\*\*/i.test(planContent) || /^- Problem:/im.test(planContent) || /<problem>/i.test(planContent);
+      /\*\*Problem:\*\*/i.test(planContent) || /^- Problem:/im.test(planContent) || /<problem>/i.test(planContent) || /^#+\s*Problem/im.test(planContent);
     const tooShort = planContent.trim().length < 15;
     if (hasProblem && !tooShort) {
       return { valid: true };
@@ -143,15 +144,22 @@ function validateGateFormat(inner) {
 }
 
 function validateMarkdownPlan(content) {
-  const hasIntent = /Intent Discovery/i.test(content) || /\*\*Problem:\*\*/.test(content) || /^- Problem:/im.test(content);
+  const hasIntent = /Intent Discovery/i.test(content) || /Problem/i.test(content);
   if (!hasIntent) {
     return { valid: false, reason: "no Intent Discovery marker (heading, **Problem:**, or - Problem:)" };
   }
 
-  // Capture the section after each label until the next `- **` label, heading, or EOF
-  // (handles multi-line values and bullet sub-lists without false-blocks)
+  // Robust & Forgiving section extractor:
+  // Supports:
+  // - List items: `- **Problem:**`, `* **Problem:**`, `- Problem:`, `* Problem:`
+  // - Bold titles: `**Problem:**`, `**Problem**:`
+  // - Headings: `## Problem`, `### Problem:`
   const section = (label) => {
-    const m = content.match(new RegExp(`\\*\\*${label}:\\*\\*([\\s\\S]*?)(?=\\n\\s*-\\s*\\*\\*|\\n\\s*## |$)`, "i"));
+    const pattern = new RegExp(
+      `(?:^|\\n)(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?${label}(?:\\*\\*|__)?\\s*:\\s*([\\s\\S]*?)(?=\\n(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?(?:Problem|Goals|Success Criteria|Plan|Risks|Reuse Ledger)(?:\\*\\*|__)?\\s*:|\\n\\s*## |$)`,
+      "i"
+    );
+    const m = content.match(pattern);
     return m ? m[1].trim() : "";
   };
 

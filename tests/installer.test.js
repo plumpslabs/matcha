@@ -1,5 +1,24 @@
 import { describe, expect, test } from "vitest";
-import { assertFile, readProjectFile, assertBashSyntax } from "./helpers.js";
+import { mkdtempSync, rmSync } from "fs";
+import { tmpdir } from "os";
+import { join } from "path";
+import { assertFile, readProjectFile, assertBashSyntax, execSync, existsSync, ROOT } from "./helpers.js";
+
+/** Run install.sh into a fresh temp dir and return its path. */
+function runInstall(platforms) {
+  const dir = mkdtempSync(join(tmpdir(), "matcha-install-"));
+  const flag = platforms ? `--platforms "${platforms}"` : "";
+  execSync(`bash install.sh --target "${dir}" ${flag}`, {
+    cwd: ROOT,
+    stdio: "pipe",
+    timeout: 30_000,
+  });
+  return dir;
+}
+
+function fileExists(dir, rel) {
+  return existsSync(join(dir, rel));
+}
 
 describe("install.sh syntax", () => {
   test("install.sh exists", () => assertFile("install.sh"));
@@ -51,6 +70,11 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("mode-detect.js");
     expect(installer).toContain("matcha-metrics.js");
     expect(installer).toContain("matcha-trigger-packs.json");
+  });
+
+  test("installs review-validate.js (matcha-mcp-server.js imports it)", () => {
+    // Regression: matcha-mcp-server.js ESM-imports ./review-validate.js — missing it crashes the MCP server.
+    expect(installer).toContain("review-validate.js");
   });
 
   test("installs workspace-root.js (monorepo root resolution helper)", () => {
@@ -119,8 +143,9 @@ describe("install.sh — platform coverage", () => {
   });
 
   test("GEMINI.md + AGENTS.md cover Antigravity and Qwen (root files)", () => {
+    // GEMINI.md is now platform-scoped (.agents); AGENTS.md stays universal.
     expect(installer).toContain("GEMINI.md");
-    expect(installer).toContain("AGENTS.md");
+    expect(installer).toContain("install_context \"$TARGET\"");
   });
 });
 
@@ -133,22 +158,66 @@ describe("QWEN.md", () => {
   });
 });
 
-describe("install.sh — root context files (CLAUDE.md + QWEN.md)", () => {
+describe("install.sh — root context files follow selected platforms", () => {
   const installer = readProjectFile("install.sh");
 
-  test("installs CLAUDE.md (Claude Code reads root CLAUDE.md)", () => {
-    // Regression: Claude Code reads CLAUDE.md at project root; install must copy it.
-    expect(installer).toContain("install_file_if_missing \"$TARGET/CLAUDE.md\" \"CLAUDE.md\"");
+  test("AGENTS.md is always installed (universal)", () => {
+    expect(installer).toContain("install_context \"$TARGET\"");
   });
 
-  test("installs QWEN.md (Qwen Code reads root QWEN.md)", () => {
-    // Regression: Qwen Code reads QWEN.md at project root; install must copy it.
-    expect(installer).toContain("install_file_if_missing \"$TARGET/QWEN.md\" \"QWEN.md\"");
+  test("CLAUDE.md only when .claude is selected (Claude Code reads root CLAUDE.md)", () => {
+    // Platform-scoped: installing only OpenCode must NOT drop a CLAUDE.md on the project.
+    expect(installer).toContain('*" .claude "*) install_file_if_missing "$TARGET/CLAUDE.md" "CLAUDE.md"');
+  });
+
+  test("QWEN.md only when .qwen is selected (Qwen Code reads root QWEN.md)", () => {
+    expect(installer).toContain('*" .qwen "*) install_file_if_missing "$TARGET/QWEN.md" "QWEN.md"');
+  });
+
+  test("GEMINI.md only when .agents is selected (Antigravity reads root GEMINI.md)", () => {
+    expect(installer).toContain('*" .agents "*) install_file "$TARGET/GEMINI.md" "GEMINI.md"');
   });
 
   test("CLAUDE.md and QWEN.md are real files in the repo", () => {
     assertFile("CLAUDE.md");
     assertFile("QWEN.md");
+  });
+
+  test("BEHAVIORAL: opencode-only install does NOT create CLAUDE.md/QWEN.md/GEMINI.md", () => {
+    // Regression for the reported bug: picking OpenCode used to drop CLAUDE.md + QWEN.md on the project.
+    const dir = runInstall(".opencode");
+    try {
+      expect(fileExists(dir, "CLAUDE.md")).toBe(false);
+      expect(fileExists(dir, "QWEN.md")).toBe(false);
+      expect(fileExists(dir, "GEMINI.md")).toBe(false);
+      expect(fileExists(dir, "AGENTS.md")).toBe(true);
+      expect(fileExists(dir, ".github/copilot-instructions.md")).toBe(true);
+      expect(fileExists(dir, ".opencode/agents/matcha-planner.md")).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("BEHAVIORAL: .claude+.agents install creates CLAUDE.md+GEMINI.md, not QWEN.md", () => {
+    const dir = runInstall(".claude .agents");
+    try {
+      expect(fileExists(dir, "CLAUDE.md")).toBe(true);
+      expect(fileExists(dir, "GEMINI.md")).toBe(true);
+      expect(fileExists(dir, "QWEN.md")).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("BEHAVIORAL: .qwen-only install creates QWEN.md, not CLAUDE.md/GEMINI.md", () => {
+    const dir = runInstall(".qwen");
+    try {
+      expect(fileExists(dir, "QWEN.md")).toBe(true);
+      expect(fileExists(dir, "CLAUDE.md")).toBe(false);
+      expect(fileExists(dir, "GEMINI.md")).toBe(false);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 
   test("npm package files array includes all root context files (QWEN.md regression)", () => {

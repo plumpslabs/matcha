@@ -23,5 +23,11 @@ describe("bin/matcha.js", () => {
     expect(content).toContain("Platform:");
   });
 
+  test("-v / --version prints only the version, not the full help", () => {
+    // Regression: -v used to fall through to default → showHelp() dumped the whole usage.
+    expect(content).toContain('case "-v":');
+    expect(content).toContain('case "--version":');
+    expect(content).toContain("🍵 matcha v${VERSION}");
+  });
 
 });

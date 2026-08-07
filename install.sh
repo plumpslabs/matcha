@@ -90,7 +90,7 @@ install_hooks() {
   mkdir -p "$target"
   # All hooks + their runtime dependencies (dependency graph must be complete
   # or every hook crashes on a clean install).
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }
@@ -103,21 +103,28 @@ if [ -n "$PLATFORM_ARG" ]; then
     PLATFORMS="$PLATFORMS $p"
   done
 else
-  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae; do
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae .qwen; do
     [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
   done
   [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
 fi
 
 # ─── Install to each platform ─────────────────────────────────────────────────
-# ─── AGENTS.md + CLAUDE.md + GEMINI.md + QWEN.md + Copilot: always installed ──
-# Each major agent runtime reads its own root context file:
-#   Claude Code → AGENTS.md + CLAUDE.md · OpenCode/Cursor/Windsurf/Roo → AGENTS.md
-#   Antigravity/Gemini → GEMINI.md · Qwen Code → QWEN.md · Copilot → .github/copilot-instructions.md
+# ─── AGENTS.md + root context files: follow selected platforms ──
+# AGENTS.md is universal (OpenCode/Cursor/Windsurf/Roo/Claude read it).
+# Platform-specific root files install only when that platform is selected:
+#   Claude Code → CLAUDE.md · Antigravity/Gemini → GEMINI.md (.agents)
+#   Qwen Code → QWEN.md · Copilot → .github/copilot-instructions.md (cross-editor, always)
 install_context "$TARGET"
-install_file_if_missing "$TARGET/CLAUDE.md" "CLAUDE.md"
-install_file "$TARGET/GEMINI.md" "GEMINI.md"
-install_file_if_missing "$TARGET/QWEN.md" "QWEN.md"
+case " $PLATFORMS " in
+  *" .claude "*) install_file_if_missing "$TARGET/CLAUDE.md" "CLAUDE.md" ;;
+esac
+case " $PLATFORMS " in
+  *" .agents "*) install_file "$TARGET/GEMINI.md" "GEMINI.md" ;;
+esac
+case " $PLATFORMS " in
+  *" .qwen "*) install_file_if_missing "$TARGET/QWEN.md" "QWEN.md" ;;
+esac
 install_file_if_missing "$TARGET/.github/copilot-instructions.md" ".github/copilot-instructions.md"
 
 # ─── Install to each platform ─────────────────────────────────────────────────
@@ -158,6 +165,10 @@ for p in $PLATFORMS; do
       ;;
     .qoder)
       install_file "$TARGET/.qoder/rules/matcha.md" ".qoder/rules/matcha.md"
+      ;;
+    .qwen)
+      # Qwen Code reads root QWEN.md (installed above when .qwen selected);
+      # keep the platform folder recognized so detection/status stay consistent.
       ;;
   esac
   echo ""

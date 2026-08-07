@@ -107,6 +107,7 @@ const PLATFORM_OPTIONS = [
   { num: "9", dir: ".trae",      label: "Trae" },
   { num: "10", dir: ".agents",   label: "Universal (.agents)" },
   { num: "11", dir: ".agents",   label: "Antigravity (agy) — GEMINI.md + .agents" },
+  { num: "12", dir: ".qwen",     label: "Qwen Code (QWEN.md)" },
 ];
 
 function detectExistingPlatforms() {
@@ -240,7 +241,7 @@ async function cmdInit() {
       const mark = existing.includes(o.dir) ? " (detected)" : "";
       console.log(`  ${o.num}. ${o.label}${mark}`);
     }
-    console.log("  ℹ️  AGENTS.md + CLAUDE.md + GEMINI.md + QWEN.md + Copilot instructions are always installed (Claude, Antigravity, Qwen, Gemini, Copilot, Codex, Zed).");
+    console.log("  ℹ️  AGENTS.md always installed (universal). CLAUDE.md/GEMINI.md/QWEN.md only with their platform (Claude/Antigravity/Qwen). Copilot instructions always (cross-editor).");
     console.log("  a. All platforms");
     console.log("  0. Auto (detected providers, or Universal if none) — default");
     console.log("");
@@ -600,6 +601,10 @@ switch (cmd) {
   case "--help":
   case "-h":
     showHelp();
+    break;
+  case "-v":
+  case "--version":
+    console.log(`🍵 matcha v${VERSION}`);
     break;
   default:
     showHelp();

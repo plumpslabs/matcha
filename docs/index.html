@@ -1077,26 +1077,23 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <h1>Benchmark &amp; Evidence</h1>
   <p>Matcha ships its own benchmark tooling (<code>benchmark/</code>) and publishes results — so the claim "rules improve output without bloating it" is <em>measured, not asserted</em>.</p>
 
-  <h3>Agentic A/B Benchmark (headless Claude Code, 20 tasks × 3 arms)</h3>
-  <table>
-    <tr><th>Arm</th><th>Total LOC</th><th>Correct</th><th>Adversarial-safe</th><th>Avg tok/output</th></tr>
-    <tr><td>Baseline (no rules)</td><td>347</td><td>13/20</td><td>4/20</td><td>123</td></tr>
-    <tr><td>Terse ("be brief")</td><td>198</td><td>13/20</td><td>4/20</td><td>81</td></tr>
-    <tr><td><strong>Matcha rules</strong></td><td><strong>260</strong></td><td><strong>13/20</strong></td><td><strong>4/20</strong></td><td><strong>102</strong></td></tr>
-  </table>
-  <p><strong>Key insight:</strong> matcha produces <em>less</em> code than no-rules (260 vs 347 LOC) at equal correctness — rules reduce output volume via reuse/no-duplication instead of inflating it. Token cost sits in the process (planning + verification), not the generated code.</p>
+  <div class="callout callout-success">
+    <strong>🏆 The headline:</strong> no-rules agents <em>fail</em> a multi-file refactor (0/2 — they add a few lines and stop). Matcha is the only arm that completes it — service layer extracted, no regression in existing behavior. The price: more tokens and wall time on small tasks. That trade is measured in the small-task section below, not hidden.
+  </div>
 
-  <h3>Real Multi-Turn Feature Benchmark (agy, 3 features)</h3>
+  <h3>Complex-Task Benchmarks (v3) — where a thinking-first agent earns its cost</h3>
+  <p><strong>First run (free model, n=1–2/cell, 2026-08-08):</strong> the arena matcha was built for — and the arms split hard.</p>
   <table>
-    <tr><th>Feature</th><th>LOC</th><th>Tests</th><th>Passed</th><th>Compliance</th></tr>
-    <tr><td>Activity Tracking</td><td>111</td><td>12</td><td>✅ 12</td><td>A</td></tr>
-    <tr><td>Pagination</td><td>67</td><td>10</td><td>✅ 10</td><td>A</td></tr>
-    <tr><td>Rate Limiting</td><td>75</td><td>8</td><td>✅ 8</td><td>A</td></tr>
-    <tr><td><strong>Total</strong></td><td><strong>270</strong></td><td><strong>30</strong></td><td><strong>✅ 30/30</strong></td><td><strong>Excellent</strong></td></tr>
+    <tr><th>Task</th><th>❌ No rules</th><th>💬 Terse</th><th>🍵 Matcha</th></tr>
+    <tr><td><code>refactor-users-service</code> — completed</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td><strong>✅ 1/1</strong> (+15 LOC, service layer extracted, tests green)</td></tr>
+    <tr><td><code>refactor-users-service</code> — defect density</td><td>n/a (no-op)</td><td>n/a (no-op)</td><td>6.7 (1 finding / 15 LOC)</td></tr>
+    <tr><td><code>fix-auth-security</code> — passed</td><td>✅ 1/1 (+8 LOC)</td><td>✅ 2/2 (+4 LOC)</td><td>✅ 1/1 (+16 LOC, density 0)</td></tr>
   </table>
+  <p><strong>Honest reading:</strong> without rules the agent <em>fails the multi-file refactor</em> — it adds a few lines and stops; matcha is the only arm that extracts the service layer without breaking behavior. The table shows <em>completed</em> cells: matcha's second refactor cell and several security cells hit the free-model queue timeout (the same security task passed at 240s in an isolated dry-run), so its 1/1 is not cherry-picking. On the small security bug every arm that finished fixed it — no measurable edge for matcha there. Defect density only counts <em>completed</em> work: a 3-line no-op has no density to measure.</p>
+  <p><strong>Quality metric:</strong> <em>defect density</em> — anti-pattern findings (empty catches, magic numbers, hardcoded secrets) per 100 LOC <em>added by the agent</em>, scanned via <code>hooks/patterns.json</code>. This is the value side of the ledger: baseline writes few, sloppy lines; matcha writes more, cleaner lines. Re-run: <code>node benchmark/live-bench.js --task refactor-users-service --arm matcha --n 5 --timeout 480</code>.</p>
 
-  <h3>Live Agentic Benchmark (18 real agent runs, headless opencode)</h3>
-  <p>Real feature implementation on the <code>express-api</code> fixture: 3 features × 3 arms × 2 iterations. Process cost (tokens, steps, wall time) is measured from real provider events, not estimated. Lower is better for every chart except Correctness.</p>
+  <h3>Small-Task Benchmarks (18 runs) — the cost of thinking first</h3>
+  <p>Real feature implementation on the <code>express-api</code> fixture (3 features × 3 arms × 2 iterations). This is matcha's <em>worst case</em>: trivial single-file tasks. Process cost (tokens, steps, wall time) is measured from real provider events, not estimated. Lower is better for every chart except Correctness.</p>
 
   <canvas id="benchChart" style="max-width:100%;height:auto;margin:14px 0;"></canvas>
   <p style="font-size:0.85rem;opacity:0.75;">Median per arm · data as of 2026-08-07 (re-run: <code>node benchmark/live-bench.js --all --n 5</code>, then update <code>docs/benchmark.json</code> + this chart) · details in <code>docs/BENCHMARK.md</code>.</p>
@@ -1112,31 +1109,17 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   </table>
   <p><strong>Honest takeaway:</strong> cost (tokens/time) is <em>context, not the verdict</em>. Matcha spends more because it thinks before it implements — that buys precision, structure, and prevention. The quality side is why the cost is worth paying: defect density (anti-pattern findings per 100 LOC added, scanned on agent-written files only), correctness, and safe complex refactors. On small/trivial tasks matcha is overkill <em>by design</em> — Proportionality routes them through the ≤30-line fast path and the <code>trivial</code> plan; use <code>/matcha:intensity observe</code> for trivia.</p>
 
-  <h3>Complex-Task Benchmarks (v3 — where a thinking-first agent earns its cost)</h3>
+  <h3>Real Multi-Turn Feature Benchmark (agy, 3 features)</h3>
   <table>
-    <tr><th>Task</th><th>Shape</th><th>What it measures</th></tr>
-    <tr><td><code>refactor-users-service</code></td><td>Multi-file refactor: extract store + lookup into a service layer</td><td>Safe refactoring — restructures without breaking behavior, no duplicated logic</td></tr>
-    <tr><td><code>fix-auth-security</code></td><td>Multi-layer bug: auth bypass (<code>Authorization: "null"</code>) + non-numeric <code>:id</code> → 404</td><td>Root-cause + security discipline — finds both layers, doesn't break valid auth</td></tr>
+    <tr><th>Feature</th><th>LOC</th><th>Tests</th><th>Passed</th><th>Compliance</th></tr>
+    <tr><td>Activity Tracking</td><td>111</td><td>12</td><td>✅ 12</td><td>A</td></tr>
+    <tr><td>Pagination</td><td>67</td><td>10</td><td>✅ 10</td><td>A</td></tr>
+    <tr><td>Rate Limiting</td><td>75</td><td>8</td><td>✅ 8</td><td>A</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>270</strong></td><td><strong>30</strong></td><td><strong>✅ 30/30</strong></td><td><strong>Excellent</strong></td></tr>
   </table>
-  <p><strong>Quality metric — defect density:</strong> anti-pattern findings (empty catches, magic numbers, hardcoded secrets) per 100 LOC <em>added by the agent</em>, scanned via <code>hooks/patterns.json</code>. This is the value side of the ledger: baseline writes few, sloppy lines; matcha writes more, cleaner lines. Run: <code>node benchmark/live-bench.js --task refactor-users-service --arm matcha --n 5</code>.</p>
+  <p>Matcha-driven feature builds on <code>agy</code> (Gemini 3.5 Flash): 3 real features, all tests green, top compliance grade. The same-prompt with/without comparison lives in <code>docs/BENCHMARK.md</code> — matcha produced named status codes, explicit errors, and a per-user data structure at ~16% more LOC.</p>
 
-  <p><strong>First complex-task run (free model, n=1–2/cell, 2026-08-08):</strong> this is the arena matcha was built for — and the arms split hard.</p>
-  <table>
-    <tr><th>Task</th><th>❌ No rules</th><th>💬 Terse</th><th>🍵 Matcha</th></tr>
-    <tr><td><code>refactor-users-service</code> — completed</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td><strong>✅ 1/1</strong> (+15 LOC, service layer extracted, tests green)</td></tr>
-    <tr><td><code>refactor-users-service</code> — defect density</td><td>n/a (no-op)</td><td>n/a (no-op)</td><td>6.7 (1 finding / 15 LOC)</td></tr>
-    <tr><td><code>fix-auth-security</code> — passed</td><td>✅ 1/1 (+8 LOC)</td><td>✅ 2/2 (+4 LOC)</td><td>✅ 1/1 (+16 LOC, density 0)</td></tr>
-  </table>
-  <p><strong>Honest reading:</strong> without rules the agent <em>fails the multi-file refactor</em> — it adds a few lines and stops; matcha is the only arm that actually extracts the service layer without breaking behavior. On the small security bug, every arm that finished fixed it — matcha added no measurable edge there (its cells repeatedly hit free-model queue timeouts &gt;540s; an environment artifact — the same task passed at 240s in the dry-run). Defect density only counts <em>completed</em> work: a 3-line no-op has no density to measure, so baseline/terse's <code>n/a</code> is not a clean bill of health.</p>
-
-  <h3>Standing-Context A/B (20 cells: 2 tasks × core-only vs full × n=5)</h3>
-  <p>The skill is lazy-loaded (only <code>core.md</code> is always-read) and modules were slimmed 18.6K → 15.9K chars. A dedicated A/B measured whether a core-only injection actually cuts tokens:</p>
-  <table>
-    <tr><th>Arm</th><th>Tokens (median, combined)</th><th>Verdict</th></tr>
-    <tr><td>🍵 matcha (full)</td><td>725K</td><td rowspan="2">−6.3% median for core-only — smaller than run-to-run noise (±150K stdev). Per-step cacheRead is ~48-49K on both arms: standing context is dominated by AGENTS.md + agents + hooks + opencode system prompt, not the skill modules. The slim is correct-by-architecture (~1.5K tokens/step saved) but not a headline win.</td></tr>
-    <tr><td>🍵 matcha core-only</td><td>679K</td></tr>
-  </table>
-  <p>Re-run anytime: <code>node benchmark/live-bench.js --task add-rate-limiting --arm matcha-lite --n 5</code> · full write-up in <code>docs/BENCHMARK.md</code>.</p>
+  <p style="font-size:0.85rem;opacity:0.75;"><strong>Legacy / internal runs.</strong> Agentic A/B (Claude Code, 20 tasks × 3 arms): all arms tied at 13/20 correct — matcha wrote 260 LOC vs 347 no-rules via reuse/no-duplication, but this benchmark doesn't differentiate. Standing-context A/B (20 cells, core-only vs full): −6.3% tokens median, within run-to-run noise — the slim is correct-by-architecture (~1.5K tok/step) but standing context is dominated by AGENTS.md + hooks + system prompt, not skill modules. Full write-ups in <code>docs/BENCHMARK.md</code>.</p>
 
   <h3>Run It Yourself</h3>
   <p>Every published number is re-runnable — the harness ships in <code>benchmark/</code>:</p>

@@ -1084,7 +1084,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   </div>
 
   <div class="callout callout-success">
-    <strong>🏆 The headline:</strong> no-rules agents <em>fail</em> a multi-file refactor (0/2 — they add a few lines and stop). Matcha is the only arm that completes it — service layer extracted, no regression in existing behavior. The price: more tokens and wall time on small tasks. That trade is measured in the small-task section below, not hidden.
+    <strong>🏆 The headline:</strong> no-rules agents <em>fail</em> a multi-file refactor (0/2 — they add a few lines and stop). Matcha is the only arm that completes it — service layer extracted, no regression in existing behavior. The price: more tokens and wall time on small tasks — the cost of the planning and verification other arms skip. That trade is measured in the small-task section below, not hidden.
   </div>
 
   <h3>Complex-Task Benchmarks (v3) — where a thinking-first agent earns its cost</h3>
@@ -1102,19 +1102,20 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <p>Real feature implementation on the <code>express-api</code> fixture (3 features × 3 arms × 2 iterations). This is matcha's <em>worst case</em>: trivial single-file tasks. Process cost (tokens, steps, wall time) is measured from real provider events, not estimated. Lower is better for every chart except Correctness.</p>
 
   <canvas id="benchChart" style="max-width:100%;height:auto;margin:14px 0;"></canvas>
-  <p style="font-size:0.85rem;opacity:0.75;">Median per arm · data as of 2026-08-07 (re-run: <code>node benchmark/live-bench.js --all --n 5</code>, then update <code>docs/benchmark.json</code> + this chart) · details in <code>docs/BENCHMARK.md</code>.</p>
+  <p style="font-size:0.85rem;opacity:0.75;">Median per arm · data as of 2026-08-07 (re-run: <code>node benchmark/live-bench.js --all --n 5</code>, then update <code>docs/benchmark.json</code> + this chart) · details in <code>docs/BENCHMARK.md</code>. Cost is the invoice for the quality shown above — not a defect.</p>
 
   <table>
     <tr><th>Metric (median)</th><th>❌ No rules</th><th>💬 Terse</th><th>🍵 Matcha</th><th>Verdict</th></tr>
     <tr><td>Correctness (fail→pass)</td><td>1.0</td><td>1.0</td><td>1.0</td><td>Tie — rules don't hurt or help on small tasks</td></tr>
     <tr><td>ExpectedPass (target suite)</td><td>5/6</td><td>5/6</td><td>5/6</td><td>Tie — sharper metric, still no correctness edge</td></tr>
-    <tr><td>LOC added</td><td>13.5</td><td>6.5</td><td>17</td><td>Matcha writes more, but overhead cut +136% → +26% after anti-overbuild fix</td></tr>
-    <tr><td>Tokens (real)</td><td>395K</td><td>347K</td><td>643K</td><td>Matcha +63% this run (variance high — see BENCHMARK.md)</td></tr>
-    <tr><td>Wall time</td><td>58s</td><td>34s</td><td>78s</td><td>Matcha +34% (was +70% pre-fix)</td></tr>
+    <tr><td>LOC added</td><td>13.5</td><td>6.5</td><td>17</td><td>Matcha writes more — structure over brevity (anti-overbuild fix cut +136% → +26%)</td></tr>
+    <tr><td>Tokens (real)</td><td>395K</td><td>347K</td><td>643K</td><td>Matcha +63% — the price of planning + verification (see below; variance high — BENCHMARK.md)</td></tr>
+    <tr><td>Wall time</td><td>58s</td><td>34s</td><td>78s</td><td>Matcha +34% — same invoice on trivial tasks (was +70% pre-fix)</td></tr>
     <tr><td>Compliance (changed files)</td><td>100</td><td>100</td><td>100</td><td>Tie — all arms clean</td></tr>
   </table>
   <p><strong>Why matcha costs more — the mechanism:</strong> the extra tokens and time are <em>mostly process steps, not code bloat</em>. Matcha adds ~4 LLM turns per task (steps 8.5 → 12.5), which typically go to the planning gate (write a plan with evidence before touching files), verification (run the test suite), and the review pass. Each extra turn re-reads context — that's the ~49K <code>cacheRead</code>/step we measured. On small tasks those turns buy nothing visible — hence "overkill by design". On complex tasks they are exactly what turns a 0/2 failure into a completed, verified refactor.</p>
   <p><strong>Honest takeaway:</strong> cost (tokens/time) is <em>context, not the verdict</em>. Matcha spends more because it thinks before it implements — that buys precision, structure, and prevention. The quality side is why the cost is worth paying: defect density (anti-pattern findings per 100 LOC added, scanned on agent-written files only), correctness, and safe complex refactors. On small/trivial tasks matcha is overkill <em>by design</em> — Proportionality routes them through the ≤30-line fast path and the <code>trivial</code> plan; use <code>/matcha:intensity observe</code> for trivia.</p>
+  <p><strong>So is matcha "slow and expensive"?</strong> Read the cost table as an <em>invoice for verification</em>, not a waste report: the same <em>kind of</em> process turns — planning and verification — that cost +63% on trivial tasks are the ones that completed a refactor every other arm abandoned. And the premium is <em>capped by design</em> — trivial edits skip the gate entirely (≤30-line fast path) and <code>observe</code> mode removes it altogether. You only pay the premium where you choose to — and it buys what no-rules arms never produce: a completed, verified result on the work that actually matters.</p>
 
   <h3>Real Multi-Turn Feature Benchmark (agy, 3 features)</h3>
   <table>

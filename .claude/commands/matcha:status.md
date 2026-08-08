@@ -15,16 +15,6 @@ Report:
 3. **Test Status** — fresh test runner execution summary
 4. **Markers & Debt** — count of `// matcha:` markers found in session
 5. **Plan Status** — read `.agents/plan/current.md` — steps done K/N (via `[x]`), `**▶ Current**` step, and is the live plan in sync with current work?
-6. **Health Verdict** — overall session health (Healthy / Needs Attention / Critical)
-
-```
-🍵 matcha: status
-
-Intensity:  [observe|enforce|audit]
-Changes:    N files (+X / -Y lines)
-Tests:      N passed / N failed
-Markers:    N total (HIGH: N, MEDIUM: N)
-Plan:       [satisfied/missing] · Steps: K/N done (▶ Step N/M)
-
-Health:     ✅ Healthy | ⚠️ Needs Attention | 🔴 Critical
-```
+6. **Metrics (if `.agents/matcha-metrics.json` exists)** — planning-gate blocks, shield blocks, reviews run, issues caught, FP rate. Read the JSON directly and report the numbers — this is how matcha proves its own overhead. Zero bl
+...
+See commands/matcha:status.md for full

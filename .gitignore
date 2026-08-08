@@ -4,3 +4,6 @@ node_modules/
 .tmp-*
 .agents/plan/
 .agents/reports/
+.agents/matcha-state.json
+.agents/matcha-metrics.json
+.agents/state/

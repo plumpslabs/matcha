@@ -5,6 +5,7 @@
     "description": "Add a POST /api/users/:id/activity endpoint that logs an activity entry for a user. Each activity has: { action: string, timestamp: string, details?: object }. Store in-memory. Return the created activity with 201. Must validate that action is non-empty string.",
     "repo": "express-api",
     "expectedFiles": ["src/routes/activity.js"],
+    "expectedPass": ["tests/activity.test.js"],
     "verifyCommands": [
       "npm test"
     ],
@@ -21,6 +22,7 @@
     "description": "Add pagination support to the GET /api/users endpoint. Accept ?page=1&limit=10 query params. Return { data: [...], total: number, page: number, limit: number, totalPages: number }. Default page=1, limit=10. max limit=100.",
     "repo": "express-api",
     "expectedFiles": ["src/routes/users.js"],
+    "expectedPass": ["tests/users.test.js"],
     "verifyCommands": [
       "npm test"
     ],
@@ -37,6 +39,7 @@
     "description": "Add rate limiting middleware that limits requests to /api/* to 100 requests per minute per IP. Store counters in-memory. Return 429 with { error: 'Rate limit exceeded', retryAfter: number } when exceeded. Exclude /health endpoint. Make the limit configurable via RATE_LIMIT_MAX env var (default 100).",
     "repo": "express-api",
     "expectedFiles": ["src/middleware/rateLimit.js"],
+    "expectedPass": ["tests/rateLimit.test.js"],
     "verifyCommands": [
       "npm test"
     ],
@@ -44,6 +47,43 @@
       "Rate limit middleware is applied to /api/* routes",
       "/health is excluded from rate limiting",
       "Exceeding limit returns 429 with retryAfter",
+      "Existing tests still pass"
+    ]
+  },
+  {
+    "id": "refactor-users-service",
+    "name": "Refactor users routes to a service layer",
+    "description": "Refactor the user store + lookup out of the route into a dedicated service layer: create src/services/userService.js exposing listUsers() and getUserById(id), and make src/routes/users.js delegate to it. Do NOT change API behavior — the response shape and status codes must stay identical and all existing tests must stay green.",
+    "repo": "express-api",
+    "expectedFiles": ["src/services/userService.js", "src/routes/users.js"],
+    "expectedPass": ["tests/refactor.test.js"],
+    "verifyCommands": [
+      "npm test"
+    ],
+    "successCriteria": [
+      "src/services/userService.js exposes listUsers() and getUserById(id)",
+      "src/routes/users.js delegates to the service (no duplicated inline store)",
+      "GET /api/users returns the same data as before",
+      "GET /api/users/:id returns the same data as before",
+      "All existing tests still pass"
+    ]
+  },
+  {
+    "id": "fix-auth-security",
+    "name": "Fix auth bypass + input validation (multi-layer bug)",
+    "description": "Two security bugs exist: (1) the auth middleware only checks token truthiness, so the literal strings 'null' or 'undefined' in the Authorization header bypass authentication; (2) non-numeric :id in GET /api/users/:id returns 404 instead of 400. Fix both: reject 'null'/'undefined' auth headers (still allow real Bearer tokens, /health stays public), and return 400 for non-numeric ids. All existing tests must stay green.",
+    "repo": "express-api",
+    "expectedFiles": ["src/middleware/auth.js", "src/routes/users.js"],
+    "expectedPass": ["tests/security.test.js"],
+    "verifyCommands": [
+      "npm test"
+    ],
+    "successCriteria": [
+      "Authorization literal 'null' returns 401",
+      "Authorization literal 'undefined' returns 401",
+      "Real Bearer token returns 200",
+      "/health stays public",
+      "Non-numeric id returns 400, not 404",
       "Existing tests still pass"
     ]
   }

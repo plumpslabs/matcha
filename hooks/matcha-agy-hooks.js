@@ -15,6 +15,7 @@
  */
 import { checkCommand } from "./danger-checks.js";
 import { checkPlanningGate } from "./planning-gate.js";
+import { recordShieldBlock, recordPlanningGateBlock } from "./matcha-metrics.js";
 
 // AGY tool names → matcha internal tool names (already understood by the engine).
 // Names are lowercased before lookup (mapEvent does name.toLowerCase()), so
@@ -74,12 +75,18 @@ process.stdin.on("end", () => {
 
     // Planning gate — blocks code writes/commands until a valid plan exists
     const gate = checkPlanningGate({ tool, input });
-    if (gate) return respond("deny", gate.message);
+    if (gate) {
+      recordPlanningGateBlock();
+      return respond("deny", gate.message);
+    }
 
     // Safety shield — destructive commands
     if (tool === "execute_command" && input.command) {
       const danger = checkCommand(input.command);
-      if (danger) return respond("deny", danger.message);
+      if (danger) {
+        recordShieldBlock(input.command, danger.message);
+        return respond("deny", danger.message);
+      }
     }
 
     respond("allow", "");

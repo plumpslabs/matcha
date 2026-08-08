@@ -8,7 +8,7 @@ Always take the **easiest AND most efficient path** — not just one. Easy witho
 
 ## ⚖️ Proportionality (effort ↔ risk)
 
-The gates exist to protect — not to slow you down. **Match effort to risk.** Over-analysis is not rigor; it is waste. When in doubt between two adequate options → pick the simpler, note the alternative, move on. Perfectionism ≠ rigor. Rigor = right-sized evidence for the decision at hand.
+The gates exist to protect — not to slow you down. **Match effort to risk.** Over-analysis is not rigor; it is waste. When in doubt between two adequate options → pick the simpler, note the alternative, move on. Rigor = right-sized evidence for the decision at hand.
 
 **Task sizing (decide BEFORE planning):**
 
@@ -20,15 +20,15 @@ The gates exist to protect — not to slow you down. **Match effort to risk.** O
 
 **Speed rules:**
 - Planning takes longer than the implementation would → you are over-planning. Stop, shrink the plan.
-- The standards are a checklist for **risk** — check the ones the change touches, not every line of every rule.
-- **Exit conditions beat STOP.** Before STOP, ask: *is this actually blocking, or can I proceed on a recorded assumption?* Prefer proceeding with a visible assumption over stopping the user for trivia. **Record assumptions in the plan's Assumptions field** so they survive context compaction.
-- Never block on things you can't verify cheaply — state uncertainty, proceed, flag it for review.
+- Standards are a checklist for **risk** — check what the change touches, not every rule.
+- **Exit conditions beat STOP.** Before STOP ask: *is this actually blocking, or can I proceed on a recorded assumption?* Prefer proceeding with a visible assumption over stopping the user for trivia. **Record assumptions in the plan's Assumptions field** so they survive context compaction.
+- Never block on things you can't verify cheaply — state uncertainty, proceed, flag for review.
 
 ---
 
 ## Context-Aware Modes
 
-Agent auto-switches behavior based on what it's doing:
+Agent auto-switches behavior based on what it's doing (full rules in `modules/modes.md`):
 
 | Mode | Trigger | Planning Gate | Review Gate |
 |------|---------|---------------|-------------|
@@ -37,8 +37,6 @@ Agent auto-switches behavior based on what it's doing:
 | **🔄 Refactor** | Changing existing code | ✅ Enforce + legacy | ✅ Enforce + regression check |
 | **🐛 Debug** | Error, investigating | ⏭️ Skip | ⏭️ Skip |
 | **🔒 Review** | Finished implementing | ⏭️ Skip | ✅ IS the review |
-
-See `modules/modes.md` for full mode switching rules.
 
 ---
 
@@ -56,21 +54,13 @@ Set with `/matcha observe|enforce|audit`. Default: **enforce**.
 
 In **enforce** and **audit** levels, you are blocked from modifying code until you create/update the Intent Discovery plan at `.agents/plan/current.md` (Problem, Goals, Success Criteria, What → Why → How). **Persist it BEFORE the first code edit — never wait for a user command.** The hook (matcha-shield / opencode plugin) reads `.agents/plan/current.md` and blocks code writes while the plan is missing or still TBD.
 
-**Trivial plan (⚖️ Proportionality):** for trivial tasks (≤5 LOC, 1 file, no logic), write a minimal plan **REQUIRED to carry the `<!-- trivial -->` marker** (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line — the hook accepts it without the full gate. **Without the marker, the hook still requires Problem + Goals + Success Criteria.** This keeps typo-fix-level tasks moving.
+**Auto-skip (hook, benchmark-backed).** The gate is skipped for:
+- Read-only commands (grep, ls, cat, find, git status), test runners, linters/formatters
+- Documentation files (.md, .txt, .rst) and test files (any test pattern)
+- **Small source edits ≤30 lines** on a non-manifest file (guard clause, rename, config value, small bug fix) — do NOT write a plan; the hook lets them through immediately (measured fix for the +33% token / +70% time overhead on small edits)
+- **Trivial tasks** — a minimal plan carrying the `<!-- trivial -->` marker (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line satisfies the gate. Without the marker, Problem + Goals + Success Criteria are required.
 
-**Smart Auto-Skip:** Planning gate is automatically skipped for:
-- Read-only commands (grep, ls, cat, find, git status)
-- Test commands (any test runner)
-- Lint/format commands (any linter or formatter)
-- Documentation files (.md, .txt, .rst)
-- Test files (any test pattern)
-
-**Enforced for:**
-- New feature implementation
-- Refactoring existing code
-- Config changes
-- DB migrations
-- Any production code changes
+**Enforced for:** new feature implementation, refactoring existing code, config changes, DB migrations, any production code changes.
 
 ```xml
 <matcha_gate>
@@ -84,34 +74,21 @@ In **enforce** and **audit** levels, you are blocked from modifying code until y
 
 ## 🎯 Checkpoint 1: Purpose + Reuse
 
-**Intent Discovery** — Before planning, confirm Problem, Goals, Success Criteria, and What → Why → How with evidence. What/Why/How is one technique; the container also captures Assumptions and Unknowns. Can't answer Why/How with evidence? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption (see ⚖️ Proportionality).
+**Intent Discovery** — Before planning, confirm Problem, Goals, Success Criteria, and What → Why → How with evidence. Can't answer Why/How with evidence? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption (see ⚖️ Proportionality).
 
 **Hunter Protocol** — Search codebase for existing logic before writing new code. Function exists? Utility handles it? → **Reuse. Don't rewrite.** Report exact `path:line`.
 
-| Intensity | Behavior |
-|-----------|----------|
-| observe | Note if Why/How unclear or match found. User decides. |
-| enforce | **STOP.** Ask user. Block if Why/How missing or exact match found. |
-| audit | **STOP.** Must answer. Must reuse — only implement if no match exists. |
+**Intensity behavior** (levels in table above): **observe** = note, user decides · **enforce** = STOP, block if Why/How missing or exact match found · **audit** = STOP, must answer + reuse — implement only if no match exists.
 
 ## 🔍 Checkpoint 2: Stack
 
 Scan manifests (`package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `requirements.txt`, `.env.example`, `Makefile`) for service overlap. What you're adding — does anything existing already do this?
 
-| Intensity | Behavior |
-|-----------|----------|
-| observe | Report overlaps as FYI. User decides. |
-| enforce | **STOP on overlap.** Report. Wait for user. |
-| audit | **STOP.** Must justify or remove. No workaround. |
+**Intensity behavior:** **observe** = report overlaps as FYI · **enforce** = STOP on overlap, wait for user · **audit** = STOP, justify or remove, no workaround.
 
 ## 🛠️ Checkpoint 3: Implementation
 
-**Legacy Code Protocol:** If working on code >6 months old or >300 lines, activate legacy protocol:
-- Batch size: 5-20 files per batch
-- Impact analysis before each change
-- Tests must pass after each batch
-- Git checkpoint before starting
-See `modules/legacy.md` for full protocol.
+**Legacy Code Protocol:** If working on code >6 months old or >300 lines, activate legacy protocol (full rules in `modules/legacy.md`): batch 5-20 files, impact analysis before each change, tests must pass after each batch, git checkpoint before starting.
 
 **Before writing** — scope confirmed? audit done? simplest structure identified?
 
@@ -144,7 +121,7 @@ Alternative: [what you found]
 - Remove temp files, debug code, unused imports
 - Split files >300 lines or handling >3 concerns
 - Verify no duplicated logic introduced
-- Mark deliberate shortcuts with `// matcha: [reason]` — **standard format + English only**: `// matcha:explain <reason>`, `// matcha:todo <task>`, `// matcha:debt <reason>, <fix when>`, `// matcha:adr <ref>`. Markers must be written in English (the post-write hook + reviewer flag non-English markers).
+- Mark deliberate shortcuts with `// matcha: [reason]` — **standard format + English only**: `// matcha:explain <reason>`, `// matcha:todo <task>`, `// matcha:debt <reason>, <fix when>`, `// matcha:adr <ref>`. The post-write hook + reviewer flag non-English markers.
 
 ## ✅ Checkpoint 5: Verify (Feedback Harness)
 
@@ -163,27 +140,17 @@ Auto-detect test framework → run tests → typecheck → lint. Test fail → S
 | **L2** | Product Logic | **Full review (9 categories)** |
 | **L3** | High Risk | **Expert review + threat model** |
 
-Tier meaning is fixed. What *maps* to each tier is defined by the active **trigger pack** (see `hooks/matcha-trigger-packs.json`). No domain is assumed.
+Tier meaning is fixed. What *maps* to each tier is defined by the active **trigger pack** (see `hooks/matcha-trigger-packs.json`) — matcha does not hardcode "high risk". Detection: 1) trigger pack (domain-specific signals), 2) core signals (pathPattern, keyword, changeType, explicitMarker), 3) default L2 if no pack loaded (never under-review). Full framework: `modules/risk.md`.
 
-### Auto-Detection
-
-matcha does **not** hardcode what counts as "high risk" — that varies by project. Detection uses:
-1. **Trigger pack** — domain-specific signal rules (web-saas, ml-pipeline, infra-iac, etc.)
-2. **Core signals** — pathPattern, keyword, changeType, explicitMarker
-3. **Default** — L2 if no pack loaded (never under-review)
-
-See `modules/risk.md` for full detection framework.
-
-### Review by Tier
-
+**Review by Tier:**
 - **L0**: Runs? → PASS
 - **L1**: Lint + typecheck clean? → PASS
-- **L2**: 9-category review (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability). **Every category is addressed explicitly — PASS or FINDINGS with `file:line` evidence. No silent category skips.**
+- **L2**: **9-category review** (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability). Every category addressed explicitly — PASS or FINDINGS with `file:line` evidence. No silent category skips.
 - **L3**: All L2 + threat model + expert sign-off required
 
-See `/matcha:review` for full checklist. Verify the verdict with `matcha_review_validate` (rejects missing tier/scope/evidence/counts) before finalizing.
+See `/matcha:review` for the full checklist. Verify the verdict with `matcha_review_validate` (rejects missing tier/scope/evidence/counts) before finalizing.
 
-### Verdicts
+**Verdicts:**
 
 | Verdict | Meaning |
 |---------|---------|
@@ -213,7 +180,7 @@ Rules:
 - **Step execution (plan → implement handoff):** implement STRICTLY step-by-step from `current.md`'s Plan list — one step at a time, in order. Never jump ahead, never batch-finish steps. After EACH completed step: check it off (`[ ]` → `[x]`) and update the `**▶ Current:**` line (Step N/M, K done). The plan must always reflect the real position — that's the anti-stale mechanism that lets a compacted or fresh session resume mid-task in <500 tokens. Deviation from the plan (different approach, added scope, different files) → update the plan FIRST; significant deviations need user approval before proceeding. Never rewrite the step list mid-task without syncing `**▶ Current:**` to match.
 - **Living over archive.** Reports append monthly, keep latest 5 per agent, delete older.
 - **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly, standard.
-- Persistence: agents persist plan/report files directly where permitted (`.agents/plan/current.md` for planner + reviewer, `.agents/reports/**` for planner/reviewer/auditor — provider-enforced `edit` rules) or hand output to the orchestrating agent.
+- **Persistence:** agents persist plan/report files directly where permitted (`.agents/plan/current.md` for planner + reviewer, `.agents/reports/**` for planner/reviewer/auditor — provider-enforced `edit` rules) or hand output to the orchestrating agent.
 - **Gate artifacts only.** Persist plan/review/audit outputs — they gate shipping. Skip work artifacts (finder/cleaner/debugger): cheaper to re-run than to archive.
 
 ---
@@ -273,11 +240,11 @@ Recommendation: [which and why]
 **Critical — flag immediately:** swallowed errors, N+1, hardcoded secrets, race conditions, god objects.
 **Minor — only if found:** TODO/FIXME, debug logs, unnecessary abstraction.
 
+---
+
 ## Implementation Decision Matrix
 
 **Before writing, compare approaches.** Don't just pick the first solution.
-
-### Approach Selection
 
 | Situation | Choose | Why |
 |-----------|--------|-----|
@@ -289,24 +256,11 @@ Recommendation: [which and why]
 | Write-heavy data | Compute on write | Read latency critical |
 | Simple data transform | Declarative pipeline | Clear intent, testable |
 | Complex logic with side effects | Imperative loop | Explicit control, debuggable |
-| < 3 params | Object/struct | Readability |
 | 4+ params | Object/struct | Prevents arg-order bugs |
 | Optional behavior | Strategy pattern | Open/closed principle |
 | One-off script | Top-level code | No abstraction needed |
 
-### Efficiency Comparison
-
-When two approaches are viable, compare:
-
-| Factor | Weight | Check |
-|--------|--------|-------|
-| **Correctness** | 100% | Does it handle all edge cases? |
-| **Readability** | 80% | Can a new dev understand in <30s? |
-| **Performance** | 60% | O(n) vs O(n²)? Memory? |
-| **Testability** | 50% | Can it be unit tested easily? |
-| **Reversibility** | 40% | Easy to change later? |
-
-**Rule:** Correctness always wins. After that, prioritize readability over performance unless profiling proves bottleneck.
+**Efficiency comparison** when two approaches are viable — **Correctness (100%)** edge cases · **Readability (80%)** new dev in <30s · **Performance (60%)** O(n) vs O(n²), memory · **Testability (50%)** unit-testable · **Reversibility (40%)** easy to change. Correctness always wins; then readability over performance unless profiling proves a bottleneck.
 
 ---
 
@@ -314,66 +268,17 @@ When two approaches are viable, compare:
 
 **Reject these immediately.** Don't just flag — fix or explain why not.
 
-### Database / Queries
-| Anti-Pattern | Fix |
-|-------------|-----|
-| Fetching all columns when few needed | Select specific columns |
-| N+1 queries in loop | JOIN or batch query |
-| Missing WHERE on mutations | Always add WHERE |
-| String interpolation in queries | Parameterized queries |
-| No index on filtered columns | Add index |
-| Unbounded result set | Add LIMIT |
-
-### Error Handling
-| Anti-Pattern | Fix |
-|-------------|-----|
-| Empty catch block | At minimum, log the error |
-| Swallowed exceptions | Re-throw or handle explicitly |
-| Generic error messages | Include context (what, where, why) |
-| Catch-all without specificity | Catch specific error types |
-
-### Code Structure
-| Anti-Pattern | Fix |
-|-------------|-----|
-| God function (>50 lines) | Split by responsibility |
-| Deep nesting (>3 levels) | Extract early returns |
-| Long parameter list (>4) | Use options object/struct |
-| Commented-out code | Delete. Git has history |
-| TODO without issue link | Create issue or remove |
-| Dead code paths | Remove. Git remembers |
-
-### Naming & Constants
-| Anti-Pattern | Fix |
-|-------------|-----|
-| Hardcoded magic numbers | Extract to named constant |
-| Unclear variable names | Use descriptive names |
-| Abbreviations in names | Spell out (unless domain-standard) |
-| Boolean traps (arg, true) | Use named options or enums |
-
----
-
-## Debt Prevention
-
-**Prevent debt, don't just flag it.** Make the right choice the first time.
-
-| Debt Type | Prevention |
-|-----------|------------|
-| **Duplication** | Extract after 3rd copy, not after 10th |
-| **Over-abstraction** | Inline if used <3 times |
-| **Under-abstraction** | Extract if same pattern in 3+ places |
-| **Magic numbers** | Name them: `MAX_RETRIES = 3` |
-| **Dead code** | Delete now. Git remembers |
-| **Missing types** | Add types at boundaries first |
-| **Empty catches** | Log or re-throw. Never swallow |
-| **Deep nesting** | Early returns. Guard clauses |
-| **Long functions** | Split when >30 lines or >3 concerns |
-| **Hardcoded config** | Move to env vars or config file |
+| Area | Anti-Pattern → Fix |
+|------|--------------------|
+| DB | Fetch-all-columns → select few · N+1 → JOIN/batch · missing WHERE → always add · string interpolation → parameterized · no index → add · unbounded → LIMIT |
+| Errors | empty catch → log · swallowed → rethrow/handle · generic message → context · catch-all → specific types |
+| Code | god function (>50 lines) → split · deep nesting (>3) → early returns · long params (>4) → object · commented-out → delete · TODO w/o issue → create/remove · dead code → remove |
+| Naming | magic numbers → named constant · unclear names → descriptive · abbreviations → spell out · boolean trap → named options |
+| Debt | duplication (3rd copy) → extract · over-abstraction (<3 uses) → inline · missing types at boundaries → add · empty catches → log/rethrow · long functions → split · hardcoded config → env vars |
 
 ---
 
 ## Smart Review Checklist
-
-**When reviewing, ask these questions in order:**
 
 1. **Does it work?** — Run it. Test it. Edge cases.
 2. **Is it the simplest path?** — Can any code be removed?

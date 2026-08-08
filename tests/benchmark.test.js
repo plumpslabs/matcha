@@ -113,7 +113,6 @@ describe("generate-report.js features", () => {
 
 describe("live-repo-runner.js features", () => {
   const content = readProjectFile("benchmark/live-repo-runner.js");
-
   test("has runRepoTasks", () => {
     expect(content).toContain("runRepoTasks");
   });
@@ -182,6 +181,21 @@ describe("express-api fixture", () => {
   ];
   test.each(fixtureFiles)("repos/express-api/%s exists", (f) => {
     assertFile(`benchmark/repos/express-api/${f}`);
+  });
+});
+
+describe("live-bench matcha-lite arm (standing-context A/B)", () => {
+  const content = readProjectFile("benchmark/live-bench.js");
+  const utils = readProjectFile("benchmark/bench-utils.js");
+
+  test("live-bench.js defines the matcha-lite arm", () => {
+    expect(content).toContain("matcha-lite");
+    expect(content).toContain("injectOpenCodeRulesLite");
+  });
+
+  test("bench-utils.js exports injectOpenCodeRulesLite", () => {
+    expect(utils).toContain("export function injectOpenCodeRulesLite");
+    expect(utils).toContain("core.md");
   });
 });
 

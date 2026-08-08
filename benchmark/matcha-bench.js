@@ -15,7 +15,7 @@
  */
 
 import { readFileSync, existsSync, readdirSync } from "fs";
-import { join, relative } from "path";
+import { join, relative, isAbsolute } from "path";
 import { runAgenticLive } from "./agentic-runner.js";
 import { countLOC, estimateTokens } from "./bench-utils.js";
 
@@ -1068,7 +1068,9 @@ function formatAgenticReport(results) {
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 function runBenchmark(targetDir) {
-  const absTarget = join(process.cwd(), targetDir || ".");
+  // Absolute target paths (e.g. temp fixture dirs from live-bench) must not be
+  // joined onto cwd — join() does not reset on an absolute second argument.
+  const absTarget = isAbsolute(targetDir) ? targetDir : join(process.cwd(), targetDir || ".");
   const files = walkDir(absTarget, absTarget);
 
   const allFindings = [];
@@ -1120,7 +1122,13 @@ if (isDirectInvocation) {
     const agenticLiveFlag = args.includes("--agentic-live");
     const simulateFlag = args.includes("--simulate");
     const baselineFile = args.includes("--baseline") ? args[args.indexOf("--baseline") + 1] : null;
-    const targetDir = args.find(a => !a.startsWith("--") && a !== args[args.indexOf("--baseline") + 1]) || ".";
+    // Non-flag positional args. Skip flag VALUES (--baseline X, --iters N) so the
+    // first positional is always the target dir — previously, without --baseline,
+    // `args[indexOf("--baseline") + 1]` aliased args[0] and the find always failed,
+    // silently scanning cwd (the matcha repo itself) instead of the target.
+    const valueFlags = ["--baseline", "--iters"];
+    const positional = args.filter((a, i) => !a.startsWith("--") && !valueFlags.includes(args[i - 1]));
+    const targetDir = positional[0] || ".";
 
     if (agenticLiveFlag) {
       const results = await runAgenticLive({ simulate: simulateFlag });

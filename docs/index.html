@@ -8,6 +8,7 @@
 <link rel="icon" href="https://raw.githubusercontent.com/plumpslabs/matcha/main/public/matcha.png" type="image/png" />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
 :root{
@@ -163,6 +164,7 @@ tr:hover td{background:var(--bg-hover)}
     <a class="sidebar-link" href="#modes" onclick="setActive(this)"><i data-lucide="workflow"></i> Modes</a>
     <a class="sidebar-link" href="#risk" onclick="setActive(this)"><i data-lucide="shield"></i> Risk Tiers</a>
     <a class="sidebar-link" href="#planning" onclick="setActive(this)"><i data-lucide="file-text"></i> Planning Gate</a>
+    <a class="sidebar-link" href="#proportionality" onclick="setActive(this)"><i data-lucide="scale"></i> Proportionality</a>
     <a class="sidebar-link" href="#project-constraints" onclick="setActive(this)"><i data-lucide="settings"></i> Project Constraints</a>
     <a class="sidebar-link" href="#session-memory" onclick="setActive(this)"><i data-lucide="database"></i> Session Memory</a>
   </div>
@@ -173,9 +175,11 @@ tr:hover td{background:var(--bg-hover)}
   <div class="sidebar-section">
     <div class="sidebar-label">Reference</div>
     <a class="sidebar-link" href="#commands" onclick="setActive(this)"><i data-lucide="terminal"></i> Commands</a>
+    <a class="sidebar-link" href="#cli" onclick="setActive(this)"><i data-lucide="command"></i> CLI</a>
     <a class="sidebar-link" href="#agents" onclick="setActive(this)"><i data-lucide="users"></i> Agents</a>
     <a class="sidebar-link" href="#hooks" onclick="setActive(this)"><i data-lucide="zap"></i> Hooks</a>
     <a class="sidebar-link" href="#modules" onclick="setActive(this)"><i data-lucide="box"></i> Modules</a>
+    <a class="sidebar-link" href="#benchmark" onclick="setActive(this)"><i data-lucide="bar-chart"></i> Benchmark</a>
     <a class="sidebar-link" href="#architecture" onclick="setActive(this)"><i data-lucide="layers"></i> Architecture</a>
   </div>
 </nav>
@@ -791,6 +795,35 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   </ul>
 </div>
 
+<!-- Proportionality -->
+<div class="section" id="proportionality">
+  <h1>Proportionality &amp; Trivial Fast-Pass</h1>
+  <p>Match ceremony to risk. The gates exist to protect — not to slow you down. <strong>Over-analysis is not rigor; it is waste.</strong></p>
+
+  <table>
+    <tr><th>Task Size</th><th>Definition</th><th>Gate Required</th></tr>
+    <tr><td><strong>Trivial</strong></td><td>≤5 LOC, 1 file, no logic change (typo, rename, copy, config value, docs)</td><td><span style="display:inline-block;font-size:11px;font-weight:600;color:var(--green,#22c55e);background:rgba(34,197,94,.12);padding:3px 10px;border-radius:100px">Fast-pass — no full gate</span></td></tr>
+    <tr><td><strong>Small</strong></td><td>1–3 files, contained change</td><td>Short plan + lint review</td></tr>
+    <tr><td><strong>Large</strong></td><td>Cross-cutting / production risk (auth, payments, DB, schema)</td><td>Full gate + risk-based review</td></tr>
+  </table>
+
+  <h3>Trivial Plan Marker</h3>
+  <p>For trivial tasks, write a minimal plan carrying the <code>&lt;!-- trivial --&gt;</code> marker (or <code>type: plan-trivial</code> in frontmatter) plus a <code>**Problem:**</code> line — the hook accepts it without the full What/Why/How gate. Without the marker, the hook still requires Problem + Goals + Success Criteria.</p>
+  <div class="code-block"><pre><code>&lt;!-- trivial --&gt;
+# 🍵 Intent Discovery
+- **Problem:** Rename `foo` to `bar` in src/x.js</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+
+  <h3>What Skips the Gate Automatically (Smart Auto-Skip)</h3>
+  <ul>
+    <li><strong>Commands:</strong> read-only (<code>git status</code>, <code>grep</code>, <code>ls</code>), tests (<code>npm test</code>, <code>vitest</code>), lint/format (<code>eslint</code>, <code>prettier</code>), package managers</li>
+    <li><strong>Files:</strong> docs (<code>.md</code>), tests (<code>.test.js</code>), config &amp; low-risk data (<code>.yaml</code>, <code>.jsonc</code>, <code>.css</code>, <code>.html</code>, <code>.env*</code>, <code>.lock</code>, <code>tsconfig</code>, <code>Dockerfile</code>), matcha session files (<code>current.md</code>)</li>
+    <li><strong>Never skipped:</strong> dependency manifests (<code>package.json</code>, <code>pyproject.toml</code>, <code>Cargo.toml</code>, <code>go.mod</code>, <code>Gemfile</code>), component source (<code>.vue</code>, <code>.svelte</code>), production code — these change logic or the dependency tree</li>
+  </ul>
+
+  <h3>Exit Conditions Beat STOP</h3>
+  <p>Before stopping to ask the user, ask: <em>is this actually blocking, or can I proceed on a recorded assumption?</em> Prefer proceeding with a visible assumption over blocking on trivia. Record assumptions in the plan's Assumptions field so they survive context compaction.</p>
+</div>
+
 <!-- Project Constraints -->
 <div class="section" id="project-constraints">
   <h1>Project Constraints</h1>
@@ -854,9 +887,10 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
 
   <pre><code>┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │  Phase 1: PLAN  │ →  │ Phase 2: SEARCH │ →  │ Phase 3: CODE   │ →  │  Phase 4: SHIP  │
-│  @matcha-planner│    │  @matcha-finder │    │ @matcha-debugger│    │ /matcha:review  │
-│  (/matcha:why)  │    │  (Reuse Check)  │    │ (Systematic Fix)│    │ @matcha-cleaner │
+│  @matcha-planner│    │  @matcha-finder │    │  Main agent     │    │ /matcha:review  │
+│  (/matcha:why)  │    │  (Reuse Check)  │    │ (verify + debug)│    │ @matcha-cleaner │
 └─────────────────┘    └─────────────────┘    └─────────────────┘    └─────────────────┘</code></pre>
+  <p><em>Implementasi dilakukan oleh <strong>main agent</strong> (bukan sub-agent) — mengikuti plan di <code>.agents/plan/current.md</code> step-by-step. <code>@matcha-debugger</code> hanya dipanggil <strong>jika terjadi error</strong>, dan <code>@matcha-finder</code> bisa dipanggil ulang saat menemukan kode yang bisa di-reuse.</em></p>
 
   <div class="step">
     <div class="step-num">1</div>
@@ -877,8 +911,8 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <div class="step">
     <div class="step-num">3</div>
     <div class="step-body">
-      <h4>Phase 3: Code & Debug</h4>
-      <p>Implement according to <strong>8-Pillar Engineering Directives</strong> (Type-Safe, Boundary Guard, Pure Core, Security, Resource & Memory Awareness). If an error occurs, invoke <code>@matcha-debugger</code> for systematic 1-hypothesis-at-a-time investigation with log evidence.</p>
+      <h4>Phase 3: Implement & Verify</h4>
+      <p>Implement directly according to the plan in <code>.agents/plan/current.md</code> — check off steps (<code>[x]</code>) and update the <code>**▶ Current:**</code> line as you go. Follow the <strong>Engineering Directives</strong> (Type-Safe, Boundary Guard, Pure Core, Security, Resource & Memory Awareness). Verify runs automatically after each change (tests + typecheck + lint). If an error occurs, invoke <code>@matcha-debugger</code> for systematic 1-hypothesis-at-a-time investigation with log evidence — debugger is for failures, not the default implementer.</p>
     </div>
   </div>
 
@@ -889,8 +923,10 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
       <p><code>/matcha:review</code> & <code>@matcha-cleaner</code>. Run full risk-based review (L0-L3). Nothing ships without PASS. Run <code>@matcha-cleaner</code> to remove debug logs and mark intentional shortcuts with <code>// matcha: [reason]</code>.</p>
     </div>
   </div>
-</div>
 
+  <div class="step">
+    <div class="step-num">5</div>
+    <div class="step-body">
       <h4>Verify (automatic)</h4>
       <p>Tests + typecheck + lint run automatically (framework auto-detected). Red tests → stop and fix, never continue.</p>
     </div>
@@ -961,6 +997,27 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <tr><td><code>/matcha:debt</code></td><td>Technical debt report</td><td>Find <code>// matcha:</code> markers</td></tr>
     <tr><td><code>/matcha:markers</code></td><td>Marker scan</td><td>Group by severity</td></tr>
   </table>
+  <p><em>Note:</em> <code>/matcha:status</code> now surfaces session metrics (planning-gate blocks, shield blocks, reviews run, issues caught, FP rate) when <code>.agents/matcha-metrics.json</code> exists — so matcha can measure its own overhead.</p>
+</div>
+
+<!-- CLI Reference -->
+<div class="section" id="cli">
+  <h1>CLI Reference</h1>
+  <p>Run <code>matcha &lt;command&gt;</code> after installing via npm (or <code>node bin/matcha.js &lt;command&gt;</code> from the repo). All commands resolve state at the workspace root (monorepo-aware).</p>
+
+  <table>
+    <tr><th>Command</th><th>Purpose</th></tr>
+    <tr><td><code>matcha init</code></td><td>Interactive provider picker → runs <code>install.sh</code> for the selected platforms</td></tr>
+    <tr><td><code>matcha status</code></td><td>Installation health: detected platforms, AGENTS.md, shield, intensity + metrics snapshot</td></tr>
+    <tr><td><code>matcha metrics</code></td><td>Impact &amp; overhead telemetry: tasks, reviews, issues caught, FP rate, planning/shield blocks (from <code>.agents/matcha-metrics.json</code>)</td></tr>
+    <tr><td><code>matcha markers</code></td><td>Scan <code>// matcha:</code> decision markers grouped by severity</td></tr>
+    <tr><td><code>matcha verify</code></td><td>Check installed rule copies across providers (anti-stale)</td></tr>
+    <tr><td><code>matcha state</code></td><td>Inspect session state (intensity, plan, metrics paths)</td></tr>
+    <tr><td><code>matcha decision</code></td><td>Log a technical decision to <code>.agents/plan/decisions.log</code></td></tr>
+    <tr><td><code>matcha mcp</code></td><td>Launch the matcha MCP server (stdio)</td></tr>
+    <tr><td><code>matcha -v</code> / <code>--version</code></td><td>Print version only</td></tr>
+    <tr><td><code>matcha help</code></td><td>Show usage</td></tr>
+  </table>
 </div>
 
 <!-- Agents Reference -->
@@ -1013,6 +1070,81 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <tr><td><code>engineering.md</code></td><td>Implement + review</td><td>Universal engineering bar: errors, logging, validation, API contracts, state, concurrency</td></tr>
     <tr><td><code>legacy.md</code></td><td>Legacy codebases</td><td>Incremental batching, impact analysis</td></tr>
   </table>
+</div>
+
+<!-- Benchmark -->
+<div class="section" id="benchmark">
+  <h1>Benchmark &amp; Evidence</h1>
+  <p>Matcha ships its own benchmark tooling (<code>benchmark/</code>) and publishes results — so the claim "rules improve output without bloating it" is <em>measured, not asserted</em>.</p>
+
+  <h3>Agentic A/B Benchmark (headless Claude Code, 20 tasks × 3 arms)</h3>
+  <table>
+    <tr><th>Arm</th><th>Total LOC</th><th>Correct</th><th>Adversarial-safe</th><th>Avg tok/output</th></tr>
+    <tr><td>Baseline (no rules)</td><td>347</td><td>13/20</td><td>4/20</td><td>123</td></tr>
+    <tr><td>Terse ("be brief")</td><td>198</td><td>13/20</td><td>4/20</td><td>81</td></tr>
+    <tr><td><strong>Matcha rules</strong></td><td><strong>260</strong></td><td><strong>13/20</strong></td><td><strong>4/20</strong></td><td><strong>102</strong></td></tr>
+  </table>
+  <p><strong>Key insight:</strong> matcha produces <em>less</em> code than no-rules (260 vs 347 LOC) at equal correctness — rules reduce output volume via reuse/no-duplication instead of inflating it. Token cost sits in the process (planning + verification), not the generated code.</p>
+
+  <h3>Real Multi-Turn Feature Benchmark (agy, 3 features)</h3>
+  <table>
+    <tr><th>Feature</th><th>LOC</th><th>Tests</th><th>Passed</th><th>Compliance</th></tr>
+    <tr><td>Activity Tracking</td><td>111</td><td>12</td><td>✅ 12</td><td>A</td></tr>
+    <tr><td>Pagination</td><td>67</td><td>10</td><td>✅ 10</td><td>A</td></tr>
+    <tr><td>Rate Limiting</td><td>75</td><td>8</td><td>✅ 8</td><td>A</td></tr>
+    <tr><td><strong>Total</strong></td><td><strong>270</strong></td><td><strong>30</strong></td><td><strong>✅ 30/30</strong></td><td><strong>Excellent</strong></td></tr>
+  </table>
+
+  <h3>Live Agentic Benchmark (18 real agent runs, headless opencode)</h3>
+  <p>Real feature implementation on the <code>express-api</code> fixture: 3 features × 3 arms × 2 iterations. Process cost (tokens, steps, wall time) is measured from real provider events, not estimated. Lower is better for every chart except Correctness.</p>
+
+  <canvas id="benchChart" style="max-width:100%;height:auto;margin:14px 0;"></canvas>
+  <p style="font-size:0.85rem;opacity:0.75;">Median per arm · data as of 2026-08-07 (re-run: <code>node benchmark/live-bench.js --all --n 5</code>, then update <code>docs/benchmark.json</code> + this chart) · details in <code>docs/BENCHMARK.md</code>.</p>
+
+  <table>
+    <tr><th>Metric (median)</th><th>❌ No rules</th><th>💬 Terse</th><th>🍵 Matcha</th><th>Verdict</th></tr>
+    <tr><td>Correctness (fail→pass)</td><td>1.0</td><td>1.0</td><td>1.0</td><td>Tie — rules don't hurt or help on small tasks</td></tr>
+    <tr><td>ExpectedPass (target suite)</td><td>5/6</td><td>5/6</td><td>5/6</td><td>Tie — sharper metric, still no correctness edge</td></tr>
+    <tr><td>LOC added</td><td>13.5</td><td>6.5</td><td>17</td><td>Matcha writes more, but overhead cut +136% → +26% after anti-overbuild fix</td></tr>
+    <tr><td>Tokens (real)</td><td>395K</td><td>347K</td><td>643K</td><td>Matcha +63% this run (variance high — see BENCHMARK.md)</td></tr>
+    <tr><td>Wall time</td><td>58s</td><td>34s</td><td>78s</td><td>Matcha +34% (was +70% pre-fix)</td></tr>
+    <tr><td>Compliance (changed files)</td><td>100</td><td>100</td><td>100</td><td>Tie — all arms clean</td></tr>
+  </table>
+  <p><strong>Honest takeaway:</strong> cost (tokens/time) is <em>context, not the verdict</em>. Matcha spends more because it thinks before it implements — that buys precision, structure, and prevention. The quality side is why the cost is worth paying: defect density (anti-pattern findings per 100 LOC added, scanned on agent-written files only), correctness, and safe complex refactors. On small/trivial tasks matcha is overkill <em>by design</em> — Proportionality routes them through the ≤30-line fast path and the <code>trivial</code> plan; use <code>/matcha:intensity observe</code> for trivia.</p>
+
+  <h3>Complex-Task Benchmarks (v3 — where a thinking-first agent earns its cost)</h3>
+  <table>
+    <tr><th>Task</th><th>Shape</th><th>What it measures</th></tr>
+    <tr><td><code>refactor-users-service</code></td><td>Multi-file refactor: extract store + lookup into a service layer</td><td>Safe refactoring — restructures without breaking behavior, no duplicated logic</td></tr>
+    <tr><td><code>fix-auth-security</code></td><td>Multi-layer bug: auth bypass (<code>Authorization: "null"</code>) + non-numeric <code>:id</code> → 404</td><td>Root-cause + security discipline — finds both layers, doesn't break valid auth</td></tr>
+  </table>
+  <p><strong>Quality metric — defect density:</strong> anti-pattern findings (empty catches, magic numbers, hardcoded secrets) per 100 LOC <em>added by the agent</em>, scanned via <code>hooks/patterns.json</code>. This is the value side of the ledger: baseline writes few, sloppy lines; matcha writes more, cleaner lines. Run: <code>node benchmark/live-bench.js --task refactor-users-service --arm matcha --n 5</code>.</p>
+
+  <p><strong>First complex-task run (free model, n=1–2/cell, 2026-08-08):</strong> this is the arena matcha was built for — and the arms split hard.</p>
+  <table>
+    <tr><th>Task</th><th>❌ No rules</th><th>💬 Terse</th><th>🍵 Matcha</th></tr>
+    <tr><td><code>refactor-users-service</code> — completed</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td>0/2 ❌ (+3 LOC, refactor not done)</td><td><strong>✅ 1/1</strong> (+15 LOC, service layer extracted, tests green)</td></tr>
+    <tr><td><code>refactor-users-service</code> — defect density</td><td>n/a (no-op)</td><td>n/a (no-op)</td><td>6.7 (1 finding / 15 LOC)</td></tr>
+    <tr><td><code>fix-auth-security</code> — passed</td><td>✅ 1/1 (+8 LOC)</td><td>✅ 2/2 (+4 LOC)</td><td>✅ 1/1 (+16 LOC, density 0)</td></tr>
+  </table>
+  <p><strong>Honest reading:</strong> without rules the agent <em>fails the multi-file refactor</em> — it adds a few lines and stops; matcha is the only arm that actually extracts the service layer without breaking behavior. On the small security bug, every arm that finished fixed it — matcha added no measurable edge there (its cells repeatedly hit free-model queue timeouts &gt;540s; an environment artifact — the same task passed at 240s in the dry-run). Defect density only counts <em>completed</em> work: a 3-line no-op has no density to measure, so baseline/terse's <code>n/a</code> is not a clean bill of health.</p>
+
+  <h3>Standing-Context A/B (20 cells: 2 tasks × core-only vs full × n=5)</h3>
+  <p>The skill is lazy-loaded (only <code>core.md</code> is always-read) and modules were slimmed 18.6K → 15.9K chars. A dedicated A/B measured whether a core-only injection actually cuts tokens:</p>
+  <table>
+    <tr><th>Arm</th><th>Tokens (median, combined)</th><th>Verdict</th></tr>
+    <tr><td>🍵 matcha (full)</td><td>725K</td><td rowspan="2">−6.3% median for core-only — smaller than run-to-run noise (±150K stdev). Per-step cacheRead is ~48-49K on both arms: standing context is dominated by AGENTS.md + agents + hooks + opencode system prompt, not the skill modules. The slim is correct-by-architecture (~1.5K tokens/step saved) but not a headline win.</td></tr>
+    <tr><td>🍵 matcha core-only</td><td>679K</td></tr>
+  </table>
+  <p>Re-run anytime: <code>node benchmark/live-bench.js --task add-rate-limiting --arm matcha-lite --n 5</code> · full write-up in <code>docs/BENCHMARK.md</code>.</p>
+
+  <h3>Run It Yourself</h3>
+  <p>Every published number is re-runnable — the harness ships in <code>benchmark/</code>:</p>
+  <div class="code-block"><pre><code>node benchmark/live-bench.js --all --n 5        # full A/B: 6 tasks × 3 arms (headless opencode, tokens+time)
+node benchmark/live-bench.js --task refactor-users-service --arm matcha --n 5 --timeout 480   # complex-task run
+node benchmark/matcha-bench.js ./src            # compliance scan of your code
+node benchmark/agentic-runner.js --simulate     # deterministic smoke test, no Claude needed</code><button class="code-copy" onclick="copyCode(this)">Copy</button></pre></div>
+  <p>Complex tasks run 200s+ per cell on free models — pass <code>--timeout 480</code> for refactor/security tasks. Full methodology in <code>docs/BENCHMARK.md</code>.</p>
 </div>
 
 <!-- Architecture -->
@@ -1204,6 +1336,52 @@ lucide.createIcons();
   }
 
   setTimeout(function () { el.classList.add('show'); loadCount(); }, 6500);
+})();
+
+// ─── Live benchmark chart (data from docs/benchmark.json live.arms) ───────────
+(function () {
+  var c = document.getElementById('benchChart');
+  if (!c || typeof Chart === 'undefined') return;
+  var arms = ['baseline', 'terse', 'matcha'];
+  var labels = ['No rules', 'Terse', 'Matcha'];
+  // Matches docs/benchmark.json → live.arms (medians).
+  var data = {
+    'Correctness (fail→pass)': [1, 1, 1],
+    'ExpectedPass (of 6)': [5, 5, 5],
+    'LOC added': [13.5, 6.5, 17],
+    'Tokens (K)': [395, 347, 643],
+    'Wall time (s)': [58, 34, 78],
+    'Compliance': [100, 100, 100],
+  };
+  var colors = { baseline: '#3b82f6', terse: '#a855f7', matcha: '#eab308' };
+  new Chart(c, {
+    type: 'bar',
+    data: {
+      labels: labels,
+      datasets: Object.keys(data).map(function (k) {
+        return {
+          label: k,
+          data: data[k],
+          backgroundColor: arms.map(function (a) { return colors[a] + 'cc'; }),
+          borderColor: arms.map(function (a) { return colors[a]; }),
+          borderWidth: 1,
+          borderRadius: 4,
+        };
+      }),
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { labels: { color: '#a1a1aa', boxWidth: 14 } },
+        tooltip: { backgroundColor: '#1c1c1f', borderColor: '#27272a', borderWidth: 1 },
+      },
+      scales: {
+        x: { ticks: { color: '#71717a' }, grid: { color: 'rgba(39,39,42,0.5)' } },
+        y: { beginAtZero: true, ticks: { color: '#71717a' }, grid: { color: 'rgba(39,39,42,0.5)' } },
+      },
+    },
+  });
 })();
 </script>
 </body>

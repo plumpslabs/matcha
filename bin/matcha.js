@@ -20,6 +20,7 @@ import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { createInterface } from "readline";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
+import { getMetricsSummary } from "../hooks/matcha-metrics.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -337,6 +338,14 @@ function cmdStatus() {
   } catch {}
   console.log(`  Intensity:  ${intensity}`);
 
+  // Metrics snapshot — hooks record blocks/findings to .agents/matcha-metrics.json
+  try {
+    const s = getMetricsSummary();
+    if (s.totals.sessions?.length || s.totals.tasksCompleted) {
+      console.log(`  Metrics:    ${s.totals.tasksCompleted} tasks · ${s.totals.reviewIssues} issues caught · ${s.totals.planningGateBlocks} gate blocks · ${s.totals.shieldBlocks} shield blocks`);
+    }
+  } catch {}
+
   console.log(`\n  All systems ${found.length > 0 ? "✅ nominal" : "⏭ pending install"}`);
 }
 
@@ -527,40 +536,41 @@ function cmdDecision() {
 }
 
 // ─── Metrics — Impact tracking ──────────────────────────────────────────────
+// Unified with hooks/matcha-metrics.js (single source of truth). The hooks
+// record v2 schema (planningGateBlocks, shieldBlocks, reviewVerdicts, FP rate);
+// cmdMetrics reuses getMetricsSummary() instead of reading a stale v1 shape.
 function cmdMetrics() {
   console.log(`🍵 matcha: metrics\n`);
 
-  let metrics = { sessions: [], totals: { sessions: 0, tasks: 0, issuesFound: 0, falsePositives: 0 } };
-  try {
-    if (existsSync(METRICS_FILE)) {
-      metrics = JSON.parse(readFileSync(METRICS_FILE, "utf-8"));
-    }
-  } catch {}
+  const summary = getMetricsSummary();
+  const t = summary.totals;
 
-  const t = metrics.totals;
   console.log(`  📊 All-Time Metrics`);
-  console.log(`  Sessions:       ${t.sessions}`);
-  console.log(`  Tasks:          ${t.tasks}`);
-  console.log(`  Issues caught:  ${t.issuesFound} (prevented from shipping)`);
-  console.log(`  False positives: ${t.falsePositives}`);
+  console.log(`  Sessions:          ${summary.recentSessions}`);
+  console.log(`  Tasks:             ${t.tasksCompleted}`);
+  console.log(`  Reviews run:       ${t.reviewsRun}`);
+  console.log(`  Issues caught:     ${t.reviewIssues} (prevented from shipping)`);
+  console.log(`  FP rate:           ${summary.falsePositiveRate}%`);
+  console.log(`  Compliance:        ${summary.complianceRate}%`);
+  console.log(`  Shield blocks:     ${t.shieldBlocks} (${t.dangerousCommandsBlocked || 0} destructive)`);
+  console.log(`  Planning blocks:   ${t.planningGateBlocks}`);
+  console.log(`  Simple-task skips: ${t.simpleTasksDetected}`);
+  console.log(`  Mode switches:     ${t.modeSwitches}`);
 
-  if (t.sessions > 0) {
-    const fpRate = t.issuesFound > 0 ? Math.round((t.falsePositives / t.issuesFound) * 100) : 0;
-    console.log(`  FP rate:        ${fpRate}%`);
-    console.log(`  Avg tasks/session: ${Math.round(t.tasks / t.sessions)}`);
+  if (t.reviewsRun > 0) {
+    console.log(`\n  📈 Reviews by Tier`);
+    console.log(`    L0: ${t.reviewsByTier.L0} · L1: ${t.reviewsByTier.L1} · L2: ${t.reviewsByTier.L2} · L3: ${t.reviewsByTier.L3}`);
+    console.log(`  Verdicts: PASS ${t.reviewVerdicts.PASS} · PASS_WITH_FIXES ${t.reviewVerdicts.PASS_WITH_FIXES} · BLOCK ${t.reviewVerdicts.BLOCK} · EXPERT_REQUIRED ${t.reviewVerdicts.EXPERT_REQUIRED}`);
   }
 
-  if (metrics.sessions.length > 0) {
-    console.log(`\n  📈 Recent Sessions`);
-    const recent = metrics.sessions.slice(-5);
-    for (const s of recent) {
-      const date = new Date(s.started).toLocaleDateString();
-      console.log(`    ${date}: ${s.tasks} tasks, ${s.issuesFound} issues`);
-    }
+  if (summary.recentSessions > 0) {
+    console.log(`\n  📉 Recent sessions: ${summary.recentSessions} (last 7 days)`);
+    const trends = summary.trends || {};
+    if (trends.shieldBlocks) console.log(`    Shield blocks trend: ${trends.shieldBlocks.direction} (${trends.shieldBlocks.change}%)`);
   }
 
-  if (t.sessions === 0) {
-    console.log(`\n  No metrics yet. Start using matcha to track impact.`);
+  if (summary.recentSessions === 0 && t.tasksCompleted === 0) {
+    console.log(`\n  No metrics yet. Hooks record blocks/findings automatically — run a session to track impact.`);
   }
 }
 

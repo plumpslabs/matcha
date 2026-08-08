@@ -5,7 +5,7 @@ import { tmpdir } from "os";
 import { checkCommand, isSimpleTask, DANGER_PATTERNS } from "../hooks/danger-checks.js";
 import { detectMode } from "../hooks/mode-detect.js";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
-import { validatePlanContent } from "../hooks/planning-gate.js";
+import { validatePlanContent, checkPlanningGate, isPlanFilePath } from "../hooks/planning-gate.js";
 import { validateReviewContent } from "../hooks/review-validate.js";
 
 // ─── Monorepo fixture for workspace-root tests ───────────────────────────────
@@ -152,10 +152,68 @@ describe("danger-checks.js", () => {
     test("does not mark production code as simple", () => {
       expect(isSimpleTask("Bash", { command: "node build.js" })).toBe(false);
       expect(isSimpleTask("WriteFile", { path: "src/index.js" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "src/app.ts" })).toBe(false);
+    });
+
+    test("detects low-risk config files as simple writes (Proportionality)", () => {
+      expect(isSimpleTask("WriteFile", { path: "tsconfig.json" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "config/app.yaml" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "src/styles.css" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "index.html" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: ".env" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: ".env.production" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "pnpm-lock.yaml" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "Dockerfile" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "docker-compose.yml" })).toBe(true);
+    });
+
+    test("dependency manifests and component sources are NOT simple (they change logic/deps)", () => {
+      // Adding a dependency / editing component logic is not a trivial edit.
+      expect(isSimpleTask("WriteFile", { path: "package.json" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "pyproject.toml" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "Cargo.toml" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "go.mod" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "Gemfile" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "requirements.txt" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "src/App.vue" })).toBe(false);
+      expect(isSimpleTask("WriteFile", { path: "Component.svelte" })).toBe(false);
     });
 
     test("returns false for unknown tools", () => {
       expect(isSimpleTask("UnknownTool", {})).toBe(false);
+    });
+
+    // Benchmark-backed: small source edits (≤30 lines) skip the gate (Proportionality Small),
+    // while edits without inspectable size still gate (unknown ≠ trivial).
+    test("small source edit (≤30 lines) skips the gate (size-based fast pass)", () => {
+      expect(isSimpleTask("EditFile", { path: "src/index.js", newString: "const x = 1;\n" })).toBe(true);
+      expect(isSimpleTask("WriteFile", { path: "src/app.ts", content: "export const MAX = 10;\n" })).toBe(true);
+      expect(isSimpleTask("edit", { filePath: "src/util.js", newString: "// guard\nif (!input) return null;\n" })).toBe(true);
+    });
+
+    test("large source edit (>30 lines) still gates", () => {
+      const big = Array.from({ length: 50 }, (_, i) => `line ${i}`).join("\n");
+      expect(isSimpleTask("WriteFile", { path: "src/index.js", content: big })).toBe(false);
+    });
+
+    test("source edit without inspectable size still gates (unknown ≠ trivial)", () => {
+      // No content/newString payload → cannot prove it is small → keep the gate.
+      expect(isSimpleTask("WriteFile", { path: "src/index.js" })).toBe(false);
+    });
+
+    test("dependency manifests never skip even with small content", () => {
+      expect(isSimpleTask("EditFile", { path: "package.json", newString: "{\"name\":\"x\"}" })).toBe(false);
+      expect(isSimpleTask("EditFile", { path: "Cargo.toml", newString: "[deps]\n" })).toBe(false);
+    });
+
+    test("component SFCs never skip even with small content (contain script logic)", () => {
+      expect(isSimpleTask("EditFile", { path: "src/App.vue", newString: "<p>hi</p>\n" })).toBe(false);
+      expect(isSimpleTask("EditFile", { path: "Component.svelte", newString: "let x = 1;\n" })).toBe(false);
+      expect(isSimpleTask("EditFile", { path: "page.astro", newString: "---\nconst y = 2;\n" })).toBe(false);
+    });
+
+    test("non-string payload (structured data) is unknown → still gates", () => {
+      expect(isSimpleTask("WriteFile", { path: "src/index.js", data: { big: "payload", nested: [1, 2, 3] } })).toBe(false);
     });
   });
 });
@@ -189,6 +247,37 @@ describe("planning-gate.js — Proportionality (trivial plan pass)", () => {
   test("empty plan is rejected", () => {
     const res = validatePlanContent("   ");
     expect(res.valid).toBe(false);
+  });
+});
+
+describe("planning-gate.js — anti-deadlock (never block the recovery path)", () => {
+  test("read tools are never blocked", () => {
+    expect(checkPlanningGate({ tool: "Read", input: { filePath: "src/index.js" } })).toBeNull();
+    expect(checkPlanningGate({ tool: "Read", input: { path: "src/index.js" } })).toBeNull();
+  });
+
+  test("plan-file writes are never blocked (agent must be able to write the plan the gate demands)", () => {
+    expect(checkPlanningGate({ tool: "WriteFile", input: { path: ".agents/plan/current.md" } })).toBeNull();
+    expect(checkPlanningGate({ tool: "WriteFile", input: { path: ".agents/reports/planner-2026-08.md" } })).toBeNull();
+    expect(checkPlanningGate({ tool: "edit", input: { filePath: ".agents/plan/current.md" } })).toBeNull();
+  });
+
+  test("plan-validation MCP tools are never blocked", () => {
+    expect(checkPlanningGate({ tool: "matcha_plan_validate", input: {} })).toBeNull();
+    expect(checkPlanningGate({ tool: "matcha_shield_check", input: {} })).toBeNull();
+  });
+
+  test("safe/simple commands are never blocked", () => {
+    expect(checkPlanningGate({ tool: "Bash", input: { command: "git status" } })).toBeNull();
+    expect(checkPlanningGate({ tool: "bash", input: { command: "npm test" } })).toBeNull();
+  });
+
+  test("isPlanFilePath covers all session files", () => {
+    expect(isPlanFilePath(".agents/plan/current.md")).toBe(true);
+    expect(isPlanFilePath(".agents/matcha-plan.md")).toBe(true);
+    expect(isPlanFilePath(".agents/matcha-state.json")).toBe(true);
+    expect(isPlanFilePath(".agents/reports/reviewer-2026-08.md")).toBe(true);
+    expect(isPlanFilePath("src/index.js")).toBe(false);
   });
 });
 

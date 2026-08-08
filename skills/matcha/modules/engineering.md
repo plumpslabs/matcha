@@ -6,9 +6,19 @@
 
 ## Scope & Analysis Boundary (Anti-Paranoid Guard)
 - **Scope limitation:** Check and enforce directives ONLY for code lines and areas directly touched by the change. Do NOT perform full-codebase audits for localized edits.
-- **Context-triggered principles:** Evaluate guidelines (such as API breaking changes, distributed tracing, or ADRs) ONLY when the active change directly touches those domains. Never block simple edits with unrelated rules.
+- **Context-triggered principles:** Evaluate guidelines (API breaking changes, distributed tracing, ADRs) ONLY when the active change touches those domains. Never block simple edits with unrelated rules.
 - **Library Discipline:** Prefer standard library / native platform capabilities first. Ask and confirm before introducing new third-party dependencies or abstractions.
 - **Architectural Decisions (ADR):** For major structural or library choices, record inline rationale: `// matcha:adr <decision> (rationale: <why>)`.
+
+## Output Size Discipline (Anti-Overbuild Guard)
+
+Benchmark-proven failure mode: on small features, applying the FULL production bar (named constants, validation helpers, error envelopes, env vars) produced **16.5 median LOC vs 7 (no rules) / 5.5 (terse)** for identical correctness. Rules should not inflate output.
+
+- **Ceremony scales with risk, not habit.** Small task (≤30 LOC total change)? Write the MINIMAL correct solution. Named-constant extraction, validation helpers, and error envelopes apply to L2+ risk (product logic, prod paths, auth, DB) — NOT to a guard clause or a 10-line bug fix.
+- **Reuse beats ceremony.** Before adding a helper, ask: does the codebase already have it? (Hunter Protocol). A new 15-line "clean" helper that duplicates an existing one is debt, not quality.
+- **Nothing extra that isn't asked.** Don't pre-build pagination, i18n, or abstraction layers for a change that doesn't touch them. YAGNI is a matcha principle at small scale.
+- **Extraction threshold:** extract a function/constant only when it removes real duplication (3+ uses) or materially improves readability — not as decoration.
+- **When in doubt, ship the small version.** Reviewers flag over-engineering as a finding, but the default is: simplest correct code first.
 
 ## Errors
 
@@ -23,7 +33,7 @@
 
 - **Structured, leveled** (debug/info/warn/error) — level matches severity.
 - **Log at boundaries + failures** — entry/exit for critical paths; errors carry stack + context.
-- **Correlation/request ID (Distributed Tracing)** — include correlation/request ID (e.g. W3C traceparent) on multi-step/microservice flows so failure is traceable end-to-end.
+- **Correlation/request ID** — include correlation/request ID (e.g. W3C traceparent) on multi-step/microservice flows so failure is traceable end-to-end.
 - **NEVER log secrets, tokens, passwords, or PII** — redact before logging. This is a security finding, not style.
 - **Log each error once**, with context — not the same trace in 3 places.
 
@@ -38,10 +48,10 @@
 
 - **Consistent error envelope** across endpoints (same shape: error code, message, field, request id).
 - **Correct status codes** — 4xx for client errors, 5xx for server errors. Never 200 with an error payload.
-- **Pagination convention:** Use cursor-based pagination for large/real-time feeds; offset-based for static bounded lists. Always include explicit `limit` and `total` / `has_more` indicators.
-- **Caching convention:** Use Cache-Aside pattern with explicit TTL, stale-while-revalidate where suitable, and deterministic invalidation keys on mutation.
+- **Pagination convention:** cursor-based for large/real-time feeds; offset-based for static bounded lists. Always include explicit `limit` and `total` / `has_more` indicators.
+- **Caching convention:** Cache-Aside with explicit TTL, stale-while-revalidate where suitable, deterministic invalidation keys on mutation.
 - **Mutations: idempotency** for retryable operations.
-- **Breaking changes & backward compatibility:** Maintain backward compatibility for public contracts via explicit deprecation warnings/windows before removing fields.
+- **Breaking changes & backward compatibility:** maintain backward compatibility for public contracts via explicit deprecation warnings/windows before removing fields.
 - **Document the request/response shape** at the boundary (schema/contract file, not prose).
 
 ## Component & Presentation (UI / Web)
@@ -74,10 +84,10 @@
 
 ## Testing
 
-- **Test behavior, not implementation** — assert outcomes (input → output, side effects), not internal call counts. Tests that break on refactor are tests that pin the wrong thing.
+- **Test behavior, not implementation** — assert outcomes (input → output, side effects), not internal call counts. Tests that break on refactor pin the wrong thing.
 - **Test pyramid** — many fast unit tests, fewer integration tests, fewest E2E. Keep unit tests fast enough to run constantly.
 - **Mock at boundaries** — fake external I/O (network, DB, clock, files), never mock what you own that is cheap to use real.
-- **Coverage is a guard, not a goal** — cover the risky logic (edges, branches, error paths), not line-count vanity. A bug you tested for is a bug you own.
+- **Coverage is a guard, not a goal** — cover the risky logic (edges, branches, error paths), not line-count vanity.
 - **Flaky test = bug in the test** — quarantine or fix immediately; never rerun-to-green or disable silently.
 
 ## Resilience & Data

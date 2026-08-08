@@ -12,6 +12,7 @@
  */
 
 import { checkPlanningGate } from "../../hooks/planning-gate.js";
+import { recordShieldBlock, recordPlanningGateBlock } from "../../hooks/matcha-metrics.js";
 
 const DANGER_PATTERNS = [
   /^rm\s+-rf?\s+\/\s*$/,
@@ -39,6 +40,7 @@ export const MatchaPlugin = async () => {
       if (tool === "bash" && args.command) {
         const cmd = String(args.command).trim();
         if (isDangerous(cmd)) {
+          recordShieldBlock(cmd, "destructive command");
           throw new Error(
             `🍵 matcha: shield blocked\n\nCommand: ${cmd}\nThis command is destructive. Use a specific path or --force-with-lease.`
           );
@@ -49,6 +51,7 @@ export const MatchaPlugin = async () => {
       // Maps opencode events to the shared hook — reuse, not duplicate.
       const gate = checkPlanningGate({ tool, input: args });
       if (gate) {
+        recordPlanningGateBlock();
         throw new Error(gate.message);
       }
     },

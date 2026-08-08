@@ -44,6 +44,22 @@ Out of Scope: implementing code, editing files, reviewing diffs, debugging, clea
 </decision_framework>
 
 <output_schema>
+**Scale the plan to the task (⚖️ Proportionality — the hook now size-gates small edits, so match your plan to the remaining size):**
+
+**Small plan (≤30 LOC change, 1-2 files, no cross-cutting risk):**
+```
+## Intent Discovery
+- Problem: [...]
+- Goals: [...]
+
+## Plan
+- [ ] Step 1: [desc] — [file]
+
+Confidence: [HIGH/MEDIUM]
+```
+Do NOT produce the full schema below for small tasks — that is exactly the over-planning the Proportionality principle forbids and the benchmark measured as pure overhead.
+
+**Full plan (large / cross-cutting / prod-risk):**
 ```xml
 <matcha_gate>
   <what>[precise description with exact file:line refs]</what>

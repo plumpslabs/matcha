@@ -66,6 +66,14 @@ describe("Symmetry — AGY plugin root agents/", () => {
     const content = JSON.parse(readFileSync(join(ROOT, "mcp_config.json"), "utf-8"));
     expect(content.mcpServers.matcha).toBeDefined();
   });
+
+  test("all canonical agents carry AGY-native subagent keys (mainAgent: false, subagent: true)", () => {
+    for (const agent of AGENT_NAMES) {
+      const content = readFileSync(join(ROOT, ".agents/agents", agent + ".md"), "utf-8");
+      expect(content).toMatch(/^mainAgent: false$/m);
+      expect(content).toMatch(/^subagent: true$/m);
+    }
+  });
 });
 
 describe("Symmetry — no stale duplicates", () => {

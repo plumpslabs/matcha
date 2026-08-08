@@ -7,14 +7,15 @@ permission:
   grep: allow
   glob: allow
   list: allow
-  # Bash: minimal read-only whitelist — git history (reuse signal: removed code, ownership) +
-  # rg/find search + wc -l + head/tail filters. Read FILE CONTENTS with the `read` tool —
-  # not bash cat/sed. Catch-all first (last matching rule wins).
+  # Bash: read-only whitelist — git history/branches (reuse signal, ownership) + rg/find search +
+  # wc -l + ls (listing) + head/tail filters. Read FILE CONTENTS with the `read` tool — not bash
+  # cat/sed. Catch-all first (last matching rule wins).
   bash:
     "*": deny
     "git log*": allow
     "git diff*": allow
     "git status*": allow
+    "git branch*": allow
     "git blame*": allow
     "git show*": allow
     "git grep*": allow

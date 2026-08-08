@@ -65,6 +65,8 @@ permission:
     "du -sh*": allow
     "head*": allow
     "tail*": allow
+    "ls": allow
+    "ls *": allow
     "sort*": allow
     "uniq*": allow
     "awk*": allow

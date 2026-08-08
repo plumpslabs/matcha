@@ -125,6 +125,7 @@ describe("Agent YAML frontmatter validation", () => {
           // order-sensitive: catch-all first, then git read-only (opencode: last matching rule wins)
           expect(content).toContain('bash:\n    "*": deny\n    "git log*": allow');
           expect(content).toContain('"head*": allow');
+          expect(content).toContain('"ls *": allow');
         });
 
         test("planner/finder: no file-reading bash (sed/cat/awk/grep -r/sort/uniq/echo removed — use read tool)", () => {

@@ -25,6 +25,8 @@ permission:
     "wc -l*": allow
     "head*": allow
     "tail*": allow
+    "ls": allow
+    "ls *": allow
   webfetch: deny
   websearch: deny
   task: deny

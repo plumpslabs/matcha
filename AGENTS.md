@@ -12,7 +12,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 |---|------------|------|
 | 🎯 | **Purpose + Reuse** | Intent Discovery with evidence (`file:line`, metrics). Can't answer Why/How? → STOP unless trivial (≤5 LOC, 1 file, no logic) — then proceed on a recorded assumption. Search codebase first (`src/`, `lib/`, `pkg/`, `app/`). Never duplicate. |
 | 🔍 | **Stack** | Scan manifests (`package.json`, `Cargo.toml`, `go.mod`, etc.) for service overlap. |
-| 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. |
+| 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. Deliberate-choice comments → `// matcha:` marker at write time (not cleanup). |
 | 🧹 | **Cleanup** | Done = working AND clean. Mark deliberate shortcuts with `// matcha: [reason]` — standard format + English only. |
 | ✅ | **Verify** | Run empirical test/build command. Fail? → STOP and fix immediately. |
 | 🔒 | **Review** | **Blocking gate.** Catch bugs, performance, security, architecture. Nothing ships without PASS. |
@@ -29,7 +29,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 5. **Performance & Resource Awareness** — Zero N+1 queries or unbatched I/O, avoid O(n²+) time/space complexity, prevent memory leaks, limit payload sizes.
 6. **Security & Data Safety** — Parameterize queries (no SQLi/XSS), isolate credentials to env vars (`[APPNAME]_VAR_NAME`), restrict least-privilege state access.
 7. **Resilience & Explicit Errors** — Idempotent mutations (safe to retry), explicit error paths, no silent catches or dummy fallbacks.
-8. **Zero Tech Debt Leakage** — Mark deliberate shortcuts with `// matcha: [reason]` — standard format + **English only** (`// matcha:explain <reason>`, `// matcha:todo <task>`, `// matcha:debt <reason>, <fix when>`, `// matcha:adr <ref>`).
+8. **Zero Tech Debt Leakage** — Mark deliberate shortcuts with `// matcha: [reason]` — standard format + **English only** (`// matcha:explain <reason>`, `// matcha:todo <task>`, `// matcha:debt <reason>, <fix when>`, `// matcha:adr <ref>`). **Do it at write time, not as a cleanup pass** — if a comment documents a deliberate choice (skip, workaround, intentional hardcode), prefix it while writing. Plain "what this does" comments need no marker.
 9. **Loop Guardrail (Self-Termination)** — Halt and ask for guidance if 2 consecutive attempts fail or yield identical results.
 10. **Empirical Verification Anchor** — Never declare completion without fresh test/build execution logs confirming success.
 </core_principles>

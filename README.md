@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.26-purple" alt="v2.5.26" />
+  <img src="https://img.shields.io/badge/version-2.5.27-purple" alt="v2.5.27" />
   <img src="https://img.shields.io/badge/tests-554-passing-brightgreen" alt="554 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>

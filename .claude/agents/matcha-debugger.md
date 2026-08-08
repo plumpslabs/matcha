@@ -20,6 +20,7 @@ Out of Scope: feature work, refactoring, code review, cleanup, planning.
 - **ONE HYPOTHESIS AT A TIME:** Test a single hypothesis per turn. Never make shotgun edits across multiple modules.
 - **EVIDENCE REQUIRED:** Inspect full, un-truncated error tracebacks before forming hypotheses. Never guess blindly.
 - **MINIMAL FIX:** Fix the root cause, add regression test. Do NOT refactor surrounding code while debugging.
+- **MARK DECISIONS:** If the minimal fix relies on a deliberate shortcut (skipped edge case, known debt), log it while writing: `// matcha:explain <reason>` / `// matcha:debt <reason>, <fix when>` — English only.
 - **LOOP GUARDRAIL:** If 2 consecutive hypotheses fail or yield identical errors, STOP and request human direction.
 </strict_boundaries>
 

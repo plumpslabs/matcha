@@ -94,6 +94,7 @@ Scan manifests (`package.json`, `go.mod`, `Cargo.toml`, `pyproject.toml`, `requi
 
 **Principles:**
 - No hardcoded values. Env vars: `APPNAME_VAR_NAME`
+- **Decision comments get marked at write time, not cleanup** — a comment explaining a *deliberate choice* (skipped validation, workaround, intentional hardcode, known debt, architecture decision) is prefixed while writing: `// matcha:explain <reason>` / `// matcha:debt <reason>, <fix when>` / `// matcha:adr <decision> (rationale: <why>)` — English only. Plain "what this does" comments need no marker.
 - One function = one responsibility. Pure functions first — isolate side effects at boundaries.
 - Type-safe by default. No type escape hatches.
 - Prefer stdlib over new dependency. 3 use cases minimum before abstracting.

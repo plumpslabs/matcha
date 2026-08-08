@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.26
+  version: 2.5.27
 ---
 
 # 🍵 matcha — Engineering Philosophy
@@ -36,7 +36,7 @@ This skill is split into focused modules. **Lazy-load: read ONLY the modules you
 
 **Implementation** — Simple AND efficient (Never twice). Strict types, boundary guard, pure core, security parameterized, resource & memory aware, explicit errors.
 
-**Cleanup** — Done = working AND clean. Decision log: `// matcha: [reason]`
+**Cleanup** — Done = working AND clean. Decision log: `// matcha: [reason]` (log deliberate choices at write time, not as a separate pass)
 
 **Verify** — Run test + typecheck + lint. Never claim success without fresh green logs.
 

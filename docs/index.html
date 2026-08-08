@@ -135,7 +135,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.5.26</span>
+    <span class="header-badge">v2.5.27</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -920,7 +920,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <div class="step-num">4</div>
     <div class="step-body">
       <h4>Phase 4: Review & Ship (Blocking Gate)</h4>
-      <p><code>/matcha:review</code> & <code>@matcha-cleaner</code>. Run full risk-based review (L0-L3). Nothing ships without PASS. Run <code>@matcha-cleaner</code> to remove debug logs and mark intentional shortcuts with <code>// matcha: [reason]</code>.</p>
+      <p><code>/matcha:review</code> & <code>@matcha-cleaner</code>. Run full risk-based review (L0-L3). Nothing ships without PASS. Run <code>@matcha-cleaner</code> to remove debug logs and mark intentional shortcuts with <code>// matcha: [reason]</code> — deliberate-choice comments (skip/workaround/intentional hardcode) get the marker <em>at write time</em>, not as a separate cleanup pass.</p>
     </div>
   </div>
 

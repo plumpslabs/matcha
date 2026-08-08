@@ -38,7 +38,7 @@ Out of Scope: full-project audits (that's auditor), planning implementations, fi
      6. *Resilience & Data* (Timeouts, retry with backoff, circuit breaker, transactions, migrations with rollback)
      7. *Quality* (Duplication, magic numbers, deep nesting)
      8. *Testing* (Regression tests present and passing, behavior-not-implementation)
-     9. *Maintainability* (WHY comments, env vars, naming, config — and `// matcha:` markers: standard format + English only. Flag as WARNING any marker that is not in English, uses a non-standard type, or has no real reason. Non-English marker example: `// matcha: buat sementara` → `// matcha:explain [english reason]`.)
+     9. *Maintainability* (WHY comments, env vars, naming, config — and `// matcha:` markers: standard format + English only. Flag as WARNING any marker that is not in English, uses a non-standard type, or has no real reason. Also flag a deliberate shortcut/workaround comment in a changed line that is missing the `// matcha:` prefix — e.g. `// skip validation because...` → `// matcha:explain <english reason>` (judge intent: plain "what this does" comments need no marker). Non-English marker example: `// matcha: buat sementara` → `// matcha:explain [english reason]`.)
    - **L3 (High Risk)**: All L2 + Threat model, boundary validation, and domain expert sign-off.
 3. **Adversarial Pass** — Ask: Is this the simplest AND most efficient path? Will this age well without tech debt?
 4. **Render Verdict** — Return structured report.

@@ -67,6 +67,8 @@ The 3 small tasks above are deliberately simple — they are the *baseline hygie
 
 **Honest reading:** without rules the agent *fails the multi-file refactor* — it adds a few lines and stops; matcha is the only arm that extracts the service layer without breaking behavior. On the small security bug every arm that finished fixed it — no measurable edge for matcha there (its cells repeatedly hit free-model queue timeouts >540s; an environment artifact — the same task passed at 240s in the dry-run). Defect density is only meaningful for *completed* work: baseline/terse wrote 3 no-op lines, so their `n/a` is not a clean bill of health.
 
+**The rework counterfactual (assumption, not measured):** the token tables compare *upfront* cost only. Unfinished output isn't cheaper — it's a redo ticket. Baseline/terse produced +3 LOC no-ops on the refactor; redoing that task (reopen, re-understand, re-implement, re-test) plausibly costs ~1.5× the original run — ≈590K tokens on the small-task numbers (baseline 395K), larger than matcha's whole +248K premium (643K vs 395K). One redo and no-matcha has already spent more (≈985K vs 643K), plus developer hours tokens don't capture; two redos = more spend *and* shipped debt. Matcha's premium is paid once up front; the no-matcha cost is paid later, repeatedly, with interest.
+
 ---
 
 ## Standing-Context A/B — core-only vs full matcha (2026-08-08)

@@ -1077,6 +1077,12 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <h1>Benchmark &amp; Evidence</h1>
   <p>Matcha ships its own benchmark tooling (<code>benchmark/</code>) and publishes results — so the claim "rules improve output without bloating it" is <em>measured, not asserted</em>.</p>
 
+  <div class="callout callout-info">
+    <strong>What matcha is:</strong> engineering guardrails for AI coding agents — planning before code (Intent Discovery), reuse-first, security &amp; quality review gates, verification before claiming done. It turns <em>"fast but sloppy"</em> agent output into <em>"deliberate and verified"</em> output.
+    <br /><strong>Where it earns its cost:</strong> multi-file refactors, cross-layer bug hunting, security/auth/production-critical changes, and teams that need standards <em>enforced</em> rather than suggested.
+    <br /><strong>Where it's overkill:</strong> trivial single-file edits (typo, rename, one-line feature) — Proportionality routes those through the ≤30-line fast path; drop to <code>/matcha:intensity observe</code> (tips only, no blocking) while exploring or prototyping.
+  </div>
+
   <div class="callout callout-success">
     <strong>🏆 The headline:</strong> no-rules agents <em>fail</em> a multi-file refactor (0/2 — they add a few lines and stop). Matcha is the only arm that completes it — service layer extracted, no regression in existing behavior. The price: more tokens and wall time on small tasks. That trade is measured in the small-task section below, not hidden.
   </div>
@@ -1107,6 +1113,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
     <tr><td>Wall time</td><td>58s</td><td>34s</td><td>78s</td><td>Matcha +34% (was +70% pre-fix)</td></tr>
     <tr><td>Compliance (changed files)</td><td>100</td><td>100</td><td>100</td><td>Tie — all arms clean</td></tr>
   </table>
+  <p><strong>Why matcha costs more — the mechanism:</strong> the extra tokens and time are <em>mostly process steps, not code bloat</em>. Matcha adds ~4 LLM turns per task (steps 8.5 → 12.5), which typically go to the planning gate (write a plan with evidence before touching files), verification (run the test suite), and the review pass. Each extra turn re-reads context — that's the ~49K <code>cacheRead</code>/step we measured. On small tasks those turns buy nothing visible — hence "overkill by design". On complex tasks they are exactly what turns a 0/2 failure into a completed, verified refactor.</p>
   <p><strong>Honest takeaway:</strong> cost (tokens/time) is <em>context, not the verdict</em>. Matcha spends more because it thinks before it implements — that buys precision, structure, and prevention. The quality side is why the cost is worth paying: defect density (anti-pattern findings per 100 LOC added, scanned on agent-written files only), correctness, and safe complex refactors. On small/trivial tasks matcha is overkill <em>by design</em> — Proportionality routes them through the ≤30-line fast path and the <code>trivial</code> plan; use <code>/matcha:intensity observe</code> for trivia.</p>
 
   <h3>Real Multi-Turn Feature Benchmark (agy, 3 features)</h3>
@@ -1120,6 +1127,17 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <p>Matcha-driven feature builds on <code>agy</code> (Gemini 3.5 Flash): 3 real features, all tests green, top compliance grade. The same-prompt with/without comparison lives in <code>docs/BENCHMARK.md</code> — matcha produced named status codes, explicit errors, and a per-user data structure at ~16% more LOC.</p>
 
   <p style="font-size:0.85rem;opacity:0.75;"><strong>Legacy / internal runs.</strong> Agentic A/B (Claude Code, 20 tasks × 3 arms): all arms tied at 13/20 correct — matcha wrote 260 LOC vs 347 no-rules via reuse/no-duplication, but this benchmark doesn't differentiate. Standing-context A/B (20 cells, core-only vs full): −6.3% tokens median, within run-to-run noise — the slim is correct-by-architecture (~1.5K tok/step) but standing context is dominated by AGENTS.md + hooks + system prompt, not skill modules. Full write-ups in <code>docs/BENCHMARK.md</code>.</p>
+
+  <h3>Which feature to use when</h3>
+  <table>
+    <tr><th>Feature</th><th>Use it when…</th></tr>
+    <tr><td><code>@matcha-planner</code> / plan gate</td><td>Starting any non-trivial feature — Intent Discovery (What → Why → How) before any code</td></tr>
+    <tr><td><code>@matcha-finder</code></td><td>Before writing new code — hunt existing helpers first; never duplicate what exists</td></tr>
+    <tr><td><code>@matcha-auditor</code> / <code>/matcha:audit</code></td><td>Stack overlap, dependency risk, security &amp; PII exposure — read-only, report-only</td></tr>
+    <tr><td><code>@matcha-reviewer</code> / <code>/matcha:review</code></td><td>Before commit — L0–L3 risk-tiered review, catches what the agent missed</td></tr>
+    <tr><td><code>/matcha:intensity</code></td><td>Scale enforcement per task: <code>enforce</code> (default) / <code>observe</code> (exploring) / <code>audit</code> (high stakes)</td></tr>
+  </table>
+  <p>Rough rule: bigger than a one-file edit, or production-critical → matcha earns its keep. Everything else → fast path + <code>observe</code> keeps it out of the way.</p>
 
   <h3>Run It Yourself</h3>
   <p>Every published number is re-runnable — the harness ships in <code>benchmark/</code>:</p>

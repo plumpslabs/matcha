@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.27
+  version: 2.5.28
 ---
 
 # 🍵 matcha — Engineering Philosophy

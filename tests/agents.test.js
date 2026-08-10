@@ -27,8 +27,12 @@ describe("Command YAML frontmatter validation", () => {
 
 const READ_ONLY_AGENTS = ["matcha-planner", "matcha-finder", "matcha-reviewer", "matcha-auditor"];
 const WRITER_AGENTS = ["matcha-debugger", "matcha-cleaner"];
-const PRIMARY_AGENTS = ["matcha-planner", "matcha-finder", "matcha-reviewer", "matcha-auditor"];
-const SUBAGENT_AGENTS = ["matcha-debugger", "matcha-cleaner"];
+// All matcha agents are pure subagents (spawn-only, never in the interactive
+// picker) across every provider — opencode `mode: subagent`, AGY `mainAgent:
+// false`, Claude transformed from canonical. This keeps orchestration
+// automatic (main agent spawns planner → finder → auditor → reviewer) and
+// behavior identical across providers.
+const ALL_AGENTS = AGENT_NAMES;
 
 describe("Agent YAML frontmatter validation", () => {
   for (const agent of AGENT_NAMES) {
@@ -64,15 +68,10 @@ describe("Agent YAML frontmatter validation", () => {
         expect(content).not.toMatch(/color: /);
       });
 
-      if (PRIMARY_AGENTS.includes(agent)) {
-        test("primary agent (Tab-switchable)", () => {
-          expect(content).toMatch(/mode: primary/);
-        });
-      }
-
-      if (SUBAGENT_AGENTS.includes(agent)) {
-        test("subagent (via @ mention)", () => {
+      if (ALL_AGENTS.includes(agent)) {
+        test("pure subagent (opencode mode: subagent — spawn-only, not Tab-switchable)", () => {
           expect(content).toMatch(/mode: subagent/);
+          expect(content).not.toMatch(/mode: primary/);
         });
       }
 

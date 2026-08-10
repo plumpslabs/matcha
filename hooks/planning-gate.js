@@ -220,7 +220,7 @@ export function checkPlanningGate(event) {
   if (!planPath) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n⚖️ Trivial edit (≤5 LOC, 1 file, no logic)? Use the minimal plan instead — carry the marker:\n---\ntitle: <task>\ndate: <date>\ntype: plan-trivial\nstatus: active\n---\n<!-- trivial -->\n**Problem:** Rename \`foo\` → \`bar\` in src/x.js\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\n✅ Writing to .agents/plan/current.md is ALWAYS allowed — create the plan there now via Edit/WriteFile (that write is never blocked).\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n⚖️ Trivial edit (≤5 LOC, 1 file, no logic)? Use the minimal plan instead — carry the marker:\n---\ntitle: <task>\ndate: <date>\ntype: plan-trivial\nstatus: active\n---\n<!-- trivial -->\n**Problem:** Rename \`foo\` → \`bar\` in src/x.js\n`
     };
   }
 
@@ -236,7 +236,7 @@ export function checkPlanningGate(event) {
   if (!validation.valid) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}`
+      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).`
     };
   }
 

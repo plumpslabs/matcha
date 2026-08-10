@@ -1,7 +1,7 @@
 ---
 name: matcha-auditor
 description: Stack audit. Finds overlaps, waste, security risks. Read-only.
-mode: primary
+mode: subagent
 mainAgent: false
 subagent: true
 permission:

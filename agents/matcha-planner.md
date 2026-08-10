@@ -1,7 +1,7 @@
 ---
 name: matcha-planner
 description: Engineering planning. Intent Discovery → context → constraints → reuse → alternatives → roadmap. Read-only — never implements, never edits source code.
-mode: primary
+mode: subagent
 mainAgent: false
 subagent: true
 permission:

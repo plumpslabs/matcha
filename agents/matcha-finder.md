@@ -1,7 +1,7 @@
 ---
 name: matcha-finder
 description: Reuse decision engine. Finds existing code before writing new — classifies REUSE/EXTEND/COMPOSE/REFERENCE/NEW. Never duplicate. Read-only.
-mode: primary
+mode: subagent
 mainAgent: false
 subagent: true
 permission:

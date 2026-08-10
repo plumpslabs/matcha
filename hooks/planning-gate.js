@@ -18,13 +18,16 @@ import { join } from "path";
 import { isSimpleTask } from "./danger-checks.js";
 import { getWorkspaceRoot } from "./workspace-root.js";
 
-const ROOT = getWorkspaceRoot();
-const STATE_FILE = join(ROOT, ".agents/matcha-state.json");
-
-export function getIntensity() {
+// cwd override: hooks may run from a directory other than the workspace root
+// (e.g. AGY runs plugin hooks with cwd = the plugin dir). Providers that know
+// the real workspace (AGY sends `workspacePaths` in the hook event) pass it via
+// event.cwd — every resolve below then starts from that, not process.cwd().
+export function getIntensity(cwd) {
   try {
-    if (existsSync(STATE_FILE)) {
-      const state = JSON.parse(readFileSync(STATE_FILE, "utf-8"));
+    const root = getWorkspaceRoot(cwd);
+    const stateFile = join(root, ".agents/matcha-state.json");
+    if (existsSync(stateFile)) {
+      const state = JSON.parse(readFileSync(stateFile, "utf-8"));
       return state.intensity || "enforce";
     }
   } catch {}
@@ -32,13 +35,12 @@ export function getIntensity() {
 }
 
 // ─── Plan location (Session Memory first, legacy fallback) ───────────────────
-const PLAN_CANDIDATES = [
-  join(ROOT, ".agents", "plan", "current.md"),
-  join(ROOT, ".agents", "matcha-plan.md"),
-];
-
-export function findPlanPath() {
-  for (const p of PLAN_CANDIDATES) {
+export function findPlanPath(cwd) {
+  const root = getWorkspaceRoot(cwd);
+  for (const p of [
+    join(root, ".agents", "plan", "current.md"),
+    join(root, ".agents", "matcha-plan.md"),
+  ]) {
     if (existsSync(p)) return p;
   }
   return null;
@@ -149,13 +151,27 @@ function validateMarkdownPlan(content) {
     return { valid: false, reason: "no Intent Discovery marker (heading, **Problem:**, or - Problem:)" };
   }
 
-  // Robust & Forgiving section extractor
+  // Robust & Forgiving section extractor.
+  // Field-level evaluation report (AGY v2.5.27) found the parser rejected
+  // heading-only style (`## Problem` on its own line, no colon). Accept both:
+  //   A. inline: "- **Problem:** ..." / "**Problem:** ..." / "Problem: ..."
+  //   B. heading: "## Problem\n<text>" (colon optional)
   const section = (label) => {
-    const pattern = new RegExp(
+    // A. Inline colon style — captures until the next section label or a heading.
+    const colonPattern = new RegExp(
       `(?:^|\\n)(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?${label}(?:\\*\\*|__)?\\s*:\\s*([\\s\\S]*?)(?=\\n(?:\\s*[-*•]\\s*)?(?:#+\\s*|\\*\\*|__)?(?:Problem|Goals|Success Criteria|Plan|Risks|Reuse Ledger)(?:\\*\\*|__)?\\s*:|\\n\\s*## |$)`,
       "i"
     );
-    const m = content.match(pattern);
+    let m = content.match(colonPattern);
+    if (m) return m[1].trim();
+
+    // B. Heading style: "## Problem\n<text>" (colon optional) — capture until
+    //    the next known section heading or EOF.
+    const headingPattern = new RegExp(
+      `(?:^|\\n)#{1,6}\\s*${label}\\s*:?\\s*\\n([\\s\\S]*?)(?=\\n#{1,6}\\s*(?:Problem|Goals|Success Criteria|Plan|Risks|Reuse Ledger)\\s*:?\\s*\\n|$)`,
+      "i"
+    );
+    m = content.match(headingPattern);
     return m ? m[1].trim() : "";
   };
 
@@ -180,7 +196,12 @@ function validateMarkdownPlan(content) {
 export function checkPlanningGate(event) {
   if (!event) return null;
 
-  const intensity = getIntensity();
+  // Provider-provided workspace root wins over process.cwd() — AGY runs plugin
+  // hooks with cwd = plugin dir, so the plan at the real project root would be
+  // invisible (false "no plan" blocks). AGY sends workspacePaths; Claude/open
+  // code run hooks from the project root and leave cwd unset.
+  const cwd = event.cwd || process.cwd();
+  const intensity = getIntensity(cwd);
   if (intensity === "observe") return null;
 
   // Smart auto-skip: detect simple tasks
@@ -216,11 +237,14 @@ export function checkPlanningGate(event) {
   }
 
   // Check if plan exists (Session Memory path first, legacy fallback)
-  const planPath = findPlanPath();
+  const planPath = findPlanPath(cwd);
   if (!planPath) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\n✅ Writing to .agents/plan/current.md is ALWAYS allowed — create the plan there now via Edit/WriteFile (that write is never blocked).\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n⚖️ Trivial edit (≤5 LOC, 1 file, no logic)? Use the minimal plan instead — carry the marker:\n---\ntitle: <task>\ndate: <date>\ntype: plan-trivial\nstatus: active\n---\n<!-- trivial -->\n**Problem:** Rename \`foo\` → \`bar\` in src/x.js\n`
+      message: `🍵 matcha: Planning Gate Blocked\n\nYou are trying to execute a codebase modification or command before planning.\nUnder the matcha philosophy (enforce mode), you MUST create a plan first.\n\nAction required:\nWrite your Intent Discovery plan to .agents/plan/current.md BEFORE the first code edit — do not wait for a user command.\n\n✅ Writing to .agents/plan/current.md is ALWAYS allowed — create the plan there now via Edit/WriteFile (that write is never blocked).\n\nAccepted format (markdown):\n---\ntitle: <task>\ndate: <date>\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** ...\n- **Goals:** ...\n- **Success Criteria:** ...\n\n⚖️ Trivial edit (≤5 LOC, 1 file, no logic)? Use the minimal plan instead — carry the marker:\n---\ntitle: <task>\ndate: <date>\ntype: plan-trivial\nstatus: active\n---\n<!-- trivial -->\n**Problem:** Rename \`foo\` → \`bar\` in src/x.js\n
+
+💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).
+`
     };
   }
 
@@ -236,7 +260,7 @@ export function checkPlanningGate(event) {
   if (!validation.valid) {
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).`
+      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).\n💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).`
     };
   }
 

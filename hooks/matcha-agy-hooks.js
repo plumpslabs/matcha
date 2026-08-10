@@ -25,7 +25,7 @@ const TOOL_MAP = {
   // command execution
   run_command: "execute_command",
   bash: "execute_command",
-  // write/edit tools (agy: Edit, replace, write_file)
+  // write/edit tools (agy: Edit, replace, write_file, Create)
   edit: "edit",
   edit_file: "edit",
   replace: "edit",
@@ -33,6 +33,7 @@ const TOOL_MAP = {
   write_file: "write_to_file",
   write_to_file: "write_to_file",
   create_file: "write_to_file",
+  create: "write_to_file",
   replace_file_content: "replace_file_content",
   // read tools (agy: view_file = Read)
   read: "read",
@@ -58,7 +59,13 @@ function mapEvent(event) {
   // AGY's edit tools (Edit, replace) pass the target via `TargetFile`, not
   // FilePath — without this, plan-file writes via Edit would still deadlock.
   const filePath = args.FilePath || args.filePath || args.TargetFile || args.path || "";
-  return { tool, input: { command, path: filePath, filePath } };
+  // AGY sends the workspace root(s) in every hook event (workspacePaths). The
+  // hook itself runs with cwd = the directory containing hooks.json — for
+  // plugins that is the PLUGIN dir, not the project — so without this override
+  // the planning gate looks for .agents/plan/current.md in the wrong place and
+  // false-blocks every source edit even with a valid plan on disk.
+  const cwd = (Array.isArray(event.workspacePaths) && event.workspacePaths[0]) || "";
+  return { tool, input: { command, path: filePath, filePath }, cwd };
 }
 
 function respond(decision, reason) {
@@ -71,10 +78,12 @@ process.stdin.on("data", (chunk) => (raw += chunk));
 process.stdin.on("end", () => {
   try {
     const event = JSON.parse(raw || "{}");
-    const { tool, input } = mapEvent(event);
+    const { tool, input, cwd } = mapEvent(event);
 
-    // Planning gate — blocks code writes/commands until a valid plan exists
-    const gate = checkPlanningGate({ tool, input });
+    // Planning gate — blocks code writes/commands until a valid plan exists.
+    // Pass the real workspace root (AGY's workspacePaths) so the plan is found
+    // even though this hook runs from the plugin directory.
+    const gate = checkPlanningGate({ tool, input, cwd });
     if (gate) {
       recordPlanningGateBlock();
       return respond("deny", gate.message);

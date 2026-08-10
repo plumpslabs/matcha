@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { spawnSync } from "node:child_process";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assertFile, assertValidSyntax, readProjectFile, ROOT } from "./helpers.js";
@@ -265,6 +265,78 @@ describe("matcha-agy-hooks.js (AGY adapter)", () => {
     ).toBe("deny");
     expect(
       run({ toolCall: { name: "write_file", args: { filePath: join(tmp, "src/x.ts") } } }, tmp).decision
+    ).toBe("deny");
+  });
+
+  test("workspacePaths override resolves the real workspace when cwd is a plugin dir", () => {
+    // Regression: AGY runs plugin hooks with cwd = the PLUGIN directory, not the
+    // project root. getWorkspaceRoot() then walks up from the plugin dir and can't
+    // find the project's .agents/plan/current.md → false "Planning Gate Blocked"
+    // even with a valid plan on disk. AGY sends workspacePaths in every hook event
+    // — the adapter must pass it through so the plan is found.
+    const project = mkdtempSync(join(tmpdir(), "matcha-proj-"));
+    const planDir = join(project, ".agents", "plan");
+    mkdirSync(planDir, { recursive: true });
+    writeFileSync(
+      join(planDir, "current.md"),
+      "---\ntitle: t\ndate: 2026-08-10\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** bug fix\n- **Goals:** fix it\n- **Success Criteria:** tests pass\n"
+    );
+    // Simulate AGY: hook process runs from the plugin dir (cwd has no .agents),
+    // but the event carries the real workspacePaths.
+    const pluginDir = mkdtempSync(join(tmpdir(), "matcha-plugin-"));
+    const out = run(
+      {
+        toolCall: {
+          name: "Edit",
+          args: { TargetFile: join(project, "src/app.ts"), content: "x\n".repeat(40) },
+        },
+        workspacePaths: [project],
+      },
+      pluginDir
+    );
+    expect(out.decision).toBe("allow");
+  });
+
+  test("without workspacePaths, cwd fallback still applies (no false ALLOW)", () => {
+    // Control: when the event has no workspacePaths, the gate must fall back to
+    // cwd — an edit in a dir without a plan stays blocked.
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+    const out = run(
+      { toolCall: { name: "Edit", args: { TargetFile: join(tmp, "src/x.ts") } } },
+      tmp
+    );
+    expect(out.decision).toBe("deny");
+    expect(out.reason).toContain("Planning Gate");
+  });
+
+  test("workspacePaths to a dir WITHOUT .agents still denies (no false ALLOW)", () => {
+    // Control: workspacePaths only helps when it actually points at the project
+    // root. Pointing it at a directory with no .agents must NOT open the gate.
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+    const nowhere = mkdtempSync(join(tmpdir(), "matcha-nowhere-"));
+    const out = run(
+      {
+        toolCall: { name: "Edit", args: { TargetFile: join(tmp, "src/x.ts") } },
+        workspacePaths: [nowhere],
+      },
+      tmp
+    );
+    expect(out.decision).toBe("deny");
+    expect(out.reason).toContain("Planning Gate");
+  });
+
+  test("maps AGY Create tool to write_to_file (plan-file writes via Create allowed)", () => {
+    // AGY 1.1.11 uses Create to make files — must map to a write tool so plan
+    // writes via Create are exempt and source writes are gated.
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-agy-"));
+    expect(
+      run(
+        { toolCall: { name: "Create", args: { TargetFile: join(tmp, ".agents/plan/current.md") } } },
+        tmp
+      ).decision
+    ).toBe("allow");
+    expect(
+      run({ toolCall: { name: "Create", args: { TargetFile: join(tmp, "src/x.ts") } } }, tmp).decision
     ).toBe("deny");
   });
 

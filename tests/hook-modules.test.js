@@ -248,6 +248,29 @@ describe("planning-gate.js — Proportionality (trivial plan pass)", () => {
     const res = validatePlanContent("   ");
     expect(res.valid).toBe(false);
   });
+
+  test("heading-only markdown plan (## Problem, no colon) is accepted", () => {
+    // AGY field report v2.5.27: parser rejected heading-only style —
+    // "## Problem\n<text>" without a colon. Must now pass.
+    const res = validatePlanContent(
+      "# 🍵 Intent Discovery\n## Problem\nFix login bug that crashes on empty email\n## Goals\nValidate email field before submit\n## Success Criteria\nTests pass and crash gone"
+    );
+    expect(res.valid).toBe(true);
+  });
+
+  test("heading with colon (## Problem: ...) is accepted", () => {
+    const res = validatePlanContent(
+      "# 🍵 Intent Discovery\n## Problem: Fix login bug\n## Goals: Validate email\n## Success Criteria: Tests pass and crash gone"
+    );
+    expect(res.valid).toBe(true);
+  });
+
+  test("all bullet styles still accepted (no parser regression)", () => {
+    const res = validatePlanContent(
+      "# 🍵 Intent Discovery\n- **Problem:** Fix login bug that crashes on empty email\n- **Goals:** Validate email field before submit\n- **Success Criteria:** Tests pass and crash gone"
+    );
+    expect(res.valid).toBe(true);
+  });
 });
 
 describe("planning-gate.js — anti-deadlock (never block the recovery path)", () => {
@@ -278,6 +301,26 @@ describe("planning-gate.js — anti-deadlock (never block the recovery path)", (
     expect(isPlanFilePath(".agents/matcha-state.json")).toBe(true);
     expect(isPlanFilePath(".agents/reports/reviewer-2026-08.md")).toBe(true);
     expect(isPlanFilePath("src/index.js")).toBe(false);
+  });
+
+  test("deny message includes quick-unblock hint (intensity observe)", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-gate-hint-"));
+    try {
+      // No plan file → no-plan deny message must carry the quick-unblock hint.
+      // cwd is forced to the temp dir (no .agents ancestor) so the gate can't
+      // find this repo's own plan and must deny.
+      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const gate = checkPlanningGate({
+        cwd: tmp,
+        tool: "EditFile",
+        input: { path: join(tmp, "src/app.js"), newString: big },
+      });
+      expect(gate).not.toBeNull();
+      expect(gate.message).toContain("intensity observe");
+      expect(gate.message).toContain("ALWAYS allowed");
+    } finally {
+      try { rmSync(tmp, { recursive: true, force: true }); } catch {}
+    }
   });
 });
 

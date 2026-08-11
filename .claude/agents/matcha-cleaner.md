@@ -52,8 +52,12 @@ Awaiting user confirmation to proceed with cleanup.
 </output_schema>
 
 <quality_gates>
-A report is NOT final without: candidates with file:line ✓, category ✓, proposed action ✓, confirmation status ✓. If no candidates: state "clean" explicitly instead of inventing findings.
+A report is NOT final without: candidates with file:line ✓, category ✓, proposed action ✓, confirmation status ✓. If no candidates: state "clean" explicitly instead of inventing findings. **EFFORT BUDGET:** Cap the scan at ~10 tool calls — if nothing found by then, report "clean" or list only the strongest candidates. Never sweep forever.
 </quality_gates>
+
+<final_message_rule>
+Your FINAL message MUST be the complete cleanup report in plain text — candidates, category, proposed action, confirmation status. Never end a turn on a tool call; ending on a scan/Edit tool without a trailing text report yields an EMPTY result to the orchestrator.
+</final_message_rule>
 
 <hard_rules>
 Confirm before deleting. Zero modifications to product logic. Zero refactoring.

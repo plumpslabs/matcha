@@ -144,15 +144,16 @@ describe("Agent YAML frontmatter validation", () => {
       }
 
       if (agent === "matcha-auditor") {
-        test("auditor: bash read-only whitelist with ask fallback", () => {
+        test("auditor: bash read-only whitelist with deny catch-all (never blocks on user prompts)", () => {
           expect(content).not.toMatch(/^  bash: allow$/m);
-          expect(content).toContain('bash:\n    "*": ask\n    "git log*": allow');
+          expect(content).toContain('bash:\n    "*": deny\n    "git log*": allow');
           expect(content).toContain('"npm run test*": allow');
           expect(content).toContain('"npx jest*": allow');
           expect(content).toContain('"head*": allow');
+          expect(content).not.toMatch(/bash:\n    "\*": ask/);
         });
 
-        test("auditor: build variants NOT allowlisted (write dist/, falls to *: ask)", () => {
+        test("auditor: build variants NOT allowlisted (write dist/, blocked by *: deny)", () => {
           expect(content).not.toContain('"npm run build*": allow');
           expect(content).not.toContain('"pnpm run build*": allow');
           expect(content).not.toContain('"yarn run build*": allow');

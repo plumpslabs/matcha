@@ -62,6 +62,25 @@ Auto-detect from user intent + actions:
 | Debug | ⏭️ Skip |
 | Review | ✅ Check legacy compliance |
 
+
+## Next-Gen Dev Mode Protocols (Frontier Engineering)
+
+1. **✂️ AST Context Slicing (Token Efficiency)**
+   - Do NOT dump 2,000-line files into context.
+   - Use line-range slicing (`StartLine`, `EndLine`) to read only the target class/function, its exported interface, and its immediate callers.
+
+2. **📚 Curated Docsets & API Verification**
+   - When integrating new or rapidly evolving libraries, look up official changelogs, breaking change matrices, or docsets before writing speculative code.
+   - Avoid hallucinated deprecated APIs.
+
+3. **🧪 Ephemeral Sandbox Self-Healing**
+   - When developing or fixing critical algorithms, write an isolated test/repro script in `scratch/` in the background.
+   - Run the script to verify edge cases. If it fails, self-correct the patch before presenting final results to the developer.
+
+4. **🧠 Project Memory & Gotchas (🐻 Kuma Synergy)**
+   - Record non-obvious architecture quirks and resolved traps to long-term memory (`decisions.log`, `kuma_memory`).
+   - Query gotchas at the start of unfamiliar tasks to avoid repeating past mistakes.
+
 ## Output
 
 ```

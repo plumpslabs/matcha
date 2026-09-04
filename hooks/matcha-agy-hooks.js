@@ -15,6 +15,7 @@
  */
 import { checkCommand } from "./danger-checks.js";
 import { checkPlanningGate } from "./planning-gate.js";
+import { autoIndexWorkspace } from "./auto-index.js";
 import { recordShieldBlock, recordPlanningGateBlock } from "./matcha-metrics.js";
 
 // AGY tool names → matcha internal tool names (already understood by the engine).
@@ -98,6 +99,7 @@ process.stdin.on("end", () => {
       }
     }
 
+    try { autoIndexWorkspace(cwd); } catch {} 
     respond("allow", "");
   } catch (err) {
     // Fail-open: adapter bugs must never brick the agent

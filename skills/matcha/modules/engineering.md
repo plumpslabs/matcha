@@ -99,3 +99,12 @@ Benchmark-proven failure mode: on small features, applying the FULL production b
 - **Transactions & isolation** — group related writes atomically; know your isolation level; handle deadlock/retry.
 - **Migrations with rollback** — schema changes are forward + backward safe; plan rollback before applying.
 - **Never lose user data** — destructive ops need backup/confirmation; bulk deletes require a dry-run + limit.
+
+
+## Git Commits & Change Hygiene
+
+- **Conventional Commits format:** `<type>(<scope>): <imperative summary in English, max 72 chars>`
+  - Types: `feat`, `fix`, `refactor`, `perf`, `test`, `docs`, `chore`.
+  - Body: Explain WHAT changed and WHY (context/root cause), not how the agent debated it.
+- **Zero Internal Agent Drama:** Never leak agent prompts, internal disputes, or raw token errors into commit messages (e.g., avoid *"Fixes auditor 5 klaim & reviewer BLOCK W1/W4"* → use *"fix(omnichannel): sanitize conversation payload and resolve timezone fallback"*).
+- **Clean Author Hygiene (No AI Bot Co-Authors):** Do NOT add AI agent co-author trailers (`Co-authored-by: matcha-*`). The human developer is the sole author of the commit.

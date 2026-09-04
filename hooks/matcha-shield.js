@@ -20,6 +20,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { checkCommand, DANGER_PATTERNS } from "./danger-checks.js";
 import { checkPlanningGate } from "./planning-gate.js";
+import { autoIndexWorkspace } from "./auto-index.js";
 import { detectMode, writeMode, getPreviousMode } from "./mode-detect.js";
 import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./matcha-metrics.js";
 
@@ -49,6 +50,7 @@ export async function beforeToolUse(event, context) {
 
   // Planning gate
   const gateResult = checkPlanningGate(event);
+  try { autoIndexWorkspace(); } catch {}
   if (gateResult) {
     recordPlanningGateBlock();
     return { block: true, message: gateResult.message, metadata: { gate: true, convention: "matcha" } };

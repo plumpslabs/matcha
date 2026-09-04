@@ -21,6 +21,8 @@ import { fileURLToPath } from "url";
 import { createInterface } from "readline";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
 import { getMetricsSummary } from "../hooks/matcha-metrics.js";
+import { autoIndexWorkspace } from "../hooks/auto-index.js";
+import { scanFile } from "../hooks/matcha-post-write.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -61,6 +63,104 @@ function writeState(state) {
 }
 
 // ─── Help ─────────────────────────────────────────────────────────────────────
+
+// ─── Index — Zero-touch Symbol Graph Generator ──────────────────────────────
+function cmdIndex() {
+  console.log("🍵 matcha: index\n");
+  const res = autoIndexWorkspace(CWD);
+  console.log(`  ✓ Indexed ${res.totalSymbols} symbols across workspace (Monorepo: ${res.isMonorepo})`);
+  console.log("  Cache: .agents/state/symbols.json");
+}
+
+// ─── Scan — Static Security & Quality Guard ─────────────────────────────────
+function cmdScan() {
+  console.log("🍵 matcha: scan\n");
+  let targetFiles = process.argv.slice(3);
+  if (targetFiles.length === 0) {
+    try {
+      const gitDiff = execSync("git diff --name-only HEAD 2>/dev/null || git status --porcelain 2>/dev/null || true", { encoding: "utf8" }).trim();
+      targetFiles = gitDiff.split("\n").map(s => s.replace(/^[?\sMADRCU]+\s+/, "").trim()).filter(Boolean);
+    } catch {}
+  }
+
+  if (targetFiles.length === 0) {
+    console.log("  No modified files detected to scan.\n");
+    return;
+  }
+
+  let totalErrors = 0;
+  for (const f of targetFiles) {
+    if (!existsSync(join(CWD, f))) continue;
+    const findings = scanFile(join(CWD, f));
+    if (findings && findings.length > 0) {
+      const actionable = findings.filter(it => it.severity === "critical" || it.severity === "warning" || it.severity === "error");
+      if (actionable.length > 0) {
+        console.log(`  ❌ ${f} (${actionable.length} issues):`);
+        actionable.forEach(it => console.log(`     - [${it.severity.toUpperCase()}] line ${it.line}: ${it.issue}`));
+        totalErrors += actionable.length;
+      }
+    }
+  }
+
+  if (totalErrors === 0) {
+    console.log(`  ✅ All ${targetFiles.length} files scanned clean. No critical leaks or defects found.\n`);
+  } else {
+    console.log(`\n  ⚠️ Total blocking issues found: ${totalErrors}\n`);
+    process.exit(1);
+  }
+}
+
+
+// ─── Hooks — Native Git Pre-commit Hook Manager ─────────────────────────────
+function cmdHooks() {
+  const action = subcmd || "status";
+  const gitHooksDir = join(CWD, ".git", "hooks");
+  const preCommitPath = join(gitHooksDir, "pre-commit");
+
+  if (action === "install") {
+    if (!existsSync(join(CWD, ".git"))) {
+      console.error("  ❌ Not a git repository (.git folder not found).");
+      process.exit(1);
+    }
+    if (!existsSync(gitHooksDir)) mkdirSync(gitHooksDir, { recursive: true });
+
+    const hookScript = `#!/usr/bin/env bash
+# 🍵 matcha native git pre-commit hook
+if command -v node >/dev/null 2>&1; then
+  if [ -f "bin/matcha.js" ]; then
+    node bin/matcha.js scan
+  elif command -v matcha >/dev/null 2>&1; then
+    matcha scan
+  fi
+fi
+`;
+    writeFileSync(preCommitPath, hookScript, { encoding: "utf8", mode: 0o755 });
+    console.log("🍵 matcha: hooks\n");
+    console.log("  ✅ Installed native pre-commit hook (.git/hooks/pre-commit)");
+    console.log("  All future git commits will automatically run security scan before committing.\n");
+    return;
+  }
+
+  if (action === "remove") {
+    if (existsSync(preCommitPath)) {
+      fs.unlinkSync(preCommitPath);
+      console.log("🍵 matcha: hooks\n");
+      console.log("  ✓ Removed pre-commit hook.\n");
+    } else {
+      console.log("  No pre-commit hook found.\n");
+    }
+    return;
+  }
+
+  // Status
+  console.log("🍵 matcha: hooks\n");
+  const installed = existsSync(preCommitPath);
+  console.log(`  Git Pre-Commit Hook: ${installed ? "✅ Installed & Active" : "⏭ Not installed"}`);
+  console.log("  Usage:");
+  console.log("    node bin/matcha.js hooks install   — Activate automatic pre-commit scanning");
+  console.log("    node bin/matcha.js hooks remove    — Deactivate pre-commit hook\n");
+}
+
 function showHelp() {
   console.log(`
 🍵 matcha v${VERSION} — Engineering Convention for AI Coding Agents
@@ -79,6 +179,9 @@ Commands:
   verify     Run verification checks (syntax, typecheck, tests)
   state      Save/show session state
   decision   Log a decision (skip, change, add)
+  index      Generate / refresh Symbol Graph & Monorepo Index
+  scan       Scan modified files for security leaks & quality issues
+  hooks      Install/manage native Git pre-commit security hook
   mcp        Start MCP server (stdio JSON-RPC)
   help       Show this help
 
@@ -603,6 +706,15 @@ switch (cmd) {
     break;
   case "decision":
     cmdDecision();
+    break;
+  case "index":
+    cmdIndex();
+    break;
+  case "scan":
+    cmdScan();
+    break;
+  case "hooks":
+    cmdHooks();
     break;
   case "mcp":
     cmdMcp();

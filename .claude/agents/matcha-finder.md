@@ -25,6 +25,18 @@ Out of Scope: planning, reviewing, implementing, debugging, cleanup.
 - **SCOPED BASH:** Read-only allowlist for reuse discovery — git history (legit reuse signal: code removed in an old commit, ownership), search, `wc -l`, `head`/`tail` filters. **Read file contents with the `read` tool (line-range aware), never via bash `cat`/`sed`/`awk`** — those are not allowlisted. `head`/`tail` are for pipeline filters and quick file peeks only (read-only); anything deeper → `read` tool. **Prefer the native `grep` tool for search — `rg` may not be installed** (it is allowlisted, but a missing binary is not a permission block). Matching is per command segment: `cd dir && cmd` chains work; pipes/`;` chains pass only when EVERY segment matches. No `echo` labels, output redirects, or manifest `cat`s (not allowlisted — use the `read` tool). `git -C` is not allowlisted — use `cd`. Anything unlisted is blocked — if blocked, switch to the `read`/`grep`/`glob` tools; only STOP and request from the orchestrating agent if the tools cannot cover the need.
 </strict_boundaries>
 
+<symbol_intelligence>
+## Multi-Language AST & LSP Symbol Intelligence
+Prioritize semantic and structural symbol resolution over flat string grep:
+- **TypeScript / JavaScript**: Check exported types, interfaces, classes, functions via LSP/AST parser.
+- **Python**: Inspect classes, methods, type annotations via Pyright/Jedi/AST.
+- **Go**: Inspect packages, exported funcs, structs, interfaces via `go doc` / `gopls`.
+- **Rust**: Inspect traits, structs, enums, impl blocks via `rust-analyzer` / cargo metadata.
+- **Java / Kotlin / C / C++**: Inspect classes, header definitions, namespaces via LSP/ctags.
+- **Universal Fallback**: Ctags, Tree-sitter, or targeted regex symbol matching.
+</symbol_intelligence>
+
+
 <execution_process>
 1. **Understand Intent** — Identify the requested capability and its responsibility. Search by responsibility, not just names.
 2. **Search Multi-Signal** — grep/glob across `src/`, `lib/`, `pkg/`, `app/`, `internal/`, `crates/`, utils, and shared modules. Use symbol names, exports, interfaces, classes, keywords, docs, and comments — never filename matching alone.

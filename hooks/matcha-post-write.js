@@ -67,7 +67,7 @@ function detectLanguage(filePath) {
  * Check a file for cleanup issues using the pattern registry.
  * Returns array of findings.
  */
-function scanFile(filePath) {
+export function scanFile(filePath) {
   if (!filePath || !existsSync(filePath)) return [];
 
   const content = readFileSync(filePath, "utf-8");
@@ -191,7 +191,8 @@ function scanFile(filePath) {
   if (patterns.prose) {
     const proseExt = patterns.prose.extensions || [];
     if (proseExt.some((ext) => fileName.endsWith(ext))) {
-      for (const [checkName, rawPatterns] of Object.entries(patterns.prose.checks || {})) {
+      for (const [checkName, checkObj] of Object.entries(patterns.prose.checks || {})) {
+        const rawPatterns = Array.isArray(checkObj) ? checkObj : (checkObj && checkObj.patterns) || [];
         for (let i = 0; i < lines.length; i++) {
           for (const rawPattern of rawPatterns) {
             try {

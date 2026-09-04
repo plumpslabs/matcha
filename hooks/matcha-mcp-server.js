@@ -135,7 +135,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.30",
+  version: "2.5.31",
 };
 
 const TOOLS = [

@@ -90,6 +90,7 @@ Risk Tier: L2 (Product Logic) — [why]
 Scope: [files, lines]
 
 ## Category Checklist (all 9 required — state each explicitly)
+- [ ] Commit & Change Hygiene — PASS / FINDINGS: [Conventional format, no internal drama, valid separate-line co-authors]
 - [ ] Correctness — PASS / FINDINGS: [file:line — issue]
 - [ ] Performance — PASS / FINDINGS: [file:line — issue]
 - [ ] Security — PASS / FINDINGS: [file:line — issue]

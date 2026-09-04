@@ -64,6 +64,44 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 > 🔒 **Enforced permissions (OpenCode `permission:` + Claude Code `disallowedTools:`):** `planner`, `finder`, `reviewer`, `auditor` are read-only — `edit` is denied for all source code (writable paths only: `.agents/plan/current.md` for planner + reviewer, `.agents/reports/**` for planner/reviewer/auditor). `debugger` + `cleaner` may modify code (minimal fix / post-confirmation cleanup). Bash is denied for planner/finder, allowed for the rest. Other providers (agy, Cursor, Windsurf) read the same agents — enforcement there is prompt-level + safety hooks.
 </system_toolkit>
 
+<industrial_scaling>
+## Industrial & Large-Scale Codebase Protocols (Language & Agent Agnostic)
+
+0. **⚡ Parallel Discovery Protocol (@matcha-planner & @matcha-finder)**
+   - When a task or bug is ingested, run **Intent Discovery** (Planner) and **Symbol Graph Search** (Finder) concurrently.
+   - Synchronize findings into `.agents/plan/current.md` before the first code write, reducing pre-implementation latency by up to 50%.
+
+1. **🔎 Symbol-First Reuse Engine (@matcha-finder)**
+   - Prioritize Language Server Protocol (LSP) and AST symbol indexing over flat text grep:
+     - **TypeScript/JS**: `tsserver`, `oxc`, Biome, Tree-sitter.
+     - **Python**: `pyright`, `jedi`, `ruff`, AST parser.
+     - **Go**: `gopls`, `go doc`, `go list`.
+     - **Rust**: `rust-analyzer`, `cargo check`.
+     - **Java/Kotlin/C/C++**: `jdtls`, `clangd`, `ctags`.
+     - **Agnostic Fallback**: Universal Ctags (`ctags -R`), Tree-sitter CLI, Ripgrep Symbol regex.
+   - Enforce the 5-tier classification with exact `file:line` proof: **REUSE** | **EXTEND** | **COMPOSE** | **REFERENCE** | **NEW**.
+
+2. **🧪 Smart Test Scoping (Affected Tests Only)**
+   - During active development/debugging, run **only affected/targeted tests** instead of the entire test suite:
+     - **JS/TS**: `vitest related --run <file>`, `jest --findRelatedTests <file>`, `turbo/nx affected -t test`.
+     - **Python**: `pytest --picked`, `pytest tests/test_<file>.py`.
+     - **Go**: `go test -v ./pkg/affected/...`.
+     - **Rust**: `cargo test -p <affected_crate>`.
+     - **Universal Fallback**: Detect paired test files via `git diff --name-only HEAD`.
+   - Delegate full regression test suites to background CI pipelines.
+
+3. **🚦 Adaptive Intensity Routing (Automated Blast-Radius Gate)**
+   - **🟢 Auto-observe (Low Risk)**: Markdown (`*.md`), documentation, styling/CSS, static assets, comments. (No blocking gate, light lint check).
+   - **🟡 Auto-enforce (Standard Logic - Default)**: Application source (`src/`, `lib/`, `pkg/`, `app/`), API handlers, UI logic, unit tests. (Full 6-checkpoint filter + DRY evidence + affected test green).
+   - **🔴 Auto-audit (High Blast Radius)**: Authentication (`auth/`, `*jwt*`), security boundaries, payment/billing, database migrations (`migrations/`, `schema.prisma`, `*.sql`), cryptography, core middleware. (Mandatory threat model + stack overlap scan + L3 review gate).
+
+4. **📦 Clean Change Hygiene & Conventional Commits**
+   - Use standard format: `<type>(<scope>): <summary>` (English only, imperative, max 72 chars).
+   - Zero agent drama in git log (e.g., replace internal prompt notes with professional technical rationale).
+   - Clean author hygiene: zero AI agent co-author tags in commit messages.
+</industrial_scaling>
+
+
 <project_context>
 ## Project Constraints & Verification
 - Read project-specific stack, conventions, and verification commands in `MATCHA_PROJECT.md`.

@@ -12,4 +12,10 @@ Key principles (see AGENTS.md for the full ruleset):
 - **Cleanup** — done means working *and* clean. No debug leftovers, no dead code.
 - **Verify** — run tests, typecheck, and lint before declaring done.
 
+
+- **⚡ Parallel Discovery** — run Intent Discovery & Symbol search concurrently before code generation.
+- **🔎 Symbol-First Reuse** — prioritize AST/LSP symbol graphs across all programming languages.
+- **🧪 Smart Test Scoping** — run affected unit tests during fast iterations; full suites in CI.
+- **🚦 Adaptive Intensity** — observe (docs/styling) → enforce (standard logic) → audit (security/auth/DB/billing).
+
 Respect the `// matcha:` decision markers when you find them in code — they are intentional, logged shortcuts.

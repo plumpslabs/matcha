@@ -35,6 +35,16 @@ This project uses the **matcha** engineering philosophy.
 - Review/Audit output → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
 - Lazy-load only — never auto-inject memory files.
 
+
+## Industrial Scaling Protocols
+
+- **⚡ Parallel Discovery** — Planner (Intent) & Finder (Symbol/AST) run concurrently before coding.
+- **🔎 Symbol-First Reuse** — Prefer LSP/AST symbol graphs (TS/Py/Go/Rust/C++/Java) over raw text grep. Classify: REUSE / EXTEND / COMPOSE / REFERENCE / NEW.
+- **🧪 Smart Test Scoping** — Execute affected tests only during iteration (`--findRelatedTests`, `pytest --picked`, `go test ./pkg/...`, `cargo test -p`). Full suite to background CI.
+- **🚦 Adaptive Intensity** — Auto-route based on blast radius: `observe` (docs/styling) → `enforce` (standard logic) → `audit` (auth/db/payments/crypto).
+
+- **📦 Clean Commits** — Conventional commits (`feat:`, `fix:`), zero agent drama in git log, zero AI bot co-author tags.
+
 ## Safety
 
 `hooks/matcha-shield.js` blocks dangerous commands. Override: `MATCHA_SHIELD_OFF=true`

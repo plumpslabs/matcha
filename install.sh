@@ -59,7 +59,7 @@ install_skill() {
   local dst="$1"
   mkdir -p "$dst/modules"
   install_file "$dst/SKILL.md" "skills/matcha/SKILL.md"
-  for m in core project modes risk legacy; do
+  for m in core project modes risk legacy engineering; do
     install_file "$dst/modules/$m.md" "skills/matcha/modules/$m.md"
   done
 }
@@ -90,7 +90,7 @@ install_hooks() {
   mkdir -p "$target"
   # All hooks + their runtime dependencies (dependency graph must be complete
   # or every hook crashes on a clean install).
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js auto-index.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }
@@ -139,6 +139,7 @@ for p in $PLATFORMS; do
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/rules/matcha.md" ".agents/rules/matcha.md"
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/hooks.json" "hooks.json"
       [ "$p" = ".agents" ] && install_hooks "$TARGET/.agents/hooks"
+      [ "$p" = ".agents" ] && [ ! -f "$TARGET/.agents/package.json" ] && echo '{"type": "module"}' > "$TARGET/.agents/package.json"
       [ "$p" = ".opencode" ] && install_file "$TARGET/.opencode/plugins/matcha.js" ".opencode/plugins/matcha.js"
       ;;
     .roo)

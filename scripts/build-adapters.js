@@ -242,6 +242,9 @@ for (const cmd of COMMAND_NAMES) {
 // AGY hooks manifest (workspace scope: <project>/.agents/hooks.json)
 write(".agents/hooks.json", read("hooks.json"));
 
+// AGY package.json for ESM module resolution
+write(".agents/package.json", '{\n  "type": "module"\n}\n');
+
 // AGY hooks folder in .agents/
 symlink(".agents/hooks", "../hooks");
 

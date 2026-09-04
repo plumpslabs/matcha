@@ -56,7 +56,7 @@ ${projectSection}
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.5.33", event: event.type },
+    metadata: { convention: "matcha", version: "2.5.34", event: event.type },
   };
 }
 

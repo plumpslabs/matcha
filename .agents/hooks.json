@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/matcha-agy-hooks.js",
+            "command": "node -e \"import('fs').then(fs=>{const p=['hooks/matcha-agy-hooks.js','.agents/hooks/matcha-agy-hooks.js','../hooks/matcha-agy-hooks.js'].find(x=>fs.existsSync(x));if(p)import('./'+p);else process.stdout.write(JSON.stringify({decision:'allow'})+'\\n');}).catch(()=>process.stdout.write(JSON.stringify({decision:'allow'})+'\\n'))\"",
             "timeout": 30
           }
         ]

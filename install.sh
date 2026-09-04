@@ -138,6 +138,7 @@ for p in $PLATFORMS; do
       install_skill "$TARGET/$p/skills/matcha"
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/rules/matcha.md" ".agents/rules/matcha.md"
       [ "$p" = ".agents" ] && install_file "$TARGET/.agents/hooks.json" "hooks.json"
+      [ "$p" = ".agents" ] && install_hooks "$TARGET/.agents/hooks"
       [ "$p" = ".opencode" ] && install_file "$TARGET/.opencode/plugins/matcha.js" ".opencode/plugins/matcha.js"
       ;;
     .roo)

@@ -242,6 +242,9 @@ for (const cmd of COMMAND_NAMES) {
 // AGY hooks manifest (workspace scope: <project>/.agents/hooks.json)
 write(".agents/hooks.json", read("hooks.json"));
 
+// AGY hooks folder in .agents/
+symlink(".agents/hooks", "../hooks");
+
 console.log("");
 
 // ─── .openclaw/ ──────────────────────────────────────────────────────────────

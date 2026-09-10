@@ -258,11 +258,25 @@ export function checkPlanningGate(event) {
     return null;
   }
 
+  // ⚖️ Archived/done plans: allow read-only Bash (analysis, grep, ls, git diff)
+  // without forcing a new plan — prevents gate from blocking post-task analysis.
+  // Write tools still require a fresh active plan.
+  const isArchivedPlan = /^status:\s*(archived|done)/im.test(planContent);
+  if (isArchivedPlan && isCommandTool) {
+    const cmd = (event.input?.command || event.input?.code || "").trim();
+    // Allow any read-only/diagnostic command — block only actual state mutations
+    const isReadOnly = /^(git |npm test|vitest|find |ls |cat |grep |echo |node |curl |agy |matcha |which |type )/i.test(cmd);
+    if (isReadOnly) return null;
+  }
+
   const validation = validatePlanContent(planContent);
   if (!validation.valid) {
+    const archivedHint = isArchivedPlan
+      ? "\n\n📋 Your current plan is archived. Start a new task by writing a fresh plan to .agents/plan/current.md."
+      : "";
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).\n💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).`
+      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}${archivedHint}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).\n💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).`
     };
   }
 

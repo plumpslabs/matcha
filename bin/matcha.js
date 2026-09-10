@@ -516,9 +516,19 @@ async function cmdInit() {
   // 4. Scaffold session memory (live plan + rotating report archive)
   ensureMemoryScaffold(CWD);
 
-  console.log("\n💡 Next steps:");
-  console.log("   Verify: ls AGENTS.md GEMINI.md MATCHA_PROJECT.md hooks/matcha-shield.js");
-
+  console.log("\n✅ matcha installed!\n");
+  console.log("💡 Next steps:\n");
+  console.log("  1. Verify install:");
+  console.log("     matcha status\n");
+  console.log("  2. Start a coding session — type in your agent:");
+  console.log("     /matcha:why   → run Intent Discovery before coding");
+  console.log("     /matcha:on    → enable all guardrails (default: already on)");
+  console.log("     /matcha:off   → disable for quick experiments\n");
+  console.log("  3. During work:");
+  console.log("     /matcha:review   → trigger blocking review gate on current diff");
+  console.log("     /matcha:status   → check current mode & hook states\n");
+  console.log("  4. Check MATCHA_PROJECT.md for project-specific stack config.");
+  console.log("     Add your test command, build command, and any custom rules.\n");
 }
 
 // ─── Status ───────────────────────────────────────────────────────────────────

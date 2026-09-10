@@ -1,7 +1,7 @@
 {
   "$schema": "https://antigravity.google/schemas/v1/plugin.json",
   "name": "matcha",
-  "version": "2.5.35",
+  "version": "2.5.40",
   "description": "Engineering philosophy ruleset \u2014 simple, efficient, deliberate. Enforces Intent Discovery thinking, stack audits, mid-task efficiency checks, and cleanup protocols.",
   "author": {
     "name": "plumpslabs",
@@ -13,6 +13,41 @@
       "name": "matcha",
       "description": "Engineering philosophy ruleset",
       "file": "skills/matcha/SKILL.md"
+    },
+    {
+      "name": "on",
+      "description": "Enable matcha governance and safety guardrails",
+      "file": "skills/on/SKILL.md"
+    },
+    {
+      "name": "off",
+      "description": "Disable matcha governance — completely silent, zero token overhead",
+      "file": "skills/off/SKILL.md"
+    },
+    {
+      "name": "toggle",
+      "description": "Toggle matcha governance on or off",
+      "file": "skills/toggle/SKILL.md"
+    },
+    {
+      "name": "review",
+      "description": "Trigger blocking matcha review gate (L0-L3)",
+      "file": "skills/review/SKILL.md"
+    },
+    {
+      "name": "audit",
+      "description": "Audit existing stack for overlaps and inefficiencies",
+      "file": "skills/audit/SKILL.md"
+    },
+    {
+      "name": "status",
+      "description": "Show matcha session health dashboard",
+      "file": "skills/status/SKILL.md"
+    },
+    {
+      "name": "why",
+      "description": "Run Intent Discovery check before touching code",
+      "file": "skills/why/SKILL.md"
     }
   ],
   "commands": [

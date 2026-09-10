@@ -94,9 +94,9 @@ const COMMAND_NAMES = [
   "matcha:toggle", "matcha:on", "matcha:off",
 ];
 
-// matcha:explain Sub-skills removed in v2.5.39 — they created duplicate palette
-// entries (/matcha:on AND /matcha-on) in AGY and Claude Code. commands/matcha:*.md
-// is the single source of truth for all provider slash commands.
+// Clean action skills for AGY and agents. In AGY, plugin namespace is `matcha:`,
+// so `on` becomes `/matcha:on`, `off` becomes `/matcha:off` without double-prefixing.
+const ACTION_SKILL_NAMES = ["on", "off", "toggle", "review", "audit", "status", "why"];
 
 // ─── Claude Code agent frontmatter transform ────────────────────────────────
 // OpenCode `permission:` block → Claude Code `tools:` allowlist + `disallowedTools:`.
@@ -184,7 +184,9 @@ for (const agent of AGENT_NAMES) {
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .claude/skills/matcha/)
 symlink(".claude/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".claude/skills/matcha/modules", "../../../skills/matcha/modules");
-
+for (const s of ACTION_SKILL_NAMES) {
+  symlink(`.claude/skills/${s}/SKILL.md`, `../../../skills/${s}/SKILL.md`);
+}
 
 // Commands: regular files (truncated for Claude Code context window)
 // Truncation rule lives in scripts/command-truncate.js — single source of truth.
@@ -216,7 +218,9 @@ for (const cmd of COMMAND_NAMES) {
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .opencode/skills/matcha/)
 symlink(".opencode/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".opencode/skills/matcha/modules", "../../../skills/matcha/modules");
-
+for (const s of ACTION_SKILL_NAMES) {
+  symlink(`.opencode/skills/${s}/SKILL.md`, `../../../skills/${s}/SKILL.md`);
+}
 
 // Plugin stays as-is (it's OpenCode-specific)
 // Don't overwrite .opencode/plugins/matcha.js
@@ -239,6 +243,9 @@ for (const agent of AGENT_NAMES) {
 // Skills: symlink to canonical
 symlink(".agents/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".agents/skills/matcha/modules", "../../../skills/matcha/modules");
+for (const s of ACTION_SKILL_NAMES) {
+  symlink(`.agents/skills/${s}/SKILL.md`, `../../../skills/${s}/SKILL.md`);
+}
 
 // Commands: regular files
 cleanLegacyCommands(".agents/commands");
@@ -264,6 +271,9 @@ console.log("── .openclaw/ ──");
 // Skills: symlink to canonical (3 levels up from .openclaw/skills/matcha/)
 symlink(".openclaw/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".openclaw/skills/matcha/modules", "../../../skills/matcha/modules");
+for (const s of ACTION_SKILL_NAMES) {
+  symlink(`.openclaw/skills/${s}/SKILL.md`, `../../../skills/${s}/SKILL.md`);
+}
 
 
 console.log("");

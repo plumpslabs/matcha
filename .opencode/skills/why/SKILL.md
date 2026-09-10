@@ -1,0 +1,1 @@
+../../../skills/why/SKILL.md

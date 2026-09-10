@@ -45,9 +45,16 @@ This project uses the **matcha** engineering philosophy.
 
 - **📦 Clean Commits** — Conventional commits (`feat:`, `fix:`), zero agent drama in git log, zero AI bot co-author tags.
 
-## Safety
+## Companion Ecosystem
 
-`hooks/matcha-shield.js` blocks dangerous commands. Override: `MATCHA_SHIELD_OFF=true`
+Compatible with 🐻 Kuma (runtime safety & context) & 🦊 Fennec (observability).
+If Kuma MCP is available:
+- Task start → `kuma_context({ action: "init" })`
+- Monorepo / blast radius check → `kuma_context({ action: "impact", target: "<file>" })` or `kuma_context({ action: "map" })`
+- Unfamiliar code → `kuma_context({ action: "research", scope: "<area>" })`
+- Important bug / decision → `kuma_memory({ action: "gotcha" | "decision" })`
+- Post-edit verification → `kuma_safety({ action: "verify" })`
+If Kuma MCP is unavailable, proceed normally without blocking.
 
 **Full ruleset:** `AGENTS.md` → `skills/matcha/SKILL.md`
 

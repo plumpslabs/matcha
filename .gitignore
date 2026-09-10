@@ -6,4 +6,5 @@ node_modules/
 .agents/reports/
 .agents/matcha-state.json
 .agents/matcha-metrics.json
+.agents/audit.log
 .agents/state/

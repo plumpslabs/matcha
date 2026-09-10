@@ -130,6 +130,7 @@ console.log("\n📋 Checking command file copies...");
 const COMMANDS = [
   "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
   "matcha:status", "matcha:debt", "matcha:markers",
+  "matcha:toggle", "matcha:on", "matcha:off",
 ];
 
 for (const cmd of COMMANDS) {

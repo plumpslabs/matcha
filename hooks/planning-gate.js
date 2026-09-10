@@ -28,6 +28,7 @@ export function getIntensity(cwd) {
     const stateFile = join(root, ".agents/matcha-state.json");
     if (existsSync(stateFile)) {
       const state = JSON.parse(readFileSync(stateFile, "utf-8"));
+      if (state.enabled === false) return "off";
       return state.intensity || "enforce";
     }
   } catch {}
@@ -56,6 +57,7 @@ export function isPlanFilePath(value) {
   return (
     /\.agents[\\/]plan[\\/]/.test(s) ||
     /\.agents[\\/]reports[\\/]/.test(s) ||
+    /\.kuma[\\/]/.test(s) ||
     s.includes("matcha-plan.md") ||
     s.includes("matcha-state.json") ||
     s.includes("mcp_config.json") ||
@@ -202,7 +204,7 @@ export function checkPlanningGate(event) {
   // code run hooks from the project root and leave cwd unset.
   const cwd = event.cwd || process.cwd();
   const intensity = getIntensity(cwd);
-  if (intensity === "observe") return null;
+  if (intensity === "observe" || intensity === "off") return null;
 
   // Smart auto-skip: detect simple tasks
   const toolName = event.tool || event.toolName || "";

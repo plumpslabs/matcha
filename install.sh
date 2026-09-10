@@ -80,7 +80,7 @@ install_agents() {
 install_commands() {
   local target="$1"
   mkdir -p "$target"
-  for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers; do
+  for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off; do
     install_file "$target/$cmd.md" "commands/$cmd.md"
   done
 }
@@ -90,7 +90,7 @@ install_hooks() {
   mkdir -p "$target"
   # All hooks + their runtime dependencies (dependency graph must be complete
   # or every hook crashes on a clean install).
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js auto-index.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js auto-index.js audit-log.js blast-radius.js evidence-collector.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }

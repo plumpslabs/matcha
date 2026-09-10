@@ -50,6 +50,21 @@
       "name": "matcha:markers",
       "description": "Scan for // matcha: markers in the codebase",
       "file": "commands/matcha:markers.md"
+    },
+    {
+      "name": "matcha:toggle",
+      "description": "Toggle matcha governance on or off",
+      "file": "commands/matcha:toggle.md"
+    },
+    {
+      "name": "matcha:on",
+      "description": "Enable matcha governance",
+      "file": "commands/matcha:on.md"
+    },
+    {
+      "name": "matcha:off",
+      "description": "Pause matcha governance",
+      "file": "commands/matcha:off.md"
     }
   ]
 }

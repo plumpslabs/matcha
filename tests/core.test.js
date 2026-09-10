@@ -45,7 +45,7 @@ describe("Core files", () => {
     expect(content.version).toBe("2.5.34");
   });
 
-  test("plugin.json (AGY manifest) declares all 7 commands", () => {
+  test("plugin.json (AGY manifest) declares commands", () => {
     const content = JSON.parse(readProjectFile("plugin.json"));
     const names = content.commands.map((c) => c.name);
     expect(names).toContain("matcha:why");
@@ -55,6 +55,9 @@ describe("Core files", () => {
     expect(names).toContain("matcha:status");
     expect(names).toContain("matcha:debt");
     expect(names).toContain("matcha:markers");
+    expect(names).toContain("matcha:toggle");
+    expect(names).toContain("matcha:on");
+    expect(names).toContain("matcha:off");
   });
 
   test("mcp_config.json (AGY manifest) points to matcha MCP server", () => {

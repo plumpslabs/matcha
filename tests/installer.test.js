@@ -52,8 +52,8 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain(".opencode/plugins/matcha.js");
   });
 
-  test("installs all 7 commands", () => {
-    expect(installer).toContain("for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers");
+  test("installs all commands", () => {
+    expect(installer).toContain("for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off");
   });
 
   test("installs hooks", () => {

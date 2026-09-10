@@ -24,6 +24,8 @@ import { autoIndexWorkspace } from "./auto-index.js";
 import { detectMode, writeMode, getPreviousMode } from "./mode-detect.js";
 import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./matcha-metrics.js";
 
+import { recordAuditLog } from "./audit-log.js";
+
 // Re-export for backward compatibility with tests
 export { DANGER_PATTERNS, checkPlanningGate };
 
@@ -36,7 +38,16 @@ function parseEvent(event) {
 }
 
 export async function beforeToolUse(event, context) {
-  if (process.env.MATCHA_SHIELD_OFF === "true") return null;
+  if (process.env.MATCHA_SHIELD_OFF === "true") {
+    const cmd = parseEvent(event);
+    recordAuditLog({
+      event: "SHIELD_OVERRIDE",
+      actor: "environment",
+      details: cmd || event?.tool || "tool-call",
+      reason: process.env.MATCHA_OVERRIDE_REASON || "MATCHA_SHIELD_OFF=true active",
+    }, event?.cwd);
+    return null;
+  }
 
   // Auto-detect mode
   const toolName = event?.tool || event?.toolName || "";
@@ -89,6 +100,12 @@ if (isDirectInvocation) {
   process.stdin.on("data", (chunk) => (input += chunk));
   process.stdin.on("end", () => {
     if (process.env.MATCHA_SHIELD_OFF === "true") {
+      recordAuditLog({
+        event: "SHIELD_OVERRIDE",
+        actor: "cli",
+        details: "MATCHA_SHIELD_OFF stdin bypass",
+        reason: process.env.MATCHA_OVERRIDE_REASON || "MATCHA_SHIELD_OFF=true active",
+      });
       process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
       process.exit(0);
     }

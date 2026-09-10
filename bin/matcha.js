@@ -23,6 +23,9 @@ import { getWorkspaceRoot } from "../hooks/workspace-root.js";
 import { getMetricsSummary } from "../hooks/matcha-metrics.js";
 import { autoIndexWorkspace } from "../hooks/auto-index.js";
 import { scanFile } from "../hooks/matcha-post-write.js";
+import { recordAuditLog, getRecentAuditLogs } from "../hooks/audit-log.js";
+import { calculateBlastRadius } from "../hooks/blast-radius.js";
+import { recordTestEvidence, getEvidenceBundle, validateEvidence } from "../hooks/evidence-collector.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -110,6 +113,133 @@ function cmdScan() {
   }
 }
 
+// ─── On / Off / Toggle — Instant Governance Switch (Ponytail-style) ──────────
+function cmdOn() {
+  const state = readState();
+  state.enabled = true;
+  state.intensity = subcmd || (state.intensity === "off" ? "enforce" : (state.intensity || "enforce"));
+  writeState(state);
+  recordAuditLog({
+    event: "STATE_TOGGLE",
+    details: `ENABLED (intensity: ${state.intensity})`,
+    reason: "CLI command: matcha on",
+  }, STATE_ROOT);
+
+  console.log("🍵 matcha: governance ENABLED\n");
+  console.log(`  State:       🟢 Active`);
+  console.log(`  Intensity:   ${state.intensity}`);
+  console.log(`  Gate:        Enforced (Intent Discovery in .agents/plan/current.md)`);
+  console.log(`  Shield:      Active (blocking destructive commands)`);
+  console.log(`  Audit trail: Enabled (.agents/audit.log)\n`);
+}
+
+function cmdOff() {
+  const state = readState();
+  state.enabled = false;
+  state.intensity = "off";
+  writeState(state);
+  recordAuditLog({
+    event: "STATE_TOGGLE",
+    details: "PAUSED (off)",
+    reason: "CLI command: matcha off",
+  }, STATE_ROOT);
+
+  console.log("🍵 matcha: governance PAUSED (off)\n");
+  console.log(`  State:       ⏸ Disabled`);
+  console.log(`  Gate:        Bypassed (free code editing without plan restriction)`);
+  console.log(`  Audit trail: Logged to .agents/audit.log`);
+  console.log(`  Resume:      Run 'matcha on' or /matcha:on to re-enable anytime.\n`);
+}
+
+function cmdToggle() {
+  const state = readState();
+  if (state.enabled !== false && state.intensity !== "off") {
+    cmdOff();
+  } else {
+    cmdOn();
+  }
+}
+
+// ─── Audit — Show Governance & Override Trail ─────────────────────────────────
+function cmdAudit() {
+  console.log("🍵 matcha: audit trail (.agents/audit.log)\n");
+  const logs = getRecentAuditLogs(20, STATE_ROOT);
+  if (logs.length === 0) {
+    console.log("  No audit events recorded yet. Overrides and state changes are logged here.\n");
+    return;
+  }
+  logs.forEach(l => console.log(`  ${l}`));
+  console.log("");
+}
+
+// ─── Evidence — Machine-Readable Verification Collector ───────────────────────
+function cmdEvidence() {
+  console.log("🍵 matcha: evidence verification\n");
+  const action = subcmd || "status";
+  const bundle = getEvidenceBundle(STATE_ROOT);
+
+  if (action === "status" || action === "show") {
+    if (!bundle) {
+      console.log("  No evidence bundle found in .agents/state/evidence.json");
+      console.log("  Run 'matcha verify' or 'matcha evidence record -- <test-command>' to capture proof.\n");
+      return;
+    }
+    console.log(`  Timestamp:    ${bundle.timestamp}`);
+    console.log(`  Verified:     ${bundle.verified ? "✅ PASS (Exit Code 0)" : "❌ FAILED"}`);
+    if (bundle.tests) {
+      console.log(`  Test Command: ${bundle.tests.command} (exitCode: ${bundle.tests.exitCode})`);
+    }
+    if (bundle.risk) {
+      console.log(`  Risk Tier:    ${bundle.risk.tier} (Score: ${bundle.risk.score})`);
+      bundle.risk.reasons.forEach(r => console.log(`    - ${r}`));
+    }
+    if (bundle.git) {
+      console.log(`  Diff:         ${bundle.git.filesChanged} files (+${bundle.git.linesAdded} / -${bundle.git.linesDeleted})`);
+    }
+    console.log("");
+    return;
+  }
+
+  if (action === "record") {
+    let args = process.argv.slice(4);
+    if (args[0] === "--") args = args.slice(1);
+    const rawCmd = args.join(" ");
+    if (!rawCmd) {
+      console.error("  ❌ Missing test command. Usage: matcha evidence record -- <cmd>");
+      process.exit(1);
+    }
+    console.log(`  Executing: ${rawCmd}`);
+    let exitCode = 0;
+    let output = "";
+    try {
+      output = execSync(rawCmd, { cwd: CWD, encoding: "utf8" });
+    } catch (err) {
+      exitCode = err.status || 1;
+      output = (err.stdout || "") + (err.stderr || "");
+    }
+    recordTestEvidence({
+      command: rawCmd,
+      exitCode,
+      outputSnippet: output.trim(),
+    }, STATE_ROOT);
+    console.log(`  Captured evidence bundle -> .agents/state/evidence.json (Exit Code: ${exitCode})\n`);
+    if (exitCode !== 0) process.exit(exitCode);
+  }
+}
+
+// ─── Blast — Automated Risk & Blast Radius Calculation ─────────────────────────
+function cmdBlast() {
+  console.log("🍵 matcha: blast radius calculation\n");
+  const res = calculateBlastRadius(undefined, STATE_ROOT);
+  console.log(`  Risk Tier:        ${res.tier} (Score: ${res.score})`);
+  console.log(`  Recommended Mode: ${res.recommendedMode}`);
+  console.log(`  Files Modified:   ${res.stats.filesChanged}`);
+  console.log(`  LOC Delta:        +${res.stats.linesAdded} / -${res.stats.linesDeleted}`);
+  console.log(`  Context Rationale:`);
+  res.reasons.forEach(r => console.log(`    • ${r}`));
+  console.log("");
+}
+
 
 // ─── Hooks — Native Git Pre-commit Hook Manager ─────────────────────────────
 function cmdHooks() {
@@ -171,7 +301,13 @@ Usage:
   node bin/matcha.js <command>       (from a cloned repo)
 
 Commands:
+  on         Enable matcha governance (enforce or specified intensity)
+  off        Pause/disable matcha governance (free mode)
+  toggle     Toggle governance on/off (like ponytail)
   status     Show version, platform, and installed components
+  audit      Show recent audit trail entries (.agents/audit.log)
+  evidence   Show or record machine-readable verification evidence
+  blast      Calculate blast radius & risk score for current changes
   init       Install matcha into the current project (choose providers)
   init --platforms .opencode,.claude   Install only the listed providers
   metrics    Show matcha impact metrics
@@ -686,6 +822,24 @@ function cmdMcp() {
 
 (async () => {
 switch (cmd) {
+  case "on":
+    cmdOn();
+    break;
+  case "off":
+    cmdOff();
+    break;
+  case "toggle":
+    cmdToggle();
+    break;
+  case "audit":
+    cmdAudit();
+    break;
+  case "evidence":
+    cmdEvidence();
+    break;
+  case "blast":
+    cmdBlast();
+    break;
   case "init":
     await cmdInit();
     break;

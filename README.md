@@ -136,6 +136,9 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 
 | Command | Purpose |
 |---------|---------|
+| `/matcha:toggle` | Toggle governance on/off instantly (Ponytail-style) |
+| `/matcha:on` | Enable matcha governance & safety checks |
+| `/matcha:off` | Pause governance & planning gate (free mode) |
 | `/matcha:why` | Intent Discovery — answer before coding |
 | `/matcha:review` | **Blocking review gate** — 9 categories |
 | `/matcha:audit` | Stack health — overlaps, waste, security |
@@ -252,6 +255,9 @@ npm run mcp
 |------|------|-------------|
 | `planning-gate.js` | Before first edit | Blocks code until an Intent Discovery plan exists |
 | `matcha-shield.js` | Before tool use | Blocks dangerous commands + mode detection |
+| `audit-log.js` | Override / Toggle | Tamper-evident governance & override logging |
+| `blast-radius.js` | Pre/Post edit | Dynamic risk scoring (L0-L3) based on git diff |
+| `evidence-collector.js` | Verification | Captures empirical test exit codes (anti-theater) |
 | `matcha-post-write.js` | After file write | Scans for debug code, secrets, empty catches |
 | `matcha-stop.js` | Task complete | Generates tips from git diff |
 | `matcha-metrics.js` | Session | Tracks session metrics |

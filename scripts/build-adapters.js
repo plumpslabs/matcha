@@ -91,6 +91,7 @@ const AGENT_NAMES = [
 const COMMAND_NAMES = [
   "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
   "matcha:status", "matcha:debt", "matcha:markers",
+  "matcha:toggle", "matcha:on", "matcha:off",
 ];
 
 // ─── Claude Code agent frontmatter transform ────────────────────────────────
@@ -287,12 +288,29 @@ for (const agent of AGENT_NAMES) {
   write(`agents/${agent}.md`, read(`.agents/agents/${agent}.md`));
 }
 
-// ─── rules/ (AGY plugin rules) ─────────────────────────────────────────────────
+// ─── rules/ (AGY plugin rules & editor copies) ─────────────────────────────────
 
-console.log("── rules/ (AGY plugin) ──");
+console.log("── rules/ (AGY plugin & editor copies) ──");
 
-// AGY plugin structure scans a root-level `rules/` dir for custom codebase rules.
-write("rules/matcha.md", read(".agents/rules/matcha.md"));
+const canonicalRules = read(".agents/rules/matcha.md");
+write("rules/matcha.md", canonicalRules);
+write(".clinerules/matcha.md", canonicalRules);
+write(".windsurf/rules/matcha.md", canonicalRules);
+write(".qoder/rules/matcha.md", canonicalRules);
+write(".roo/rules/matcha.md", canonicalRules);
+write(".trae/rules/matcha.md", canonicalRules);
+write(".github/copilot-instructions.md", canonicalRules);
+
+const cursorRules = [
+  "---",
+  "description: matcha engineering convention — read AGENTS.md at project root",
+  "globs: **/*",
+  "alwaysApply: true",
+  "---",
+  "",
+  canonicalRules,
+].join("\n");
+write(".cursor/rules/matcha.mdc", cursorRules);
 
 console.log("");
 

@@ -23,5 +23,6 @@ Key principles (see AGENTS.md for the full ruleset):
 - **🔎 Symbol-First Reuse** — prioritize AST/LSP symbol graphs across all programming languages.
 - **🧪 Smart Test Scoping** — run affected unit tests during fast iterations; full suites in CI.
 - **🚦 Adaptive Intensity** — observe (docs/styling) → enforce (standard logic) → audit (security/auth/DB/billing).
+- **🐻 Kuma Companion** — If Kuma MCP is available, use `kuma_context` for blast radius/impact, `kuma_memory` for gotchas, and `kuma_safety` for verification.
 
 Respect the `// matcha:` decision markers when you find them in code — they are intentional, logged shortcuts.

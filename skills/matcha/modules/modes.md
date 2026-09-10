@@ -49,6 +49,13 @@ Auto-detect from user intent + actions:
 3. **Mode stack** — can be in multiple modes (e.g., debug + review)
 4. **Mode memory** — remember mode for session until changed
 
+## Instant Governance Switch (Ponytail-Style)
+
+Developers can toggle governance enforcement at any time:
+- `/matcha:off` or `matcha off`: Pauses planning gate and strict checks (Free Mode for rapid prototyping). State changes are logged to `.agents/audit.log`.
+- `/matcha:on` or `matcha on`: Resumes full governance enforcement (enforce mode).
+- `/matcha:toggle` or `matcha toggle`: Flips between active and paused.
+
 ## Integration
 
 **Mode × gate matrix is defined once in `modules/core.md`** (Context-Aware Modes table) — that is the single source of truth. This section only adds what core.md does not cover: legacy protocol activation.

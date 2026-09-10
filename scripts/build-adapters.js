@@ -94,13 +94,9 @@ const COMMAND_NAMES = [
   "matcha:toggle", "matcha:on", "matcha:off",
 ];
 
-// Sub-skills: each maps to a dedicated skills/<name>/ directory so AGY's
-// slash palette surfaces /matcha-on, /matcha-off, etc. as individual entries.
-// Also used to generate .windsurf/workflows/matcha-*.md via build.
-const SUBSKILL_NAMES = [
-  "matcha-on", "matcha-off", "matcha-toggle",
-  "matcha-review", "matcha-audit", "matcha-status", "matcha-why",
-];
+// matcha:explain Sub-skills removed in v2.5.39 — they created duplicate palette
+// entries (/matcha:on AND /matcha-on) in AGY and Claude Code. commands/matcha:*.md
+// is the single source of truth for all provider slash commands.
 
 // ─── Claude Code agent frontmatter transform ────────────────────────────────
 // OpenCode `permission:` block → Claude Code `tools:` allowlist + `disallowedTools:`.
@@ -188,10 +184,6 @@ for (const agent of AGENT_NAMES) {
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .claude/skills/matcha/)
 symlink(".claude/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".claude/skills/matcha/modules", "../../../skills/matcha/modules");
-// Sub-skills: individual slash palette entries (matcha-on, matcha-off, etc.)
-for (const sub of SUBSKILL_NAMES) {
-  symlink(`.claude/skills/${sub}/SKILL.md`, `../../../skills/${sub}/SKILL.md`);
-}
 
 
 // Commands: regular files (truncated for Claude Code context window)
@@ -224,11 +216,7 @@ for (const cmd of COMMAND_NAMES) {
 // Skills: symlink to skills/matcha/SKILL.md (3 levels up from .opencode/skills/matcha/)
 symlink(".opencode/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".opencode/skills/matcha/modules", "../../../skills/matcha/modules");
-// Sub-skills: individual slash palette entries
-for (const sub of SUBSKILL_NAMES) {
-  symlink(`.opencode/skills/${sub}/SKILL.md`, `../../../skills/${sub}/SKILL.md`);
-}
-// Hierarchical commands (.opencode/commands/matcha/*.md) — static files, not regenerated
+
 
 // Plugin stays as-is (it's OpenCode-specific)
 // Don't overwrite .opencode/plugins/matcha.js
@@ -251,10 +239,6 @@ for (const agent of AGENT_NAMES) {
 // Skills: symlink to canonical
 symlink(".agents/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".agents/skills/matcha/modules", "../../../skills/matcha/modules");
-// Sub-skills: individual slash palette entries for AGY
-for (const sub of SUBSKILL_NAMES) {
-  symlink(`.agents/skills/${sub}/SKILL.md`, `../../../skills/${sub}/SKILL.md`);
-}
 
 // Commands: regular files
 cleanLegacyCommands(".agents/commands");
@@ -280,10 +264,7 @@ console.log("── .openclaw/ ──");
 // Skills: symlink to canonical (3 levels up from .openclaw/skills/matcha/)
 symlink(".openclaw/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
 symlink(".openclaw/skills/matcha/modules", "../../../skills/matcha/modules");
-// Sub-skills
-for (const sub of SUBSKILL_NAMES) {
-  symlink(`.openclaw/skills/${sub}/SKILL.md`, `../../../skills/${sub}/SKILL.md`);
-}
+
 
 console.log("");
 

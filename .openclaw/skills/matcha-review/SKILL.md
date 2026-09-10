@@ -1,1 +1,0 @@
-../../../skills/matcha-review/SKILL.md

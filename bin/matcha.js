@@ -113,7 +113,7 @@ function cmdScan() {
   }
 }
 
-// ─── On / Off / Toggle — Instant Governance Switch (Ponytail-style) ──────────
+// ─── On / Off / Toggle — Instant Governance Switch
 function cmdOn() {
   const state = readState();
   state.enabled = true;
@@ -303,7 +303,7 @@ Usage:
 Commands:
   on         Enable matcha governance (enforce or specified intensity)
   off        Pause/disable matcha governance (free mode)
-  toggle     Toggle governance on/off (like ponytail)
+  toggle     Toggle governance on/off
   status     Show version, platform, and installed components
   audit      Show recent audit trail entries (.agents/audit.log)
   evidence   Show or record machine-readable verification evidence

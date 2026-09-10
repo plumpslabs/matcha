@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.5.40-purple" alt="v2.5.40" />
+  <img src="https://img.shields.io/badge/version-2.5.41-purple" alt="v2.5.41" />
   <img src="https://img.shields.io/badge/tests-554-passing-brightgreen" alt="554 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -136,7 +136,7 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 
 | Command | Purpose |
 |---------|---------|
-| `/matcha:toggle` | Toggle governance on/off instantly (Ponytail-style) |
+| `/matcha:toggle` | Toggle governance on/off instantly ( |
 | `/matcha:on` | Enable matcha governance & safety checks |
 | `/matcha:off` | Pause governance & planning gate (free mode) |
 | `/matcha:why` | Intent Discovery — answer before coding |

@@ -1,5 +1,5 @@
 ---
-description: "🍵 Toggle matcha governance on/off (Ponytail-style instant switch)"
+description: "🍵 Toggle matcha governance on/off (instant switch)"
 ---
 # /matcha:toggle
 

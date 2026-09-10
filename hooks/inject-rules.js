@@ -7,10 +7,18 @@
  */
 
 import { getMatchaInstructions, getProjectConstraints } from "./matcha-instructions.js";
+import { getIntensity } from "./planning-gate.js";
 
 // ─── Hook handlers ─────────────────────────────────────────────────────────────
 
 export async function preTask(event, context) {
+  const cwd = event?.cwd || process.cwd();
+  if (getIntensity(cwd) === "off") {
+    return {
+      metadata: { convention: "matcha", enabled: false, event: event?.type },
+    };
+  }
+
   const instructions = getMatchaInstructions();
   const projectConstraints = getProjectConstraints();
 

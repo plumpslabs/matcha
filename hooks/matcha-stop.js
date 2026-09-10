@@ -13,6 +13,7 @@ import { execSync } from "child_process";
 import { readFileSync } from "fs";
 import { join } from "path";
 import { getWorkspaceRoot } from "./workspace-root.js";
+import { getIntensity } from "./planning-gate.js";
 
 // ─── Tip generators ──────────────────────────────────────────────────────────
 
@@ -240,6 +241,8 @@ function formatTips(tips) {
 
 export async function onStop(event, context) {
   const cwd = getWorkspaceRoot();
+  if (getIntensity(cwd) === "off") return null;
+
   const tips = generateTips(cwd);
   if (tips.length === 0) return null;
 
@@ -266,6 +269,10 @@ const isDirectInvocation = process.argv[1] && (
 
 if (isDirectInvocation) {
   const cwd = getWorkspaceRoot();
+  if (getIntensity(cwd) === "off") {
+    process.exit(0);
+  }
+
   const tips = generateTips(cwd);
 
   if (tips.length === 0) {

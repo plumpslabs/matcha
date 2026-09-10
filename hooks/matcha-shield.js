@@ -19,7 +19,7 @@
 import { readFileSync } from "fs";
 import { join } from "path";
 import { checkCommand, DANGER_PATTERNS } from "./danger-checks.js";
-import { checkPlanningGate } from "./planning-gate.js";
+import { checkPlanningGate, getIntensity } from "./planning-gate.js";
 import { autoIndexWorkspace } from "./auto-index.js";
 import { detectMode, writeMode, getPreviousMode } from "./mode-detect.js";
 import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./matcha-metrics.js";
@@ -48,6 +48,9 @@ export async function beforeToolUse(event, context) {
     }, event?.cwd);
     return null;
   }
+
+  const intensity = getIntensity(event?.cwd);
+  if (intensity === "off") return null;
 
   // Auto-detect mode
   const toolName = event?.tool || event?.toolName || "";
@@ -112,6 +115,11 @@ if (isDirectInvocation) {
 
     try {
       const event = JSON.parse(input);
+      const intensity = getIntensity(event?.cwd);
+      if (intensity === "off") {
+        process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
+        process.exit(0);
+      }
 
       const gateResult = checkPlanningGate(event);
       if (gateResult) {

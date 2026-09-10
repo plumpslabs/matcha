@@ -1,9 +1,7 @@
 {
   "name": "@plumpslabs/matcha",
-  "version": "2.5.35",
+  "version": "2.5.36",
   "description": "Engineering philosophy ruleset — simple, efficient, deliberate. For all AI coding agents.",
-
-
   "type": "module",
   "main": "hooks/inject-rules.js",
   "bin": {

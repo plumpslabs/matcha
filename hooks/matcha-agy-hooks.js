@@ -14,7 +14,7 @@
  * Fail-open: any parse/runtime error returns allow — never lock the agent.
  */
 import { checkCommand } from "./danger-checks.js";
-import { checkPlanningGate } from "./planning-gate.js";
+import { checkPlanningGate, getIntensity } from "./planning-gate.js";
 import { autoIndexWorkspace } from "./auto-index.js";
 import { recordShieldBlock, recordPlanningGateBlock } from "./matcha-metrics.js";
 
@@ -80,6 +80,10 @@ process.stdin.on("end", () => {
   try {
     const event = JSON.parse(raw || "{}");
     const { tool, input, cwd } = mapEvent(event);
+    const intensity = getIntensity(cwd);
+    if (intensity === "off") {
+      return respond("allow", "");
+    }
 
     // Planning gate — blocks code writes/commands until a valid plan exists.
     // Pass the real workspace root (AGY's workspacePaths) so the plan is found

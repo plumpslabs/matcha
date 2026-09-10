@@ -14,6 +14,7 @@ import { readFileSync, existsSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { recordReviewIssue } from "./matcha-metrics.js";
+import { getIntensity } from "./planning-gate.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -306,6 +307,9 @@ function parseEvent(event) {
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 export async function postToolUse(event, context) {
+  const cwd = event?.cwd || process.cwd();
+  if (getIntensity(cwd) === "off") return null;
+
   const filePath = parseEvent(event);
   if (!filePath) return null;
 
@@ -344,6 +348,12 @@ if (isDirectInvocation) {
   process.stdin.on("end", () => {
     try {
       const event = JSON.parse(input);
+      const cwd = event?.cwd || process.cwd();
+      if (getIntensity(cwd) === "off") {
+        process.stdout.write(JSON.stringify({ additionalContext: "" }) + "\n");
+        process.exit(0);
+      }
+
       const filePath = parseEvent(event);
 
       if (!filePath) {

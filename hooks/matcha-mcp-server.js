@@ -38,6 +38,9 @@ const ROOT = join(__dirname, "..");
 
 // ─── Import hook logic ───────────────────────────────────────────────────────
 
+// Post-write scan + formatting imported from the hook (single implementation).
+import { scanFile, formatFindings } from "./matcha-post-write.js";
+
 // Shield patterns (inlined for independence)
 const DANGER_PATTERNS = [
   { pattern: /^rm\s+-rf?\s+\/\s*$/, msg: "rm -rf / would destroy the system." },
@@ -135,7 +138,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.41",
+  version: "2.5.42",
 };
 
 const TOOLS = [
@@ -234,7 +237,7 @@ function handleRequest(request) {
     }
 
     if (name === "matcha_post_write_scan") {
-      const findings = scanFileLocal(args.filePath);
+      const findings = scanFile(args.filePath);
       return {
         jsonrpc: "2.0",
         id,
@@ -328,68 +331,6 @@ function handleRequest(request) {
     id,
     error: { code: -32601, message: `Method not found: ${method}` },
   };
-}
-
-// ─── Simplified scan (inline, avoids circular import) ────────────────────────
-
-function scanFileLocal(filePath) {
-  if (!filePath || !existsSync(filePath)) return [];
-
-  const content = readFileSync(filePath, "utf-8");
-  const lines = content.split("\n");
-  const ext = "." + filePath.split(".").pop();
-  const findings = [];
-
-  // Quick language detection
-  const jsTsExts = [".js", ".jsx", ".mjs", ".cjs", ".ts", ".tsx", ".mts", ".cts"];
-  const goExts = [".go"];
-  const pyExts = [".py", ".pyw"];
-  const rsExts = [".rs"];
-  const javaExts = [".java"];
-  const rbExts = [".rb", ".rake"];
-  const swiftExts = [".swift"];
-
-  let lang = null;
-  if (jsTsExts.includes(ext)) lang = "js";
-  else if (goExts.includes(ext)) lang = "go";
-  else if (pyExts.includes(ext)) lang = "python";
-  else if (rsExts.includes(ext)) lang = "rust";
-  else if (javaExts.includes(ext)) lang = "java";
-  else if (rbExts.includes(ext)) lang = "ruby";
-  else if (swiftExts.includes(ext)) lang = "swift";
-
-  const debugPatterns = {
-    js: [/console\.(log|debug|trace)\(/, /\bdebugger\b/],
-    go: [/fmt\.Print(ln|f|)\(/, /log\.Print\(/],
-    python: [/print\(/, /breakpoint\(\)/],
-    rust: [/println!\(/, /dbg!\(/],
-    java: [/System\.out\.print/],
-    ruby: [/puts\s/, /binding\.pry/],
-    swift: [/print\(/, /debugPrint\(/],
-  };
-
-  if (lang && debugPatterns[lang]) {
-    for (let i = 0; i < lines.length; i++) {
-      for (const p of debugPatterns[lang]) {
-        if (p.test(lines[i])) {
-          findings.push({ file: filePath, line: i + 1, issue: "Debug log/statement", fix: "Remove before commit", severity: "minor", language: lang });
-          break;
-        }
-      }
-      if (findings.some((f) => f.issue === "Debug log/statement")) break;
-    }
-  }
-
-  return findings;
-}
-
-function formatFindings(findings) {
-  if (findings.length === 0) return "";
-  let msg = "🍵 matcha: cleanup check\n\n";
-  for (const f of findings) {
-    msg += `  ${f.file}:${f.line} — ${f.issue} [${f.language}]\n  → ${f.fix}\n\n`;
-  }
-  return msg;
 }
 
 // ─── Main loop ───────────────────────────────────────────────────────────────

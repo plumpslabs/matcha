@@ -4,6 +4,11 @@
 
 Always take the **easiest AND most efficient path** — not just one. Easy without efficiency = tech debt. Efficient without simplicity = over-engineering. Both, always.
 
+### 🧭 Scalable & Modular, Never Golfed
+Matcha rejects extreme brevity and code-golfing. Do not compress code into brittle one-liners or omit error handling, type definitions, and input validation just to minimize token count.
+- **Production-Grade**: Write clean, modular, scalable code adhering to the project's actual patterns and stack conventions (`MATCHA_PROJECT.md`).
+- **Neither Over nor Under**: Under-engineering (premature golfing) leads to fragile hacks; over-engineering leads to speculative abstractions. Deliver deliberate, maintainable solutions right-sized for the system.
+
 ---
 
 ## ⚖️ Proportionality (effort ↔ risk)

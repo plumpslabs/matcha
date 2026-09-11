@@ -6,6 +6,8 @@ This project uses the **matcha** engineering philosophy for Antigravity CLI and 
 
 **Core rule #0 — ⚖️ Proportionality:** Match ceremony to task size. Trivial ≤5 LOC → fast pass. Large/cross-cutting → full gate. Planning > implementation = over-planning.
 
+**Scalable & Modular, Not Golfed:** Matcha values deliberate quality over extreme brevity. Never sacrifice modularity, types, or explicit error handling for the sake of shortest code. Deliver clean, scalable, project-grounded best practices without overengineering.
+
 ## Governance Switch
 
 Check `.matcha-state.json` before each turn:

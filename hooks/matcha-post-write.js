@@ -28,27 +28,39 @@ function loadPatterns() {
     const raw = readFileSync(join(__dirname, "patterns.json"), "utf-8");
     PATTERNS = JSON.parse(raw);
     return PATTERNS;
-  } catch {
-    // Fallback to minimal JS-only patterns
+  } catch (e) {
+    // Fail loud-ish: broken registry must not silently disable the scanner.
+    process.stderr.write(`matcha-post-write: patterns.json unreadable — ${e.message}; falling back to minimal JS-only patterns\n`);
     return {
+      exemptPaths: [],
       languages: {
         js: {
           extensions: [".js", ".jsx", ".mjs", ".cjs"],
-          debugLog: ["console.log(", "console.debug(", "debugger"],
-          emptyCatch: ["catch\\s*(\\(\\w+\\))?\\s*\\{\\s*\\}"],
-          hardcodedSecret: ["(?:api[_-]?key|secret|password|token)\\s*[:=]\\s*[\"']"],
-          todoFixme: ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
+          checks: {
+            debugLog: { patterns: ["console\\.(log|debug|trace|info|warn)\\(", "debugger\\b"], severity: "warning", description: "Debug/console statements left in code" },
+            emptyCatch: { patterns: ["catch\\s*(\\(\\s*\\w*\\s*\\))?\\s*\\{\\s*\\}"], severity: "error", description: "Empty catch block silently swallows errors" },
+            hardcodedSecret: { patterns: ["(?:api[_-]?key|secret|password|token)\\s*[:=]\\s*[\"']"], severity: "critical", description: "Possible hardcoded credential/secret" },
+            todoFixme: { patterns: ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)\\b"], severity: "info", description: "Unresolved TODO/FIXME marker" },
+          },
         },
-        ts: {
-          extensions: [".ts", ".tsx", ".mts", ".cts"],
-          debugLog: ["console.log(", "console.debug(", "debugger"],
-          emptyCatch: ["catch\\s*(\\(\\w+\\))?\\s*\\{\\s*\\}"],
-          hardcodedSecret: ["(?:api[_-]?key|secret|password|token)\\s*[:=]\\s*[\"']"],
-          todoFixme: ["\\/\\/\\s*(TODO|FIXME|HACK|XXX|TEMP)"],
-        },
+        ts: { extensions: [".ts", ".tsx", ".mts", ".cts"], extendsChecksFrom: "js", checks: {} },
       },
     };
   }
+}
+
+// Severity buckets used by formatFindings. Registry severities map onto these.
+const SEVERITY_BUCKET = { critical: "critical", error: "critical", warning: "minor", info: "info" };
+
+function resolveChecks(langConfig, lang, allLanguages) {
+  // v4 registry: checks live under `checks` and may be inherited via extendsChecksFrom.
+  const own = langConfig.checks || {};
+  const parentName = langConfig.extendsChecksFrom;
+  if (!parentName) return { checks: own, lang };
+  const parent = allLanguages[parentName];
+  if (!parent) return { checks: own, lang };
+  // Child checks override same-named parent checks.
+  return { checks: { ...(parent.checks || {}), ...own }, lang: parentName };
 }
 
 function detectLanguage(filePath) {
@@ -56,16 +68,96 @@ function detectLanguage(filePath) {
   const patterns = loadPatterns();
   for (const [lang, config] of Object.entries(patterns.languages || {})) {
     if (config.extensions && config.extensions.includes(ext)) {
-      return { lang, config };
+      return resolveChecks(config, lang, patterns.languages || {});
     }
   }
   return null;
 }
 
+function pathExemptions(filePath) {
+  const patterns = loadPatterns();
+  const normalized = filePath.replace(/\\/g, "/");
+  const exempt = new Set();
+  for (const rule of patterns.exemptPaths || []) {
+    try {
+      if (new RegExp(rule.match).test(normalized)) {
+        for (const c of rule.exemptChecks || []) exempt.add(c);
+      }
+    } catch {
+      // Skip malformed exemption rules
+    }
+  }
+  return exempt;
+}
+
+function checkExemptedInPaths() {
+  // Reserved for future per-check path rules; path policy lives in exemptPaths (see scanFile).
+  return false;
+}
+
+function lineJustified(line, justification, fineSeverity) {
+  if (!justification) return false;
+  // A matcha marker justifies any severity; a plain trailing comment only
+  // justifies non-critical findings — critical ones need an explicit marker.
+  const markerRaw = justification.markerPattern;
+  if (markerRaw) {
+    try {
+      if (new RegExp(markerRaw).test(line)) return true;
+    } catch {
+      // Skip malformed justification patterns
+    }
+  }
+  if (fineSeverity === "critical") return false;
+  const commentRaw = justification.commentPattern;
+  if (commentRaw) {
+    try {
+      if (new RegExp(commentRaw).test(line)) return true;
+    } catch {
+      // Skip malformed justification patterns
+    }
+  }
+  return false;
+}
+
+function valueIgnored(line, ignoreValues) {
+  if (!Array.isArray(ignoreValues) || ignoreValues.length === 0) return false;
+  // Match against quoted literals on the line ("...", '...'), not the whole line,
+  // so a value like "test" can't suppress an unrelated finding via substring collision.
+  const literals = [...line.matchAll(/[\"']([^\"'\n]{0,120})[\"']/g)].map((m) => m[1]);
+  return literals.some((val) => ignoreValues.includes(val));
+}
+
+function contextIgnored(line, ignoreContext) {
+  if (!Array.isArray(ignoreContext)) return false;
+  return ignoreContext.some((raw) => {
+    try {
+      return new RegExp(raw).test(line);
+    } catch {
+      return false;
+    }
+  });
+}
+
+// Per-check ignorePaths (language-specific idiom, e.g. go's _test.go files)
+function pathIgnored(filePath, checkConfig) {
+  const ignorePaths = checkConfig && checkConfig.ignorePaths;
+  if (!Array.isArray(ignorePaths)) return false;
+  const normalized = filePath.replace(/\\/g, "/");
+  return ignorePaths.some((raw) => {
+    try {
+      return new RegExp(raw).test(normalized);
+    } catch {
+      return false;
+    }
+  });
+}
+
 // ─── Cleanup checks ──────────────────────────────────────────────────────────
 
 /**
- * Check a file for cleanup issues using the pattern registry.
+ * Check a file for cleanup issues using the pattern registry (v4 format:
+ * languages.<lang>.checks.<check>.{patterns,severity,ignoreContext,ignoreValues,ignorePaths}
+ * plus registry-level exemptPaths and justification rules).
  * Returns array of findings.
  */
 export function scanFile(filePath) {
@@ -76,48 +168,59 @@ export function scanFile(filePath) {
   const fileName = filePath.split(/[\\/]/).pop() || "";
   const findings = [];
 
-  // Detect language
+  // Detect language (+ resolved checks, including extendsChecksFrom)
   const detected = detectLanguage(filePath);
-  const langConfig = detected?.config;
+  const patterns = loadPatterns();
+  const justification = patterns.justification || null;
+  const exemptChecks = pathExemptions(filePath);
 
   // Language-specific checks
-  if (langConfig) {
-    const checks = [
-      { key: "debugLog", issue: "Debug log/statement left in code", fix: "Remove before commit, or use structured logger", severity: "minor" },
-      { key: "emptyCatch", issue: "Empty catch block — error silently swallowed", fix: "Log the error at minimum", severity: "critical" },
-      { key: "hardcodedSecret", issue: "Possible hardcoded credential", fix: "Move to environment variable: APPNAME_VAR_NAME", severity: "critical" },
-      { key: "todoFixme", issue: "TODO/FIXME left in code", fix: "Resolve or create a tracking issue", severity: "minor" },
-    ];
+  if (detected) {
+    const { checks: langChecks, lang } = detected;
 
-    for (const check of checks) {
-      const rawPatterns = langConfig[check.key];
-      if (!rawPatterns) continue;
+    for (const [checkKey, checkConfig] of Object.entries(langChecks)) {
+      const rawPatterns = checkConfig && checkConfig.patterns;
+      if (!rawPatterns || !Array.isArray(rawPatterns)) continue;
+      if (exemptChecks.has(checkKey)) continue;
+      if (checkExemptedInPaths(checkKey, filePath)) continue;
+      if (pathIgnored(filePath, checkConfig)) continue;
 
-      for (let i = 0; i < lines.length; i++) {
+      const issue = checkConfig.description || checkKey;
+      const fix = checkConfig.fix || checkConfig.description || "Review this finding";
+      const fineSeverity = checkConfig.severity || "warning";
+      const severity = SEVERITY_BUCKET[fineSeverity] || "minor";
+      let found = false;
+
+      for (let i = 0; i < lines.length && !found; i++) {
+        const line = lines[i];
+        if (lineJustified(line, justification, fineSeverity)) continue;
+        if (valueIgnored(line, checkConfig.ignoreValues)) continue;
+        if (contextIgnored(line, checkConfig.ignoreContext)) continue;
+
         for (const rawPattern of rawPatterns) {
           try {
-            if (new RegExp(rawPattern).test(lines[i])) {
+            if (new RegExp(rawPattern).test(line)) {
               findings.push({
                 file: filePath,
                 line: i + 1,
-                issue: check.issue,
-                fix: check.fix,
-                severity: check.severity,
-                language: detected.lang,
+                issue,
+                fix,
+                severity,
+                language: lang,
+                check: checkKey,
               });
+              found = true;
               break;
             }
           } catch {
             // Skip invalid regex patterns
           }
         }
-        if (findings.some((f) => f.issue === check.issue)) break;
       }
     }
   }
 
   // SQL checks (language-agnostic)
-  const patterns = loadPatterns();
   if (patterns.sql) {
     const sqlChecks = [
       { key: "unboundedQuery", issue: "Unbounded query — no LIMIT clause", fix: "Add LIMIT or explicit comment why not needed", severity: "minor" },
@@ -247,7 +350,7 @@ export function scanFile(filePath) {
 
 // ─── Formatting ──────────────────────────────────────────────────────────────
 
-function formatFindings(findings) {
+export function formatFindings(findings) {
   if (findings.length === 0) return "";
 
   const critical = findings.filter((f) => f.severity === "critical");

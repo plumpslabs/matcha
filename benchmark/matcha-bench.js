@@ -26,6 +26,7 @@ const CHECKS = [
     id: "debug-log",
     label: "Debug log/statement",
     severity: "minor",
+    registryKey: "debugLog",
     patterns: [
       /console\.(log|debug|trace)\(/,
       /\bprint\(/,
@@ -47,6 +48,7 @@ const CHECKS = [
     id: "empty-catch",
     label: "Empty catch block",
     severity: "critical",
+    registryKey: "emptyCatch",
     patterns: [
       /catch\s*(\[\w+\]|\{\w+\}|\(\w+\))?\s*\{\s*\}/,
       /catch:\s*\{\s*\}/,
@@ -105,14 +107,40 @@ function walkDir(dir, base, files = []) {
   return files;
 }
 
+// Path exemptions mirror hooks/patterns.json exemptPaths (registry is the
+// canonical source; this scanner stays dependency-free so it mirrors them).
+// Console output in tests/, benchmark runners, and CLI scripts IS the product.
+const EXEMPT_PATH_RULES = [
+  { match: /(^|\/)(tests?|__tests__|spec)\//, exemptChecks: ["debugLog", "emptyCatch"] },
+  { match: /(^|\/)(benchmark|benches?)\//, exemptChecks: ["debugLog", "emptyCatch"] },
+  { match: /\.(test|spec)\.|_(test|spec)\./, exemptChecks: ["debugLog", "emptyCatch"] },
+  { match: /(^|\/)(scripts?|bin)\//, exemptChecks: ["debugLog"] },
+];
+// A matcha marker on the line documents a deliberate choice — not a finding.
+const MARKER_JUSTIFIED = /\/\/\s*matcha:(explain|debt|adr)\b/;
+
+function exemptChecksFor(filePath) {
+  const normalized = filePath.replace(/\\/g, "/");
+  const exempt = new Set();
+  for (const rule of EXEMPT_PATH_RULES) {
+    if (rule.match.test(normalized)) {
+      for (const c of rule.exemptChecks) exempt.add(c);
+    }
+  }
+  return exempt;
+}
+
 function scanFile(filePath) {
   if (!filePath || !existsSync(filePath)) return null;
   const content = readFileSync(filePath, "utf-8");
   const lines = content.split("\n");
   const findings = [];
+  const exempt = exemptChecksFor(filePath);
 
   for (const check of CHECKS) {
+    if (check.registryKey && exempt.has(check.registryKey)) continue;
     for (let i = 0; i < lines.length; i++) {
+      if (MARKER_JUSTIFIED.test(lines[i])) continue;
       for (const pattern of check.patterns) {
         if (pattern.test(lines[i])) {
           findings.push({

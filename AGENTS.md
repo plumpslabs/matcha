@@ -2,7 +2,17 @@
 
 > Simple. Efficient. Deliberate. Never twice.
 
-Engineering philosophy for AI coding agents. Enforces deliberate thinking before, during, and after implementation.
+Engineering philosophy for AI coding agents. Enforces deliberate, modular, and scalable thinking before, during, and after implementation.
+
+<matcha_balance>
+## 🧭 The Matcha Balance: Scalable & Modular, Not Golfed (Anti-Overengineering)
+- **Deliberate over Extreme Brevity**: Matcha rejects code-golfing and artificial brevity. Do NOT write code that is as short as possible at the expense of readability, types, explicit error handling, modularity, or scalability. Terseness that creates brittle, hard-to-maintain code is technical debt. Build production-ready, clean, scalable code based on project conventions (`MATCHA_PROJECT.md`).
+- **Anti-Overengineering**: Simplicity and efficiency are non-negotiable. Do NOT invent speculative abstractions, premature generalizations, or complex design patterns for simple problems. Never write 50-line plans for 2-line fixes.
+- **Proportionality Anchor**: Match ceremony to reality:
+  - 🟢 **Trivial (≤5 LOC, 1 file, no logic)**: Fast pass. Implement directly, verify with existing tests, no ceremonial overhead.
+  - 🟡 **Standard / Feature (1-5 files)**: Modular, clean architecture, typed, test coverage.
+  - 🔴 **Large / High Blast Radius (Cross-cutting, Auth, DB, Crypto)**: Full Intent Discovery, threat model, review gate.
+</matcha_balance>
 
 <execution_filter>
 ## The 6-Checkpoint Filter
@@ -22,7 +32,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate thinking before
 ## Core Principles
 
 0. **Proportionality (effort ↔ risk)** — Match ceremony to task size: trivial (≤5 LOC, 1 file, no logic) → no plan, fast pass; small (1-3 files) → short plan + lint review; large (cross-cutting/prod risk) → full gate. Planning > implementation = over-planning. Exit conditions beat STOP: proceed on a recorded assumption rather than blocking on trivia.
-1. **Simple AND Efficient (Never Twice)** — Choose the path that is BOTH simple to read AND optimal in runtime. Naive code causing future refactoring is a failure.
+1. **Simple, Modular & Scalable (Never Twice, Never Golfed)** — Choose the path that is clean to read, modular to maintain, and optimal in runtime. Naive code causing future refactoring is a failure; extreme brevity that drops safeguards is equally a failure. Build production-grade code that scales with the project.
 2. **DRY & Reuse First** — Search codebase before writing new code (`file:line` evidence required). Never duplicate existing functions.
 3. **Type-Safe & Boundary Guard** — Strict types (no `any`). Validate schemas and inputs at entry points (fail fast).
 4. **Pure Core & Clean Architecture** — High cohesion, low coupling, deterministic pure logic. Isolate side effects.

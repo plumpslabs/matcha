@@ -20,6 +20,27 @@ Benchmark-proven failure mode: on small features, applying the FULL production b
 - **Extraction threshold:** extract a function/constant only when it removes real duplication (3+ uses) or materially improves readability — not as decoration.
 - **When in doubt, ship the small version.** Reviewers flag over-engineering as a finding, but the default is: simplest correct code first.
 
+## Problem → Pattern Triggers
+
+**Design patterns are reactions to problems, never defaults.** Reach for a pattern only when its trigger problem is actually present. If the problem isn't in this table, don't invent a pattern for it — write the simple version.
+
+| Trigger problem | Reach for |
+|-----------------|----------|
+| Many possible states/forms of data | Discriminated union · State machine |
+| Components/modules sharing state | Compound component + Context · single source of truth |
+| DB/IO logic mixed with business logic | Repository · separation of concerns |
+| Same operation can be retried | Idempotency keys |
+| Slow request, cause unknown | Observability · tracing (correlation ID) |
+| Swappable algorithms/behaviors | Strategy |
+| Cross-cutting concern repeated in every handler | Middleware · interceptor |
+| Mismatched interfaces between systems | Adapter |
+| Data crossing a trust/serialization boundary | DTO · runtime schema validation · type narrowing |
+| Silent bugs from unhandled cases | Exhaustiveness checking |
+| One failure crashes the whole UI/flow | Error boundary · graceful degradation |
+| Expensive computation repeated | Caching (explicit invalidation, see API Contracts) |
+| Reads and writes scaling in different directions | CQRS — only when this is the measured bottleneck |
+| Hardwired dependencies, untestable | Dependency injection · IoC |
+
 ## Errors
 
 - **Explicit error paths.** Never swallow. Empty catch → log + rethrow or handle; no dummy fallbacks.

@@ -1,11 +1,23 @@
 {
-  "version": "2.5.41",
+  "version": "2.5.42",
   "description": "Multi-language pattern registry for matcha checks",
 
 
   "changelog": {
+    "4.0.1": "Scanner context rules: added registry-level ignorePaths + exemptChecks (tests/, benchmark/, scripts/, bin/), matcha-marker and trailing-comment justification for emptyCatch, ignoreValues now consumed by the scanner (placeholder values no longer flagged). Scanner reads the v4 checks layout — it previously matched nothing.",
     "4.0.0": "Added severity/description per pattern, ignoreContext, extensions for sql/commit, new languages (c, cpp, csharp, php, kotlin, dart), new checks (unusedImport, magicNumber, insecureRandom, sqlInjectionRisk, longLine), fixed emptyCatch/hardcodedSecret false positives, deduped printStatement into debugLog",
     "2.5.20": "Added markers section: nonEnglishScript (CJK/Arabic/Cyrillic), indonesianWords (unambiguous words only — di/ini excluded to avoid DI/INI false positives), emptyOrPlaceholder (escaped dots to avoid any-3-chars wildcard)"
+  },
+  "exemptPaths": [
+    { "match": "(^|/)(tests?|__tests__|spec)/", "exemptChecks": ["debugLog", "emptyCatch"], "reason": "Test output is the product; empty catch tests error paths" },
+    { "match": "(^|/)(benchmark|benches?)/", "exemptChecks": ["debugLog", "emptyCatch"], "reason": "Runner output is the product" },
+    { "match": "\\.(test|spec)\\.|_(test|spec)\\.", "exemptChecks": ["debugLog", "emptyCatch"], "reason": "Test files by naming convention" },
+    { "match": "(^|/)(scripts?|bin)/", "exemptChecks": ["debugLog"], "reason": "CLI tools print to console by design" }
+  ],
+  "justification": {
+    "markerPattern": "//\\s*matcha:(explain|debt|adr)\\b",
+    "commentPattern": "//\\s*(?![ \\t]*matcha:)(?:[A-Za-z0-9'\" _.,:;()\\-!?/]+)$",
+    "description": "A matcha marker or any trailing comment on the line justifies the matched pattern (deliberate choice, already documented)."
   },
   "languages": {
     "js": {
@@ -13,18 +25,20 @@
       "checks": {
         "debugLog": {
           "patterns": ["console\\.(log|debug|trace|info|warn)\\(", "debugger\\b"],
+          "ignoreContext": ["🍵", "\\bmatcha[-: ]"],
           "severity": "warning",
           "description": "Debug/console statements left in code"
         },
         "emptyCatch": {
           "patterns": ["catch\\s*(\\(\\s*\\w*\\s*\\))?\\s*\\{\\s*\\}"],
+          "ignorePaths": ["(^|/)(tests?|__tests__|spec)/", "(^|/)(benchmark|benches?)/", "\\.(test|spec)\\.|_(test|spec)\\."],
           "severity": "error",
           "description": "Empty catch block silently swallows errors"
         },
         "hardcodedSecret": {
-          "patterns": ["(?:api[_-]?key|secret|password|passwd|token|auth)\\s*[:=]\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
+          "patterns": ["(?:api[_-]?[Kk]ey|[Ss]ecret|[Pp]assw(?:or)?d|[Pp]asswd|[Tt]oken|[Aa]uth)\\s*[:=]\\s*[\"'][A-Za-z0-9_\\-+/=]{8,}[\"']"],
           "ignoreContext": ["process\\.env\\.", "import\\.meta\\.env\\.", "\\bENV\\[", "<%.*%>", "\\{\\{.*\\}\\}"],
-          "ignoreValues": ["", "xxx", "changeme", "your-key-here", "placeholder", "example", "test", "dummy"],
+          "ignoreValues": ["xxx", "changeme", "your-key-here", "placeholder", "example", "test", "dummy"],
           "severity": "critical",
           "description": "Possible hardcoded credential/secret"
         },

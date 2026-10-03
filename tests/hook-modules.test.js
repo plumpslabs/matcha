@@ -463,3 +463,81 @@ describe("mode-detect.js", () => {
     });
   });
 });
+
+describe("plan-compact.js — issue #3 (auto-compaction + resume hint)", () => {
+  test("compacts after threshold, keeps unchecked steps", async () => {
+    const { compactPlan, getPlanResumeHint } = await import("../hooks/plan-compact.js");
+    const steps = Array.from({ length: 6 }, (_, i) => `- [x] Step ${i + 1} — done`).join("\n") + "\n- [ ] Step 7 — todo\n**▶ Current:** Step 7/7";
+    const plan = `---\ntitle: demo\n---\n# plan\n${steps}`;
+    const res = compactPlan(plan);
+    expect(res.compacted).toBe(true);
+    expect(res.content).not.toContain("- [x] Step 1");
+    expect(res.content).toContain("- [ ] Step 7");
+    expect(getPlanResumeHint(plan)).toContain("demo");
+  });
+
+  test("no compact below threshold", async () => {
+    const { compactPlan } = await import("../hooks/plan-compact.js");
+    const res = compactPlan("- [x] Step 1 — done\n- [ ] Step 2 — todo");
+    expect(res.compacted).toBe(false);
+  });
+});
+
+describe("subagent-trace.js — finder/auditor trace (provider parity)", () => {
+  test("detects finder spawn across provider Task shapes", async () => {
+    const { detectSubagentCall } = await import("../hooks/subagent-trace.js");
+    expect(detectSubagentCall("Task", { subagent_type: "matcha-finder", prompt: "x" })).toBe("matcha-finder");
+    expect(detectSubagentCall("task", { subagent: "matcha-auditor" })).toBe("matcha-auditor");
+    expect(detectSubagentCall("run_command", { CommandLine: "ls" })).toBe(null);
+    expect(detectSubagentCall("Bash", { command: "ls" })).toBe(null);
+  });
+
+  test("no trace recorded → untraced", async () => {
+    const { checkReuseTrace } = await import("../hooks/subagent-trace.js");
+    const noAgents = mkdtempSync(join(tmpdir(), "matcha-notrace-"));
+    try {
+      expect(checkReuseTrace(noAgents).traced).toBe(false);
+    } finally {
+      rmSync(noAgents, { recursive: true, force: true });
+    }
+  });
+
+  test("recorded finder trace counts as traced", async () => {
+    const { recordSubagent, checkReuseTrace } = await import("../hooks/subagent-trace.js");
+    const ws = mkdtempSync(join(tmpdir(), "matcha-trace-"));
+    try {
+      mkdirSync(join(ws, ".agents", "plan"), { recursive: true });
+      writeFileSync(join(ws, ".agents", "plan", "current.md"), "# plan\n");
+      expect(recordSubagent("matcha-finder", ws)).toBe(true);
+      expect(checkReuseTrace(ws).traced).toBe(true);
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("matcha-session-start.js — SessionStart resume hint", () => {
+  test("returns one-line hint when plan exists", async () => {
+    const { getSessionStartContext } = await import("../hooks/matcha-session-start.js");
+    const ws = mkdtempSync(join(tmpdir(), "matcha-sess-"));
+    try {
+      mkdirSync(join(ws, ".agents", "plan"), { recursive: true });
+      writeFileSync(join(ws, ".agents", "plan", "current.md"), "---\ntitle: demo task\n---\n# plan\n- [ ] Step 1 — todo\n");
+      const ctx = getSessionStartContext(ws);
+      expect(ctx).toContain("demo task");
+      expect(ctx).toContain("current.md");
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+
+  test("empty when no plan file", async () => {
+    const { getSessionStartContext } = await import("../hooks/matcha-session-start.js");
+    const ws = mkdtempSync(join(tmpdir(), "matcha-sessempty-"));
+    try {
+      expect(getSessionStartContext(ws)).toBe("");
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+});

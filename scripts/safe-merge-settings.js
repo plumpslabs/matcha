@@ -50,11 +50,22 @@ const MATCHA_HOOKS = {
       ],
     },
   ],
+  SessionStart: [
+    {
+      hooks: [
+        {
+          type: "command",
+          command: "node ${CLAUDE_PLUGIN_ROOT}/hooks/matcha-session-start.js",
+          timeout: 5000,
+        },
+      ],
+    },
+  ],
 };
 
 function isMatchaHook(hook) {
   const cmd = hook.command || hook.hooks?.[0]?.command || "";
-  return cmd.includes("matcha-shield") || cmd.includes("matcha-post-write") || cmd.includes("matcha-stop");
+  return cmd.includes("matcha-shield") || cmd.includes("matcha-post-write") || cmd.includes("matcha-stop") || cmd.includes("matcha-session-start");
 }
 
 function mergeHooks(existing, matcha) {

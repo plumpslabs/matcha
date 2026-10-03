@@ -37,7 +37,7 @@ Out of Scope: full-project audits (that's auditor), planning implementations, fi
 <strict_boundaries>
 - **READ-ONLY:** Never modify any codebase files. Review and render verdict only. (Exception: gate artifacts — `.agents/plan/current.md` + `.agents/reports/**` — are the only writable paths, used solely for the lifecycle handoff on PASS.)
 - **FULL BASH (deliberate):** L0/L1 verification gates must run the project's own builds/tests/lint — bash stays fully allowed. Prefer read-only git commands (`git diff`, `git show`, `git log`) for scope detection; use `cd dir && cmd` for subdirectories.
-- **BLOCKING GATE:** If any 🔴 CRITICAL issues (Correctness, Performance, Security) are found in L2/L3, return verdict BLOCK.
+- **RISK-TIERED GATE EXECUTION:** L0/L1 reviews are **async/non-blocking** (agent continues, verdict lands in `.agents/reports/`); L2/L3 are **blocking** (stop until PASS / EXPERT_REQUIRED). A 🔴 finding at any tier escalates to blocking.
 - **NO L3 AUTO-PASS:** L3 high-risk tier ALWAYS requires domain expert sign-off (`EXPERT_REQUIRED`).
 - **TRIVIAL MARKER ABUSE:** Flag as WARNING any `<!-- trivial -->` / `type: plan-trivial` marker on a non-trivial change (auth, payments, DB, >5 LOC, multiple files) — the fast-pass is for typo-level tasks only.
 </strict_boundaries>

@@ -9,25 +9,16 @@
  * - Tool name lives in `input.tool` (lowercase: "bash", "edit", "write")
  * - Tool args live in `output.args` (e.g. { command: "ls -la" })
  * - Ruleset injection happens via AGENTS.md (auto-read by opencode).
+ *
+ * Never Twice: shield + gate logic lives in hooks/ (shared engine with
+ * Claude/AGY adapters) — this file only maps opencode events onto it.
  */
 
+import { checkCommand } from "../../hooks/danger-checks.js";
 import { checkPlanningGate } from "../../hooks/planning-gate.js";
 import { recordShieldBlock, recordPlanningGateBlock } from "../../hooks/matcha-metrics.js";
-
-const DANGER_PATTERNS = [
-  /^rm\s+-rf?\s+\/\s*$/,
-  /^rm\s+-rf?\s+~\s*$/,
-  /^rm\s+-rf?\s+\.\s*$/,
-  /^chmod\s+777(\s|$)/,
-  /^git\s+push\s+--force(\s|$)/,
-  /\bdrop\s+database\b/i,
-  /\btruncate\s+table\b/i,
-  /^(curl|wget)\s+.*\|(bash|sh)\s*$/,
-];
-
-function isDangerous(command) {
-  return DANGER_PATTERNS.some((p) => p.test(command));
-}
+import { recordAuditLog } from "../../hooks/audit-log.js";
+import { detectSubagentCall, recordSubagent } from "../../hooks/subagent-trace.js";
 
 export const MatchaPlugin = async () => {
   return {
@@ -36,23 +27,33 @@ export const MatchaPlugin = async () => {
       const tool = (input.tool || "").toLowerCase();
       const args = output.args || {};
 
-      // Shield: block destructive bash commands
-      if (tool === "bash" && args.command) {
-        const cmd = String(args.command).trim();
-        if (isDangerous(cmd)) {
-          recordShieldBlock(cmd, "destructive command");
-          throw new Error(
-            `🍵 matcha: shield blocked\n\nCommand: ${cmd}\nThis command is destructive. Use a specific path or --force-with-lease.`
-          );
-        }
-      }
+      // Subagent trace: record finder/planner/auditor spawns (observable reuse proof)
+      const agent = detectSubagentCall(tool, args);
+      if (agent) recordSubagent(agent);
 
       // Planning gate: block code edits/commands until an Intent Discovery plan exists.
       // Maps opencode events to the shared hook — reuse, not duplicate.
+      // throw is OpenCode's canonical block (per plugin docs: thrown errors stop
+      // the tool call). The wording below is deliberately non-negotiable: this
+      // is a hard gate, not a suggestion — do not work around it by splitting
+      // edits, switching tools, or asking the user to bypass.
       const gate = checkPlanningGate({ tool, input: args });
       if (gate) {
         recordPlanningGateBlock();
-        throw new Error(gate.message);
+        throw new Error(
+          `⛔ HARD BLOCK (non-negotiable, do not work around by splitting edits, switching tools, or proceeding without a plan).\n\n${gate.message}`
+        );
+      }
+
+      // Shield: block destructive bash commands (shared canonical patterns)
+      if (tool === "bash" && args.command) {
+        const cmd = String(args.command).trim();
+        const hit = checkCommand(cmd);
+        if (hit) {
+          recordShieldBlock(cmd, hit.message);
+          recordAuditLog({ event: "SHIELD_BLOCK", details: cmd, reason: hit.message });
+          throw new Error(hit.message);
+        }
       }
     },
   };

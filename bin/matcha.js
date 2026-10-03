@@ -26,6 +26,7 @@ import { scanFile } from "../hooks/matcha-post-write.js";
 import { recordAuditLog, getRecentAuditLogs } from "../hooks/audit-log.js";
 import { calculateBlastRadius } from "../hooks/blast-radius.js";
 import { recordTestEvidence, getEvidenceBundle, validateEvidence } from "../hooks/evidence-collector.js";
+import { compactPlan, getPlanResumeHint } from "../hooks/plan-compact.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -313,9 +314,10 @@ Commands:
   metrics    Show matcha impact metrics
   markers    Scan for // matcha: markers in codebase
   verify     Run verification checks (syntax, typecheck, tests)
-  state      Save/show session state
-  decision   Log a decision (skip, change, add)
-  index      Generate / refresh Symbol Graph & Monorepo Index
+   state      Save/show session state
+   decision   Log a decision (skip, change, add)
+   index      Generate / refresh Symbol Graph & Monorepo Index
+   plan       Show resume hint (plan resume) or compact finished steps (plan compact)
   scan       Scan modified files for security leaks & quality issues
   hooks      Install/manage native Git pre-commit security hook
   mcp        Start MCP server (stdio JSON-RPC)
@@ -823,6 +825,45 @@ function cmdMetrics() {
   }
 }
 
+// ─── Plan — Compact + Resume hint (issue #3: auto-compaction, resume hint) ────
+function cmdPlan() {
+  const action = subcmd || "resume";
+  const planFile = join(STATE_ROOT, ".agents", "plan", "current.md");
+
+  if (action === "resume") {
+    try {
+      const hint = getPlanResumeHint(readFileSync(planFile, "utf-8"));
+      console.log(hint ? `🍵 matcha: ${hint}` : "🍵 matcha: no plan found — write .agents/plan/current.md first.");
+    } catch {
+      console.log("🍵 matcha: no plan found — write .agents/plan/current.md first.");
+    }
+    return;
+  }
+
+  if (action === "compact") {
+    try {
+      const content = readFileSync(planFile, "utf-8");
+      const res = compactPlan(content);
+      if (!res.compacted) {
+        console.log("🍵 matcha: plan already compact (<5 finished steps) — nothing to archive.");
+        return;
+      }
+      writeFileSync(planFile, res.content, "utf-8");
+      const month = new Date().toISOString().slice(0, 7);
+      const archive = join(STATE_ROOT, ".agents", "reports", `planner-${month}.md`);
+      if (!existsSync(join(STATE_ROOT, ".agents", "reports"))) mkdirSync(join(STATE_ROOT, ".agents", "reports"), { recursive: true });
+      writeFileSync(archive, `\n\n## Archived ${new Date().toISOString().slice(0, 10)}\n${res.archived}\n`, { encoding: "utf-8", flag: "a" });
+      console.log(`🍵 matcha: plan compacted — finished steps archived to reports/planner-${month}.md`);
+    } catch (e) {
+      console.error(`✗ plan compact failed: ${e.message}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  console.log("Usage: matcha plan [resume|compact]");
+}
+
 // ─── CLI Router ──────────────────────────────────────────────────────────────
 function cmdMcp() {
   const serverPath = join(PKG_ROOT, "hooks", "matcha-mcp-server.js");
@@ -873,6 +914,9 @@ switch (cmd) {
     break;
   case "index":
     cmdIndex();
+    break;
+  case "plan":
+    cmdPlan();
     break;
   case "scan":
     cmdScan();

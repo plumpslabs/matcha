@@ -8,6 +8,10 @@
 
 import { getMatchaInstructions, getProjectConstraints } from "./matcha-instructions.js";
 import { getIntensity } from "./planning-gate.js";
+import { readFileSync, existsSync } from "fs";
+import { join } from "path";
+import { getWorkspaceRoot } from "./workspace-root.js";
+import { getPlanResumeHint } from "./plan-compact.js";
 
 // ─── Hook handlers ─────────────────────────────────────────────────────────────
 
@@ -21,6 +25,18 @@ export async function preTask(event, context) {
 
   const instructions = getMatchaInstructions();
   const projectConstraints = getProjectConstraints();
+
+  // Self-enforcing resume hint (issue #3 P2): surface the live plan as a
+  // one-liner so compaction/session resume never depends on model recall.
+  let planHint = "";
+  try {
+    const root = getWorkspaceRoot(cwd);
+    const planPath = join(root, ".agents", "plan", "current.md");
+    if (existsSync(planPath)) {
+      const hint = getPlanResumeHint(readFileSync(planPath, "utf-8"));
+      if (hint) planHint = `\n### 📋 Session Resume\n${hint} — read \`.agents/plan/current.md\` at task start to resume continuity.\n`;
+    }
+  } catch {}
 
   const projectSection = projectConstraints
     ? `
@@ -60,11 +76,11 @@ For every new task or major request, you MUST overwrite/update \`.agents/plan/cu
 If the user runs \`/matcha observe|enforce|audit\`, persist the change by writing \`{"intensity": "observe|enforce|audit"}\` to \`.agents/matcha-state.json\`.
 
 At the END of every task response, include 3 matcha suggestions (match the user's conversation language, casual, direct, slightly sarcastic tone).
-${projectSection}
+${planHint}${projectSection}
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.5.42", event: event.type },
+    metadata: { convention: "matcha", version: "2.5.43", event: event.type },
   };
 }
 

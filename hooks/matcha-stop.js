@@ -10,10 +10,12 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync } from "fs";
+import { readFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { getWorkspaceRoot } from "./workspace-root.js";
 import { getIntensity } from "./planning-gate.js";
+import { validateReviewContent } from "./review-validate.js";
+import { checkReuseTrace } from "./subagent-trace.js";
 
 // ─── Tip generators ──────────────────────────────────────────────────────────
 
@@ -201,6 +203,63 @@ function tipStepProgress(cwd) {
   }
 }
 
+/**
+ * Tip 5: Unvalidated review verdict — non-blocking auto-check (issue #3 P2).
+ * If the latest `.agents/reports/reviewer-*.md` verdict fails structural
+ * validation, warn now instead of discovering it later.
+ */
+function tipReviewValidate(cwd) {
+  try {
+    const dir = join(cwd, ".agents", "reports");
+    if (!existsSync(dir)) return null;
+    const files = readdirSync(dir).filter((f) => f.startsWith("reviewer-")).sort();
+    if (files.length === 0) return null;
+    const latest = readFileSync(join(dir, files[files.length - 1]), "utf-8");
+    // Only check files that look like a review verdict
+    if (!/matcha:\s*review/i.test(latest) && !/Risk\s*Tier/i.test(latest)) return null;
+    const res = validateReviewContent(latest);
+    if (res.valid) return null;
+    return {
+      icon: "🔍",
+      title: "review_validate",
+      roast: `latest review verdict fails structural validation: ${res.message.split("\n")[0]}`,
+      fix: `run matcha_review_validate on ${files[files.length - 1]} and fix tier/scope/evidence/counts`,
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Tip 6: Source edited with no reuse-search trace (finder never spawned).
+ * Spawning @matcha-finder is prompt-level (unenforceable), but the trace
+ * makes skipping observable — non-blocking warning, not a block.
+ */
+function tipReuseTrace(cwd) {
+  try {
+    const diff = execSync("git diff --name-only --diff-filter=AM", {
+      cwd, timeout: 5000, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"],
+    }).trim();
+    if (!diff) return null;
+    const source = diff.split("\n").filter((f) =>
+      /\.(js|ts|jsx|tsx|py|go|rs|java|rb|php|swift)$/i.test(f) &&
+      !/\.test\.[jt]s$/i.test(f) && !/\.spec\.[jt]s$/i.test(f) &&
+      !/^tests?\//i.test(f)
+    );
+    if (source.length === 0) return null;
+    const trace = checkReuseTrace(cwd);
+    if (trace.traced) return null;
+    return {
+      icon: "🔎",
+      title: "reuse-trace",
+      roast: `${source.length} source file(s) changed with no @matcha-finder trace (${trace.reason}) — possible duplication.`,
+      fix: "spawn @matcha-finder to verify no existing helper covers this before declaring done",
+    };
+  } catch {
+    return null;
+  }
+}
+
 // ─── Main ────────────────────────────────────────────────────────────────────
 
 function generateTips(cwd) {
@@ -217,6 +276,12 @@ function generateTips(cwd) {
 
   const stepProgress = tipStepProgress(cwd);
   if (stepProgress) tips.push(stepProgress);
+
+  const reviewValidate = tipReviewValidate(cwd);
+  if (reviewValidate) tips.push(reviewValidate);
+
+  const reuseTrace = tipReuseTrace(cwd);
+  if (reuseTrace) tips.push(reuseTrace);
 
   return tips;
 }

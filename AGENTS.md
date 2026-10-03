@@ -25,7 +25,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 | 🛠️ | **Implementation** | No hardcode. Explicit errors. One function = one responsibility. Simpler path? → Use it. Deliberate-choice comments → `// matcha:` marker at write time (not cleanup). |
 | 🧹 | **Cleanup** | Done = working AND clean. Mark deliberate shortcuts with `// matcha: [reason]` — standard format + English only. |
 | ✅ | **Verify** | Run empirical test/build command. Fail? → STOP and fix immediately. |
-| 🔒 | **Review** | **Blocking gate.** Catch bugs, performance, security, architecture. Nothing ships without PASS. |
+| 🔒 | **Review** | **Risk-tiered gate.** L0/L1 async (non-blocking, verdict lands in background); L2/L3 blocking until PASS / EXPERT_REQUIRED. Catch bugs, performance, security, architecture. Nothing ships without PASS. |
 </execution_filter>
 
 <core_principles>
@@ -54,7 +54,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 | Command | Purpose |
 |---------|---------|
 | `/matcha:why` | Intent Discovery — answer before touching code |
-| `/matcha:review` | **Blocking review gate** (L0-L3: Correctness, Security, Performance, Architecture) |
+| `/matcha:review` | **Risk-tiered review gate** (L0/L1 async, L2/L3 blocking) |
 | `/matcha:audit` | Preemptive stack audit — overlaps, waste, vulnerability sweep |
 | `/matcha:intensity` | Set enforcement level: observe / enforce / audit |
 | `/matcha:status` | Master session health dashboard |
@@ -67,7 +67,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 | `@matcha-planner` | Plan features through Intent Discovery checkpoints | Before starting work |
 | `@matcha-finder` | Hunt existing code before writing new | Before implementing |
 | `@matcha-auditor` | Stack audit for overlaps & security health | Health checks & onboarding |
-| `@matcha-reviewer` | **Blocking review gate** — catches everything | Before merge |
+| `@matcha-reviewer` | **Risk-tiered review gate** (L0/L1 async, L2/L3 blocking) | Before merge |
 | `@matcha-cleaner` | Remove temp/debug/unused code | Post-implementation |
 | `@matcha-debugger` | Systematic debugging — 1 hypothesis at a time | When stuck on an error |
 
@@ -112,6 +112,12 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 </industrial_scaling>
 
 
+## Enforcement per Provider (honest capabilities)
+- **AGY/Antigravity**: hooks.json deny (runtime-level, hardest) + MCP tools. Planning gate + shield = blocking.
+- **Claude Code**: PreToolUse exit-2/deny (blocking) + SessionStart resume hint + Stop tips. Agent `tools:`/`disallowedTools:` frontmatter = platform-enforced.
+- **OpenCode**: plugin `tool.execute.before` throw (canonical block per plugin docs) + agent `permission:` frontmatter. Denial reason returns as text — treat HARD BLOCK as non-negotiable, never work around.
+- **Cursor / Windsurf / Cline / Roo / Kiro / Qoder / Trae / Copilot**: prompt-only (rules files, alwaysApply). No mechanical blocking — discipline comes from plan gate habit + review gate. MCP server (`matcha_shield_check`, `matcha_plan_validate`, `matcha_review_validate`) available as enforcement aid where MCP is supported.
+
 <project_context>
 ## Project Constraints & Verification
 - Read project-specific stack, conventions, and verification commands in `MATCHA_PROJECT.md`.
@@ -121,6 +127,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 - Task start → read `.agents/plan/current.md` (resume continuity after context loss). Intent mismatch → overwrite, never follow a stale plan.
 - **Persist BEFORE the first edit** — the first non-.md write in a task requires `.agents/plan/current.md` filled (Intent Discovery). Don't wait for a user command — the hook blocks writes without it.
 - Planning gate → overwrite `.agents/plan/current.md` (living plan, never append).
+- **Plan compaction:** after 5+ completed steps, archive finished steps → `reports/planner-<YYYY-MM>.md` (via `matcha plan compact`), keeping only intent, unchecked steps, `**▶ Current:**`, active risks.
 - **Step execution:** implement strictly step-by-step from `current.md`'s Plan list; after each step check it off (`[x]`) and update the `**▶ Current:**` line (Step N/M, K done). Never batch-finish without updating; deviation → update the plan first.
 - Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
 - Task done (review PASS) → reviewer archives `current.md` → `reports/planner-<YYYY-MM>.md`, writes verdict → `reports/reviewer-<YYYY-MM>.md`, resets to empty template. Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.

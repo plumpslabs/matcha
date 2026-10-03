@@ -17,6 +17,7 @@ import { checkCommand } from "./danger-checks.js";
 import { checkPlanningGate, getIntensity } from "./planning-gate.js";
 import { autoIndexWorkspace } from "./auto-index.js";
 import { recordShieldBlock, recordPlanningGateBlock } from "./matcha-metrics.js";
+import { detectSubagentCall, recordSubagent } from "./subagent-trace.js";
 
 // AGY tool names → matcha internal tool names (already understood by the engine).
 // Names are lowercased before lookup (mapEvent does name.toLowerCase()), so
@@ -84,6 +85,10 @@ process.stdin.on("end", () => {
     if (intensity === "off") {
       return respond("allow", "");
     }
+
+    // Subagent trace: record finder/planner/auditor spawns (observable reuse proof)
+    const agent = detectSubagentCall(event?.toolCall?.name, event?.toolCall?.args);
+    if (agent) recordSubagent(agent, cwd);
 
     // Planning gate — blocks code writes/commands until a valid plan exists.
     // Pass the real workspace root (AGY's workspacePaths) so the plan is found

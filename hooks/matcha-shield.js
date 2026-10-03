@@ -20,6 +20,7 @@ import { readFileSync } from "fs";
 import { join } from "path";
 import { checkCommand, DANGER_PATTERNS } from "./danger-checks.js";
 import { checkPlanningGate, getIntensity } from "./planning-gate.js";
+import { detectSubagentCall, recordSubagent } from "./subagent-trace.js";
 import { autoIndexWorkspace } from "./auto-index.js";
 import { detectMode, writeMode, getPreviousMode } from "./mode-detect.js";
 import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./matcha-metrics.js";
@@ -60,6 +61,9 @@ export async function beforeToolUse(event, context) {
     const prevState = getPreviousMode();
     writeMode(mode);
     if (prevState.mode && prevState.mode !== mode) recordModeSwitch(mode, prevState.mode);
+    // Subagent trace: record finder/planner/auditor spawns (observable reuse proof)
+    const agent = detectSubagentCall(toolName, input);
+    if (agent) recordSubagent(agent, event?.cwd);
   }
 
   // Planning gate

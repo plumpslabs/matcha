@@ -93,7 +93,9 @@ When a review is triggered:
 2. **Auto-detect tier** from changed files/content using the pack's signals
 3. **Apply the appropriate checklist** — base 9 categories for L2, plus any pack-specific additions for L3
 4. **Report tier and which pack/signal caused it** in the review output, for auditability
-5. **L3 requires escalation** — cannot auto-pass regardless of pack
+5. **Gate execution is risk-tiered:** L0/L1 run **async/non-blocking** (agent continues, verdict lands in `.agents/reports/`); L2/L3 are **blocking** (stop until PASS / EXPERT_REQUIRED). A 🔴 finding at any tier escalates to blocking.
+6. **Always validate** the rendered verdict with `matcha_review_validate` before finalizing.
+7. **L3 requires escalation** — cannot auto-pass regardless of pack
 
 ```
 🍵 review: [files] — Risk: L2 (Product Logic) [pack: web-saas]

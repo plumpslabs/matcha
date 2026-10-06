@@ -215,7 +215,9 @@ export function checkPlanningGate(event) {
     "WriteFile", "EditFile", "write_to_file", "replace_file_content",
     "multi_replace_file_content", "precise_diff_editor", "batch_file_writer",
     "edit_symbol", "edit_symbol_surgical", "patch", "edit", "write",
-    "unifiedDiffCreate", "multiEdit"
+    "unifiedDiffCreate", "multiEdit",
+    // Native provider tool names (Claude Code sends capitalized names)
+    "Edit", "Write", "MultiEdit",
   ].includes(toolName);
 
   const isCommandTool = [
@@ -258,10 +260,22 @@ export function checkPlanningGate(event) {
     return null;
   }
 
+  // ⚠️ Archived/tombstoned plans: a stale body may still contain valid
+  // Problem/Goals text and would pass content validation — but it belongs to
+  // a FINISHED task. Writes always require a fresh plan (issue #4).
+  const isArchivedPlan = /^status:\s*(archived|done)/im.test(planContent);
+  if (isArchivedPlan && isWriteTool) {
+    const archivedTo = (planContent.match(/^archived-to:\s*(.+)$/im) || [])[1];
+    const where = archivedTo ? ` (archived to \`${archivedTo.trim()}\`)` : "";
+    return {
+      block: true,
+      message: `🍵 matcha: Planning Gate Blocked\n\nThe plan in .agents/plan/current.md was ARCHIVED after a previous task's review PASS${where} — it is NOT an active plan. Do not follow it for this task.\n\nAction required:\nOverwrite .agents/plan/current.md with fresh Intent Discovery for the CURRENT task (or run \`matcha plan archive\` if you just finished one).\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — write the fresh plan there now.`
+    };
+  }
+
   // ⚖️ Archived/done plans: allow read-only Bash (analysis, grep, ls, git diff)
   // without forcing a new plan — prevents gate from blocking post-task analysis.
   // Write tools still require a fresh active plan.
-  const isArchivedPlan = /^status:\s*(archived|done)/im.test(planContent);
   if (isArchivedPlan && isCommandTool) {
     const cmd = (event.input?.command || event.input?.code || "").trim();
     // Allow any read-only/diagnostic command — block only actual state mutations

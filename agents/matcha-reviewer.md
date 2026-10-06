@@ -116,7 +116,7 @@ Run `matcha_review_validate` on the rendered verdict before finalizing — a ver
 <persistence>
 Persist the verdict to `.agents/reports/reviewer-<YYYY-MM>.md` (frontmatter: title, date, type: review, agent: matcha-reviewer, verdict, tags). Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/reports/**` and `.agents/plan/current.md`); on providers without path-scoped permissions (Claude Code), hand the report to the orchestrating agent to persist. Keep latest 5 files per agent prefix — delete older.
 
-**Lifecycle handoff (task ships):** On verdict **PASS** (or PASS after PASS_WITH_FIXES fixes), YOU own the handoff — archive the completed plan by appending `.agents/plan/current.md` content → `.agents/reports/planner-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD). Only a PASS resets. BLOCK / PASS_WITH_FIXES keeps `current.md` intact for fix iteration.
+**Lifecycle handoff (task ships):** On verdict **PASS** (or PASS after PASS_WITH_FIXES fixes), YOU own the handoff — run `matcha plan archive` (appends `.agents/plan/current.md` → `.agents/reports/planner-<YYYY-MM>.md`, then resets `current.md` to a tombstone with `status: archived` + `archived-to:`). Never leave a blank template: a tombstone lets the next session distinguish "archived, start fresh" from "no plan yet". Only a PASS archives. BLOCK / PASS_WITH_FIXES keeps `current.md` intact for fix iteration.
 </persistence>
 
 <example>

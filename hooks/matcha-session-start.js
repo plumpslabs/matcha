@@ -13,19 +13,25 @@ import { join } from "path";
 import { getWorkspaceRoot } from "./workspace-root.js";
 import { getIntensity } from "./planning-gate.js";
 import { getPlanResumeHint } from "./plan-compact.js";
+import { suggestIntensity } from "./blast-radius.js";
 
 export function getSessionStartContext(cwd) {
   const root = getWorkspaceRoot(cwd);
   if (getIntensity(root) === "off") return "";
+  const parts = [];
   try {
     const planPath = join(root, ".agents", "plan", "current.md");
-    if (!existsSync(planPath)) return "";
-    const hint = getPlanResumeHint(readFileSync(planPath, "utf-8"));
-    if (!hint) return "";
-    return `🍵 matcha resume: ${hint} — read .agents/plan/current.md at task start; intent mismatch → overwrite, never follow a stale plan.`;
-  } catch {
-    return "";
-  }
+    if (existsSync(planPath)) {
+      const hint = getPlanResumeHint(readFileSync(planPath, "utf-8"));
+      if (hint) parts.push(`🍵 matcha resume: ${hint} — read .agents/plan/current.md at task start; intent mismatch → overwrite, never follow a stale plan.`);
+    }
+  } catch {}
+  // Adaptive auto-routing (issue #6): declare intensity + reason at task start.
+  try {
+    const auto = suggestIntensity(undefined, root);
+    if (auto.tier !== "L0" || parts.length > 0) parts.push(`🍵 matcha ${auto.reason} (override: /matcha:intensity).`);
+  } catch {}
+  return parts.join("\n");
 }
 
 // ─── CLI Mode — Claude Code SessionStart hook ────────────────────────────────

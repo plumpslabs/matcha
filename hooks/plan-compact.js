@@ -46,3 +46,22 @@ export function getPlanResumeHint(content) {
   const cur = curMatch ? `Step ${curMatch[1]}/${curMatch[2]}` : `Step ${done + 1}/${total}`;
   return `plan: ${cur} — ${title}`;
 }
+
+/**
+ * Tombstone written to current.md after a PASS archive (issue #4).
+ * Distinguishes "plan archived, start fresh" from "no plan yet": the gate
+ * rejects tombstoned plans with an archive-aware message instead of letting
+ * a stale body pass validation.
+ * @param {string} archivedTo - reports path the plan was archived to
+ * @returns {string} tombstone file content
+ */
+export function writeTombstone(archivedTo) {
+  const today = new Date().toISOString().slice(0, 10);
+  return `---\ntitle: (archived — start fresh)\ndate: ${today}\ntype: plan\nstatus: archived\narchived-to: ${archivedTo}\n---\n# 🍵 Intent Discovery — Archived\n\n> Previous plan archived to \`${archivedTo}\` on ${today} after review PASS.\n> This is NOT an active plan — overwrite this file with fresh Intent Discovery for the new task.\n\n- **Problem:** (TBD — write fresh plan)\n- **Goals:** (TBD)\n- **Success Criteria:** (TBD)\n`;
+}
+
+/** Extract the archived-to path from a tombstoned plan, or null. */
+export function getArchivedTo(content) {
+  const m = String(content || "").match(/^archived-to:\s*(.+)$/im);
+  return m ? m[1].trim() : null;
+}

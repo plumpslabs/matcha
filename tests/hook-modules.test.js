@@ -541,3 +541,87 @@ describe("matcha-session-start.js — SessionStart resume hint", () => {
     }
   });
 });
+
+describe("plan lifecycle tombstone (issue #4)", () => {
+  test("tombstone round-trips archived-to path", async () => {
+    const { writeTombstone, getArchivedTo } = await import("../hooks/plan-compact.js");
+    const t = writeTombstone(".agents/reports/planner-2026-10.md");
+    expect(t).toMatch(/status:\s*archived/);
+    expect(getArchivedTo(t)).toBe(".agents/reports/planner-2026-10.md");
+  });
+
+  test("archived plan blocks writes with archive-aware message", async () => {
+    const { checkPlanningGate } = await import("../hooks/planning-gate.js");
+    const { writeTombstone } = await import("../hooks/plan-compact.js");
+    const ws = mkdtempSync(join(tmpdir(), "matcha-tomb-"));
+    try {
+      mkdirSync(join(ws, ".agents", "plan"), { recursive: true });
+      writeFileSync(join(ws, ".agents", "plan", "current.md"), writeTombstone(".agents/reports/planner-2026-10.md"));
+      const res = checkPlanningGate({ tool: "Edit", input: { path: join(ws, "src", "x.js") }, cwd: ws });
+      expect(res && res.block).toBe(true);
+      expect(res.message).toMatch(/ARCHIVED/);
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+});
+
+describe("arbitrate.js — signal arbitration (issue #10)", () => {
+  test("mechanical stop beats advisory go", async () => {
+    const { arbitrate } = await import("../hooks/arbitrate.js");
+    const r = arbitrate([
+      { source: "kennec", kind: "advisory", fresh: true, verdict: "go" },
+      { source: "shield-hook", kind: "mechanical", fresh: true, verdict: "stop" },
+    ]);
+    expect(r.decision).toBe("stop");
+    expect(r.winner).toBe("shield-hook");
+    expect(r.log).toMatch(/STOP/);
+  });
+
+  test("fresh evidence beats stale memory at equal kind", async () => {
+    const { arbitrate } = await import("../hooks/arbitrate.js");
+    const r = arbitrate([
+      { source: "memory", kind: "advisory", fresh: false, verdict: "go" },
+      { source: "logs", kind: "advisory", fresh: true, verdict: "stop" },
+    ]);
+    expect(r.decision).toBe("stop");
+    expect(r.rule).toBe("stop-beats-go");
+  });
+
+  test("higher-precedence GO needs a reason to override STOP", async () => {
+    const { arbitrate } = await import("../hooks/arbitrate.js");
+    const noReason = arbitrate([
+      { source: "ci", kind: "mechanical", fresh: true, verdict: "go" },
+      { source: "logs", kind: "advisory", fresh: true, verdict: "stop" },
+    ]);
+    expect(noReason.decision).toBe("stop");
+    const withReason = arbitrate([
+      { source: "ci", kind: "mechanical", fresh: true, verdict: "go", reason: "green on same commit" },
+      { source: "logs", kind: "advisory", fresh: true, verdict: "stop" },
+    ]);
+    expect(withReason.decision).toBe("go");
+    expect(withReason.rule).toBe("higher-precedence-go-with-reason");
+  });
+
+  test("unanimous go passes", async () => {
+    const { arbitrate } = await import("../hooks/arbitrate.js");
+    expect(arbitrate([{ source: "a", kind: "advisory", fresh: true, verdict: "go" }])).toEqual(
+      expect.objectContaining({ decision: "go", rule: "unanimous-go" })
+    );
+  });
+});
+
+describe("suggestIntensity (issue #6)", () => {
+  test("docs-only diff routes to observe", async () => {
+    const { suggestIntensity } = await import("../hooks/blast-radius.js");
+    const r = suggestIntensity(["README.md", "docs/x.md"]);
+    expect(r.intensity).toBe("observe");
+    expect(r.reason).toMatch(/auto-route/);
+  });
+
+  test("auth file routes to audit", async () => {
+    const { suggestIntensity } = await import("../hooks/blast-radius.js");
+    const r = suggestIntensity(["src/auth/jwt.js"]);
+    expect(r.intensity).toBe("audit");
+  });
+});

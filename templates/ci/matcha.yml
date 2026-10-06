@@ -1,0 +1,23 @@
+# 🍵 matcha CI gate (template — installed by `matcha init`)
+# Mechanical enforcement (issue #5): prose requests, this requires.
+# - build:check keeps all provider adapters in sync with the source of truth
+# - tests must pass (no silent weakening: use the quarantine protocol for flakes)
+# - scan blocks secrets/debug leaks on changed files
+name: matcha gate
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm ci || npm install
+      - run: npm run build:check
+      - run: npm test
+      - run: node bin/matcha.js scan

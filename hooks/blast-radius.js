@@ -185,3 +185,21 @@ export function calculateBlastRadius(explicitFiles, cwd) {
     },
   };
 }
+
+/**
+ * Adaptive intensity auto-routing (issue #6): map the blast-radius
+ * classifier to an intensity + human-readable reason line. Human override
+ * always wins (recorded via /matcha:intensity).
+ * @param {string[]} [explicitFiles]
+ * @param {string} [cwd]
+ * @returns {{intensity: "observe"|"enforce"|"audit", tier: string, reason: string}}
+ */
+export function suggestIntensity(explicitFiles, cwd) {
+  const r = calculateBlastRadius(explicitFiles, cwd);
+  const top = r.reasons[0] || "no changes";
+  return {
+    intensity: r.recommendedMode,
+    tier: r.tier,
+    reason: `auto-route: ${r.recommendedMode} (tier ${r.tier}, score ${r.score}) — ${top}`,
+  };
+}

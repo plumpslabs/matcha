@@ -110,6 +110,10 @@ Benchmark-proven failure mode: on small features, applying the FULL production b
 - **Mock at boundaries** — fake external I/O (network, DB, clock, files), never mock what you own that is cheap to use real.
 - **Coverage is a guard, not a goal** — cover the risky logic (edges, branches, error paths), not line-count vanity.
 - **Flaky test = bug in the test** — quarantine or fix immediately; never rerun-to-green or disable silently.
+- **Flaky-test protocol (issue #9): reproduce-before-fix.** A failing test must fail twice (isolated re-run) before any source edit — a single red triggers a re-run with evidence, never a patch.
+- **Quarantine track** — intermittently failing tests move to `tests/quarantine/` with owner + ticket in the file header; quarantined tests do not block CI, but membership is reviewed, never silent.
+- **Flake fingerprinting** — record seed/order/timing with each failure (vitest `--sequence.seed`, pytest `-p no:randomly` off) so order-dependence and timing patterns are detectable.
+- **CI correlation** — local red + CI green on the same commit = flake suspect, not a fix trigger.
 
 ## Resilience & Data
 

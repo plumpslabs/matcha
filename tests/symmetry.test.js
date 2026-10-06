@@ -257,3 +257,22 @@ describe("Symmetry — MCP server", () => {
     expect(content).toContain("matcha_plan_validate");
   });
 });
+
+describe("Handoff contracts — write-scope firewall (issue #7)", () => {
+  const READ_ONLY = ["matcha-planner", "matcha-finder", "matcha-auditor", "matcha-reviewer"];
+  for (const agent of READ_ONLY) {
+    test(`${agent}: edit is deny-by-default (no source writes)`, () => {
+      const content = readFileSync(`.agents/agents/${agent}.md`, "utf-8");
+      expect(content).toMatch(/"\*":\s*deny|edit:\s*\n\s*"\*": deny/s);
+    });
+    test(`${agent}: declares disallowedTools with Edit/Write/Task`, () => {
+      const content = readFileSync(`.agents/agents/${agent}.md`, "utf-8");
+      expect(content).toMatch(/disallowedTools:.*(Edit|Write)/);
+    });
+  }
+  test("reviewer handoff owns PASS archive via tombstone (issue #4)", () => {
+    const content = readFileSync(".agents/agents/matcha-reviewer.md", "utf-8");
+    expect(content).toMatch(/matcha plan archive/);
+    expect(content).toMatch(/tombstone/);
+  });
+});

@@ -24,9 +24,9 @@ import { getMetricsSummary } from "../hooks/matcha-metrics.js";
 import { autoIndexWorkspace } from "../hooks/auto-index.js";
 import { scanFile } from "../hooks/matcha-post-write.js";
 import { recordAuditLog, getRecentAuditLogs } from "../hooks/audit-log.js";
-import { calculateBlastRadius } from "../hooks/blast-radius.js";
+import { calculateBlastRadius, suggestIntensity } from "../hooks/blast-radius.js";
 import { recordTestEvidence, getEvidenceBundle, validateEvidence } from "../hooks/evidence-collector.js";
-import { compactPlan, getPlanResumeHint } from "../hooks/plan-compact.js";
+import { compactPlan, getPlanResumeHint, writeTombstone } from "../hooks/plan-compact.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PKG_ROOT = join(__dirname, "..");
@@ -234,7 +234,8 @@ function cmdBlast() {
   const res = calculateBlastRadius(undefined, STATE_ROOT);
   console.log(`  Risk Tier:        ${res.tier} (Score: ${res.score})`);
   console.log(`  Recommended Mode: ${res.recommendedMode}`);
-  console.log(`  Files Modified:   ${res.stats.filesChanged}`);
+  const auto = suggestIntensity(undefined, STATE_ROOT);
+  console.log(`  Auto-route:       ${auto.reason} (override: /matcha:intensity)`);  console.log(`  Files Modified:   ${res.stats.filesChanged}`);
   console.log(`  LOC Delta:        +${res.stats.linesAdded} / -${res.stats.linesDeleted}`);
   console.log(`  Context Rationale:`);
   res.reasons.forEach(r => console.log(`    • ${r}`));
@@ -517,6 +518,21 @@ async function cmdInit() {
 
   // 4. Scaffold session memory (live plan + rotating report archive)
   ensureMemoryScaffold(CWD);
+
+  // 5. Install CI gate template (mechanical enforcement, issue #5)
+  try {
+    const ciPath = join(CWD, ".github", "workflows", "matcha.yml");
+    if (!existsSync(ciPath)) {
+      mkdirSync(join(CWD, ".github", "workflows"), { recursive: true });
+      const tpl = readFileSync(join(PKG_ROOT, "templates", "ci", "matcha.yml"), "utf-8");
+      writeFileSync(ciPath, tpl, "utf-8");
+      console.log("  ✓ Installed .github/workflows/matcha.yml (CI gate: build:check + tests + scan)");
+    } else {
+      console.log("  ✓ .github/workflows/matcha.yml (exists, kept as-is)");
+    }
+  } catch (e) {
+    console.error(`  ✗ Failed to install CI template: ${e.message}`);
+  }
 
   console.log("\n✅ matcha installed!\n");
   console.log("💡 Next steps:\n");
@@ -840,8 +856,25 @@ function cmdPlan() {
     return;
   }
 
-  if (action === "compact") {
+  if (action === "archive") {
+    // PASS handoff: append plan to reports, leave a tombstone (issue #4).
     try {
+      const content = readFileSync(planFile, "utf-8");
+      const month = new Date().toISOString().slice(0, 7);
+      const archive = join(STATE_ROOT, ".agents", "reports", `planner-${month}.md`);
+      if (!existsSync(join(STATE_ROOT, ".agents", "reports"))) mkdirSync(join(STATE_ROOT, ".agents", "reports"), { recursive: true });
+      writeFileSync(archive, `\n\n## Archived ${new Date().toISOString().slice(0, 10)}\n${content}\n`, { encoding: "utf-8", flag: "a" });
+      const rel = join(".agents", "reports", `planner-${month}.md`);
+      writeFileSync(planFile, writeTombstone(rel), "utf-8");
+      console.log(`🍵 matcha: plan archived to ${rel} — current.md reset to tombstone (write a fresh plan for the next task)`);
+    } catch (e) {
+      console.error(`✗ plan archive failed: ${e.message}`);
+      process.exit(1);
+    }
+    return;
+  }
+
+  if (action === "compact") {    try {
       const content = readFileSync(planFile, "utf-8");
       const res = compactPlan(content);
       if (!res.compacted) {
@@ -861,7 +894,7 @@ function cmdPlan() {
     return;
   }
 
-  console.log("Usage: matcha plan [resume|compact]");
+  console.log("Usage: matcha plan [resume|compact|archive]");
 }
 
 // ─── CLI Router ──────────────────────────────────────────────────────────────

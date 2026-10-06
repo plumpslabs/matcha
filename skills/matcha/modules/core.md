@@ -148,13 +148,14 @@ Auto-detect test framework → run tests → typecheck → lint. Test fail → S
 
 Tier meaning is fixed. What *maps* to each tier is defined by the active **trigger pack** (see `hooks/matcha-trigger-packs.json`) — matcha does not hardcode "high risk". Detection: 1) trigger pack (domain-specific signals), 2) core signals (pathPattern, keyword, changeType, explicitMarker), 3) default L2 if no pack loaded (never under-review). Full framework: `modules/risk.md`.
 
-**Review by Tier:**
-- **L0**: Runs? → PASS
-- **L1**: Lint + typecheck clean? → PASS
-- **L2**: **9-category review** (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability). Every category addressed explicitly — PASS or FINDINGS with `file:line` evidence. No silent category skips.
+**Review by Tier (gate execution is risk-tiered):**
+- **L0**: Runs? → PASS — async/non-blocking, verdict lands in background.
+- **L1**: Lint + typecheck clean? → PASS — async/non-blocking. A 🔴 finding escalates to blocking.- **L2**: **9-category review** (correctness, performance, security, architecture, errors+logging+validation, resilience+data, quality, testing, maintainability). Every category addressed explicitly — PASS or FINDINGS with `file:line` evidence. No silent category skips.
 - **L3**: All L2 + threat model + expert sign-off required
 
 See `/matcha:review` for the full checklist. Verify the verdict with `matcha_review_validate` (rejects missing tier/scope/evidence/counts) before finalizing.
+
+**Hooks-vs-prose split (issue #5):** non-negotiable + binary → hooks/CI (`planning-gate`, `shield`, CI template); contextual + judgment → prose. New rules land in hooks only if mechanically checkable, else prose.
 
 **Verdicts:**
 

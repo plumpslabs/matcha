@@ -185,6 +185,8 @@ const AGENT_NAMES = [
   "matcha-reviewer",
   "matcha-cleaner",
   "matcha-debugger",
+  "matcha-researcher",
+  "matcha-scout",
 ];
 console.log("\n📋 Checking .claude/agents (Claude Code format)...");
 for (const agent of AGENT_NAMES) {

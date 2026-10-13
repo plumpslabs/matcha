@@ -80,7 +80,7 @@ ${planHint}${projectSection}
 ${instructions}
 ---
 `,
-    metadata: { convention: "matcha", version: "2.6.0", event: event.type },
+    metadata: { convention: "matcha", version: "2.6.1", event: event.type },
   };
 }
 

@@ -97,15 +97,16 @@ export function simulateShield(cmd) {
 /** Expected critical sections in SKILL.md / AGENTS.md */
 export const KEY_SECTIONS = ["Intent Discovery", "matcha pause", "APPNAME_", "🍵 matcha"];
 
-/** All 6 matcha agent names */
+/** All 8 matcha agent names */
 export const AGENT_NAMES = [
   "matcha-planner", "matcha-finder", "matcha-auditor",
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
+  "matcha-researcher", "matcha-scout",
 ];
 
 /** All matcha commands */
 export const COMMAND_NAMES = [
-  "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
+  "matcha:why", "matcha:review", "matcha:research", "matcha:audit", "matcha:intensity",
   "matcha:status", "matcha:debt", "matcha:markers",
   "matcha:toggle", "matcha:on", "matcha:off",
 ];

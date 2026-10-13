@@ -48,12 +48,25 @@ describe("install.sh — core structure", () => {
     expect(installer).toContain("matcha-debugger");
   });
 
+  test("installs research agents (no hardcoded-list drift)", () => {
+    expect(installer).toContain("matcha-researcher");
+    expect(installer).toContain("matcha-scout");
+  });
+
+  test("installs research command + hooks + skill module", () => {
+    expect(installer).toContain("matcha:research");
+    expect(installer).toContain("research-validate.js");
+    expect(installer).toContain("research-router.js");
+    expect(installer).toContain("research-ledger.js");
+    expect(installer).toContain("for m in core project modes risk legacy engineering research");
+  });
+
   test("installs opencode plugin (auto-loaded from .opencode/plugins/)", () => {
     expect(installer).toContain(".opencode/plugins/matcha.js");
   });
 
   test("installs all commands", () => {
-    expect(installer).toContain("for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off");
+    expect(installer).toContain("for cmd in matcha:why matcha:review matcha:research matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off");
   });
 
   test("installs hooks", () => {
@@ -240,6 +253,7 @@ describe(".agents/ (universal format)", () => {
   const agentNames = [
     "matcha-planner", "matcha-finder", "matcha-auditor",
     "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
+    "matcha-researcher", "matcha-scout",
   ];
 
   for (const a of agentNames) {
@@ -248,7 +262,7 @@ describe(".agents/ (universal format)", () => {
     });
   }
 
-  for (const c of ["matcha:why", "matcha:review", "matcha:audit", "matcha:intensity", "matcha:status"]) {
+  for (const c of ["matcha:why", "matcha:review", "matcha:research", "matcha:audit", "matcha:intensity", "matcha:status"]) {
     test(`commands/${c}.md exists`, () => {
       assertFile(`.agents/commands/${c}.md`);
     });

@@ -59,7 +59,7 @@ install_skill() {
   local dst="$1"
   mkdir -p "$dst/modules"
   install_file "$dst/SKILL.md" "skills/matcha/SKILL.md"
-  for m in core project modes risk legacy engineering; do
+  for m in core project modes risk legacy engineering research; do
     install_file "$dst/modules/$m.md" "skills/matcha/modules/$m.md"
   done
 }
@@ -72,7 +72,7 @@ install_agents() {
   # permission block entirely. Pick the right source per platform.
   local src="${2:-.agents/agents}"
   mkdir -p "$target"
-  for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger; do
+  for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger matcha-researcher matcha-scout; do
     install_file "$target/$agent.md" "$src/$agent.md"
   done
 }
@@ -80,7 +80,7 @@ install_agents() {
 install_commands() {
   local target="$1"
   mkdir -p "$target"
-  for cmd in matcha:why matcha:review matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off; do
+  for cmd in matcha:why matcha:review matcha:research matcha:audit matcha:intensity matcha:status matcha:debt matcha:markers matcha:toggle matcha:on matcha:off; do
     install_file "$target/$cmd.md" "commands/$cmd.md"
   done
 }
@@ -90,7 +90,7 @@ install_hooks() {
   mkdir -p "$target"
   # All hooks + their runtime dependencies (dependency graph must be complete
   # or every hook crashes on a clean install).
-  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js auto-index.js audit-log.js blast-radius.js evidence-collector.js; do
+  for hook in matcha-shield.js matcha-post-write.js matcha-stop.js matcha-session-start.js matcha-instructions.js inject-rules.js patterns.json matcha-mcp-server.js planning-gate.js danger-checks.js mode-detect.js matcha-metrics.js workspace-root.js matcha-trigger-packs.json matcha-agy-hooks.js review-validate.js research-validate.js research-router.js research-ledger.js plan-compact.js subagent-trace.js arbitrate.js auto-index.js audit-log.js blast-radius.js evidence-collector.js; do
     install_file "$target/$hook" "hooks/$hook"
   done
 }
@@ -103,7 +103,7 @@ if [ -n "$PLATFORM_ARG" ]; then
     PLATFORMS="$PLATFORMS $p"
   done
 else
-  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae .qwen; do
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae .qwen .cleo; do
     [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
   done
   [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
@@ -172,7 +172,20 @@ for p in $PLATFORMS; do
       # Qwen Code reads root QWEN.md (installed above when .qwen selected);
       # keep the platform folder recognized so detection/status stay consistent.
       ;;
-  esac
+    .cleo)
+      # Cleo workflow lab: per-repo workflow + global tool manifest + skill.
+      # Cleo has no PreToolUse hooks — enforcement is post-stage (gates + harness).
+      install_file_if_missing "$TARGET/.cleo/workflow.yaml" "templates/cleo/workflow.yaml"
+      if [ -n "${CLEO_CONFIG_DIR:-}" ]; then CLEO_GLOBAL="$CLEO_CONFIG_DIR";
+      elif [ "$(uname)" = "Darwin" ]; then CLEO_GLOBAL="$HOME/Library/Application Support/cleo";
+      else CLEO_GLOBAL="${XDG_CONFIG_HOME:-$HOME/.config}/cleo"; fi
+      mkdir -p "$CLEO_GLOBAL/tools" "$CLEO_GLOBAL/skills"
+      install_file "$CLEO_GLOBAL/tools/matcha.yaml" "templates/cleo/tool-matcha.yaml"
+      if [ ! -e "$CLEO_GLOBAL/skills/matcha" ]; then
+        if $CLONED; then ln -sf "$HERE/skills/matcha" "$CLEO_GLOBAL/skills/matcha" && echo "  ✅ $CLEO_GLOBAL/skills/matcha → local skills/matcha";
+        else echo "  ℹ️  link $CLEO_GLOBAL/skills/matcha → <matcha-repo>/skills/matcha manually (remote mode)"; fi
+      else echo "  ℹ️  $CLEO_GLOBAL/skills/matcha already exists — skipped"; fi
+      ;;  esac
   echo ""
 done
 

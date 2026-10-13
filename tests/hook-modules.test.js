@@ -7,7 +7,7 @@ import { detectMode } from "../hooks/mode-detect.js";
 import { getWorkspaceRoot } from "../hooks/workspace-root.js";
 import { validatePlanContent, checkPlanningGate, isPlanFilePath } from "../hooks/planning-gate.js";
 import { validateReviewContent } from "../hooks/review-validate.js";
-
+import { validateResearchContent } from "../hooks/research-validate.js";
 // ─── Monorepo fixture for workspace-root tests ───────────────────────────────
 const fixtureRoot = mkdtempSync(join(tmpdir(), "matcha-ws-"));
 // monorepo root with .agents at root only
@@ -611,8 +611,7 @@ describe("arbitrate.js — signal arbitration (issue #10)", () => {
   });
 });
 
-describe("suggestIntensity (issue #6)", () => {
-  test("docs-only diff routes to observe", async () => {
+describe("suggestIntensity (issue #6)", () => {  test("docs-only diff routes to observe", async () => {
     const { suggestIntensity } = await import("../hooks/blast-radius.js");
     const r = suggestIntensity(["README.md", "docs/x.md"]);
     expect(r.intensity).toBe("observe");
@@ -623,5 +622,359 @@ describe("suggestIntensity (issue #6)", () => {
     const { suggestIntensity } = await import("../hooks/blast-radius.js");
     const r = suggestIntensity(["src/auth/jwt.js"]);
     expect(r.intensity).toBe("audit");
+  });
+});
+
+describe("research-validate.js — matcha_research_validate", () => {
+  const fullReport = `🍵 matcha: research
+
+Query: Which retry library handles backoff?
+
+## Plan
+- [x] retry semantics
+- [x] jitter support
+
+## Findings (cross-validated)
+- p-retry supports exponential backoff for retry semantics [1]
+- async-retry lacks jitter support for jitter support [2]
+
+## Report
+Use p-retry for backoff needs.
+
+## Sources
+[1] https://example.com/p-retry — backoff docs
+[2] src/utils/retry.ts:12 — local wrapper
+
+📊 Claims: 2 | Validated: 2 | Dropped: 0
+Verdict: COMPLETE
+Confidence: HIGH`;
+
+  test("valid complete report passes", () => {
+    const res = validateResearchContent(fullReport);
+    expect(res.valid).toBe(true);
+    expect(res.verdict).toBe("COMPLETE");
+  });
+
+  test("missing query is rejected", () => {
+    const res = validateResearchContent("Verdict: COMPLETE\n## Sources\n[1] x");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Query");
+  });
+
+  test("invalid verdict is rejected", () => {
+    const res = validateResearchContent("Query: x\n## Sources\n[1] x\nVerdict: MAYBE");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Verdict");
+  });
+
+  test("missing sources is rejected", () => {
+    const res = validateResearchContent("Query: x\nVerdict: COMPLETE");
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Sources");
+  });
+
+  test("uncited claim is rejected", () => {
+    const bad = `Query: x
+
+## Plan
+- [x] bare
+
+## Findings
+- bare claim with no source
+
+## Sources
+[1] y
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("citation");
+  });
+
+  test("dangling citation is rejected", () => {
+    const bad = fullReport.replace("[2]", "[9]");
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("[9]");
+  });
+
+  test("counts mismatch is rejected", () => {
+    const bad = fullReport.replace("Validated: 2 | Dropped: 0", "Validated: 1 | Dropped: 0");
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("mismatch");
+  });
+
+  test("INSUFFICIENT must disclose the gap", () => {
+    const bad = `Query: x
+
+## Plan
+- [x] only lead
+
+- only lead [1]
+
+## Sources
+[1] y
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: INSUFFICIENT`;
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("gap");
+  });
+
+  test("empty report is rejected", () => {
+    expect(validateResearchContent("").valid).toBe(false);
+  });
+
+  test("missing Plan section is rejected", () => {
+    const bad = `Query: x
+
+## Findings
+- claim [1]
+
+## Sources
+[1] y
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Plan");
+  });
+
+  test("unaddressed sub-topic is rejected", () => {
+    const bad = fullReport.replace("- [x] jitter support", "- [x] cost pricing models");
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("sub-topic");
+  });
+
+  test("HIGH-STAKES claim needs 2+ sources", () => {
+    const one = `Query: x
+
+## Plan
+- [x] picking
+
+## Findings
+- picking p-retry [HIGH-STAKES] [1]
+
+## Sources
+[1] y
+[2] z
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    expect(validateResearchContent(one).valid).toBe(false);
+    const two = one.replace("[HIGH-STAKES] [1]", "[HIGH-STAKES] [1][2]");
+    expect(validateResearchContent(two).valid).toBe(true);
+  });
+
+  test("Dropped > 0 needs dropped: disclosure", () => {
+    const bad = `Query: x
+
+## Plan
+- [x] retry
+- [x] jitter
+
+## Findings
+- p-retry supports backoff for retry [1]
+- async-retry lacks jitter for jitter [2]
+
+## Sources
+[1] y
+[2] z
+
+📊 Claims: 2 | Validated: 1 | Dropped: 1
+Verdict: COMPLETE`;
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("dropped:");
+    const good = bad.replace("## Report", "dropped: async-retry jitter claim failed cross-check\n\n## Report");
+    const good2 = good.replace("## Sources", "## Report\nUse p-retry.\n\ndropped: async-retry jitter claim failed cross-check\n\n## Sources");
+    expect(validateResearchContent(good2).valid).toBe(true);
+  });
+
+  test("time-sensitive needs dated sources", () => {    const bad = `Query: x
+Time-sensitive: yes
+
+## Plan
+- [x] pricing
+
+## Findings
+- pricing is $5 for pricing [1]
+
+## Sources
+[1] https://example.com/pricing — pricing page
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    expect(validateResearchContent(bad).valid).toBe(false);
+    const good = bad.replace("pricing page", "pricing page 2026-05-01");
+    expect(validateResearchContent(good).valid).toBe(true);
+  });
+
+  test("duplicate sources are rejected", () => {
+    const bad = `Query: x
+
+## Plan
+- [x] topic one
+
+## Findings
+- claim about topic one [1]
+
+## Sources
+[1] https://example.com/a — first
+[2] https://example.com/a — same url again
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toContain("Duplicate source");
+  });
+
+  test("PARTIAL without gap disclosure is rejected", () => {    const bad = `Query: x
+
+## Plan
+- [x] topic one
+
+## Findings
+- claim about topic one [1]
+
+## Sources
+[1] https://example.com/a — only source
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: PARTIAL`;
+    expect(validateResearchContent(bad).valid).toBe(false);
+    expect(validateResearchContent(bad).message).toContain("gap");
+  });
+
+  test("evidence map must mirror Findings", async () => {
+    const { validateResearchContent } = await import("../hooks/research-validate.js");
+    const base = `Query: x
+
+## Plan
+- [x] topic one
+
+## Findings
+- claim about topic one [1]
+
+## Sources
+[1] https://example.com/a — source
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    expect(validateResearchContent(base).valid).toBe(true);
+    const good = base.replace("## Sources", "## Evidence\n- claim about topic one [1]\n\n## Sources");
+    expect(validateResearchContent(good).valid).toBe(true);
+    const bad = base.replace("## Sources", "## Evidence\n- some other claim [1]\n\n## Sources");
+    const res = validateResearchContent(bad);
+    expect(res.valid).toBe(false);
+    expect(res.message).toMatch(/Evidence map/);
+  });
+
+  test("revision dropping sources silently is rejected", async () => {
+    const { validateResearchRevision } = await import("../hooks/research-validate.js");
+    const prior = `Query: x\n\n## Sources\n[1] https://example.com/a — a\n[2] https://example.com/b — b\n`;
+    expect(validateResearchRevision(prior, prior).valid).toBe(true);
+    const dropped = `Query: x\n\n## Sources\n[1] https://example.com/a — a\n`;
+    expect(validateResearchRevision(prior, dropped).valid).toBe(false);
+    const disclosed = dropped + `\ndropped: https://example.com/b superseded by newer docs\n`;
+    expect(validateResearchRevision(prior, disclosed).valid).toBe(true);
+  });
+});
+
+describe("research-router.js — tiered retrieval", () => {
+  test("news routes free", async () => {
+    const { routeResearchQuery } = await import("../hooks/research-router.js");
+    expect(routeResearchQuery("latest breaking news today").tier).toBe("free");
+  });
+
+  test("code query routes exa with key", async () => {
+    const { routeResearchQuery } = await import("../hooks/research-router.js");
+    const r = routeResearchQuery("SDK docs retry function", { exaKey: true });
+    expect(r.tier).toBe("exa");
+  });
+
+  test("deep query routes tavily with key, free without", async () => {
+    const { routeResearchQuery } = await import("../hooks/research-router.js");
+    expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", { tavilyKey: true }).tier).toBe("tavily");
+    expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", {}).tier).toBe("free");
+  });
+
+  test("extraction budgets are capped", async () => {
+    const { extractionBudget } = await import("../hooks/research-router.js");
+    expect(extractionBudget("web").budget).toBeLessThanOrEqual(2000);
+    expect(extractionBudget("pdf").budget).toBeLessThanOrEqual(4000);
+  });
+});
+
+describe("research-ledger.js — reference ledger + blocklist", () => {
+  const sample = `- [https://example.com/a] — grounded: retry backoff (2026-01-01)
+- [https://example.com/b] — grounded: jitter support (2026-06-01)
+`;
+
+  test("parses entries with notes and dates", async () => {
+    const { parseLedger } = await import("../hooks/research-ledger.js");
+    const entries = parseLedger(sample);
+    expect(entries.length).toBe(2);
+    expect(entries[0]).toEqual(expect.objectContaining({ url: "https://example.com/a", date: "2026-01-01" }));
+  });
+
+  test("addEntry dedupes by normalized URL", async () => {
+    const { addEntry } = await import("../hooks/research-ledger.js");
+    expect(addEntry(sample, "https://example.com/A/", "grounded", "dup", "2026-10-01")).toBeNull();
+    const updated = addEntry(sample, "https://example.com/c", "grounded", "fresh", "2026-10-01");
+    expect(updated).toContain("https://example.com/c");
+  });
+
+  test("isBlocked matches blocklisted URLs", async () => {
+    const { isBlocked } = await import("../hooks/research-ledger.js");
+    const list = `- [https://bad.example/x] — blocked: fabricated claims (2026-02-01)\n`;
+    expect(isBlocked(list, "https://bad.example/x")).toBe(true);
+    expect(isBlocked(list, "https://good.example/y")).toBe(false);
+  });
+
+  test("findRelevant ranks by overlap, empty when irrelevant", async () => {
+    const { findRelevant } = await import("../hooks/research-ledger.js");
+    const hits = findRelevant(sample, "retry backoff library");
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0].url).toBe("https://example.com/a");
+    expect(findRelevant(sample, "quantum gardening")).toEqual([]);
+  });
+
+  test("isStale only for dated entries past max age", async () => {
+    const { isStale } = await import("../hooks/research-ledger.js");
+    const now = new Date("2026-10-13T00:00:00Z");
+    expect(isStale({ date: "2026-01-01" }, 90, now)).toBe(true);
+    expect(isStale({ date: "2026-10-01" }, 90, now)).toBe(false);
+    expect(isStale({ date: null }, 90, now)).toBe(false);
+  });
+
+  test("parseIndex + matchTopics route to topic files", async () => {
+    const { parseIndex, matchTopics } = await import("../hooks/research-ledger.js");
+    const index = `- [web search apis] — web-search-apis.md
+- [auth patterns] — auth-patterns.md
+`;
+    const entries = parseIndex(index);
+    expect(entries.length).toBe(2);
+    const hits = matchTopics(entries, "Exa Tavily web search benchmarks");
+    expect(hits.length).toBeGreaterThan(0);
+    expect(hits[0].file).toBe("web-search-apis.md");
+    expect(matchTopics(entries, "quantum gardening")).toEqual([]);
+  });
+
+  test("sweepStale flags only aged dated entries", async () => {
+    const { sweepStale } = await import("../hooks/research-ledger.js");
+    const content = `- [https://example.com/old] — grounded: old news (2025-01-01)
+- [https://example.com/new] — grounded: fresh docs (2026-10-01)
+- [https://example.com/nodate] — grounded: evergreen
+`;
+    const now = new Date("2026-10-13T00:00:00Z");
+    const stale = sweepStale(content, 180, now);
+    expect(stale.map((e) => e.url)).toEqual(["https://example.com/old"]);
   });
 });

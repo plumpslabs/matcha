@@ -4,7 +4,7 @@ description: >
   Engineering philosophy ruleset that enforces deliberate, efficient thinking
   before, during, and after any implementation.
 metadata:
-  version: 2.5.44
+  version: 2.6.0
 ---
 
 # 🍵 matcha — Engineering Philosophy
@@ -21,6 +21,7 @@ This skill is split into focused modules. **Lazy-load: read ONLY the modules you
 | `modules/project.md` | On demand — first task of a session | Project-specific constraints (fill in once per project) |
 | `modules/modes.md` | On demand — only when switching modes | Context-aware mode switching (explore/implement/refactor/debug/review) |
 | `modules/risk.md` | During review | Risk-based review routing (L0-L3) |
+| `modules/research.md` | On demand — `/matcha:research` or multi-source questions | Plan, fan out, cross-validate, cite |
 | `modules/engineering.md` | During implement + review | Universal engineering bar: errors, logging, validation, API contracts, state, concurrency |
 | `modules/legacy.md` | Legacy/large codebases | Incremental batching, impact analysis, regression safety |
 

@@ -86,10 +86,11 @@ const WINDSURF_CONTENT = read(".windsurfrules");
 const AGENT_NAMES = [
   "matcha-planner", "matcha-finder", "matcha-auditor",
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
+  "matcha-researcher", "matcha-scout",
 ];
 
 const COMMAND_NAMES = [
-  "matcha:why", "matcha:review", "matcha:audit", "matcha:intensity",
+  "matcha:why", "matcha:review", "matcha:research", "matcha:audit", "matcha:intensity",
   "matcha:status", "matcha:debt", "matcha:markers",
   "matcha:toggle", "matcha:on", "matcha:off",
 ];

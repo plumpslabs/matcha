@@ -10,6 +10,9 @@
  *   - matcha_stop_tips: Generate end-of-task tips from git diff
  *   - matcha_plan_validate: Validate an Intent Discovery plan
  *   - matcha_review_validate: Validate a review verdict (tier, scope, file:line evidence, counts, verdict)
+ *   - matcha_research_validate: Validate a research report (query, citations, counts, verdict)
+ *   - matcha_research_lookup: Check the reference ledger + blocklist before fan-out
+ *   - matcha_research_stale: Sweep stale dated entries needing re-research
  *
  * Usage:
  *   node hooks/matcha-mcp-server.js
@@ -25,12 +28,18 @@
  *   }
  */
 
-import { readFileSync, existsSync } from "fs";
+import { readFileSync, existsSync, writeFileSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { execSync } from "child_process";
 import { validatePlanContent } from "./planning-gate.js";
 import { validateReviewContent } from "./review-validate.js";
+import { validateResearchContent } from "./research-validate.js";
+import {
+  findRelevant, isBlocked, parseIndex, parseLedger, addEntry, matchTopics, sweepStale,
+  LEDGER_PATH, UNRELIABLE_PATH, RESEARCH_DIR, INDEX_PATH,
+  UNRELIABLE_V2_PATH, MAX_TOPIC_FILES_PER_LOOKUP,
+} from "./research-ledger.js";
 import { getWorkspaceRoot } from "./workspace-root.js";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -138,7 +147,7 @@ function generateStopTips(cwd) {
 
 const SERVER_INFO = {
   name: "matcha",
-  version: "2.5.44",
+  version: "2.6.0",
 };
 
 const TOOLS = [
@@ -194,6 +203,41 @@ const TOOLS = [
         reviewContent: { type: "string", description: "The full review verdict text (🍵 matcha: review output)" },
       },
       required: ["reviewContent"],
+    },
+  },
+  {
+    name: "matcha_research_validate",
+    description: "Validate a deep-research report: Query present, per-claim [N] citations resolving to listed Sources, counts line consistent (Validated + Dropped = Claims), valid verdict (COMPLETE / PARTIAL / INSUFFICIENT). Blocks unsourced reports.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        reportContent: { type: "string", description: "The full research report text (🍵 matcha: research output)" },
+        persistTopic: { type: "string", description: "Optional topic slug: on valid verdict, append the report Sources to .agents/research/<topic>.md (dedupe by URL)" },
+      },
+      required: ["reportContent"],
+    },
+  },
+  {
+    name: "matcha_research_stale",
+    description: "Sweep ledger topic files for stale dated entries (older than maxAgeDays, default 180) needing re-research. Returns stale URLs with notes.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        maxAgeDays: { type: "number", description: "Max age in days before an entry is stale" },
+      },
+      required: [],
+    },
+  },
+  {
+    name: "matcha_research_lookup",
+    description: "Check the research reference ledger before fan-out: returns relevant validated sources for a query (zero scouts if fresh answer on file) and warns on blocklisted URLs. Never Twice for research.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        query: { type: "string", description: "The research question to look up" },
+        urls: { type: "array", items: { type: "string" }, description: "Optional URLs to check against the blocklist" },
+      },
+      required: ["query"],
     },
   },
 ];
@@ -310,6 +354,150 @@ function handleRequest(request) {
             text: result.valid
               ? `🍵 matcha: ✅ Verdict is valid (Tier: ${result.tier}, Verdict: ${result.verdict})`
               : `🍵 matcha: ❌ Verdict invalid\n\n${result.message}`,
+          }],
+        },
+      };
+    }
+
+    if (name === "matcha_research_validate") {
+      const result = validateResearchContent(args.reportContent);
+      let persisted = "";
+      // Opt-in persist: on valid verdict, append Sources to the topic file
+      // (dedupe by URL). Explicit agent choice — never silent writes.
+      const topic = String(args.persistTopic || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      if (result.valid && topic) {
+        try {
+          const root = getWorkspaceRoot();
+          const dir = join(root, RESEARCH_DIR);
+          mkdirSync(dir, { recursive: true });
+          const file = `${topic}.md`;
+          const rel = `${RESEARCH_DIR}/${file}`;
+          let content = "";
+          try {
+            content = readFileSync(join(root, rel), "utf-8");
+          } catch {}
+          const srcMatch = String(args.reportContent).match(/## Sources([\s\S]*?)(?=\n📊|$)/i);
+          let added = 0;
+          if (srcMatch) {
+            // Report sources are numbered ([1] URL) — not ledger dash lines.
+            const today = new Date().toISOString().slice(0, 10);
+            for (const m of srcMatch[1].matchAll(/^\s*\[\d+\]\s*(https?:\/\/[^\s)]+)\s*[—-]?\s*(.*)$/gim)) {
+              const note = (m[2] || "validated source").trim() || "validated source";
+              const next = addEntry(content, m[1], "grounded", note, today);
+              if (next !== null) {
+                content = next;
+                added++;
+              }
+            }
+          }
+          if (added > 0 || content.trim()) {
+            if (!content.trim()) content = `# ${topic}\n\n`;
+            writeFileSync(join(root, rel), content.endsWith("\n") ? content : content + "\n", "utf-8");
+          }
+          // Index the topic so two-stage lookup can find it.
+          let indexRaw = "";
+          try {
+            indexRaw = readFileSync(join(root, INDEX_PATH), "utf-8");
+          } catch {}
+          if (!parseIndex(indexRaw).some((t) => t.file === file)) {
+            const line = `- [${topic.replace(/-/g, " ")}] — ${file}\n`;
+            writeFileSync(join(root, INDEX_PATH), (indexRaw.trimEnd() ? indexRaw.trimEnd() + "\n" : "# 🍵 Research Topic Index\n\n") + line, "utf-8");
+          }
+          persisted = ` (persisted ${added} new source(s) to ${rel})`;
+        } catch (e) {
+          persisted = ` (persist failed: ${e.message})`;
+        }
+      }
+      return {
+        jsonrpc: "2.0",
+        id,
+        result: {
+          content: [{
+            type: "text",
+            text: result.valid
+              ? `🍵 matcha: ✅ Report is valid (Verdict: ${result.verdict})${persisted}`
+              : `🍵 matcha: ❌ Report invalid\n\n${result.message}`,
+          }],
+        },
+      };
+    }
+
+    if (name === "matcha_research_stale") {
+      const root = getWorkspaceRoot();
+      const maxAge = Number(args.maxAgeDays) > 0 ? Number(args.maxAgeDays) : 180;
+      const stale = [];
+      try {
+        const indexRaw = readFileSync(join(root, INDEX_PATH), "utf-8");
+        for (const t of parseIndex(indexRaw)) {
+          const rel = t.file.startsWith(".agents/") ? t.file : `${RESEARCH_DIR}/${t.file.replace(/^\.\//, "")}`;
+          let content = "";
+          try {
+            content = readFileSync(join(root, rel), "utf-8");
+          } catch {
+            continue;
+          }
+          for (const e of sweepStale(content, maxAge)) {
+            stale.push({ file: rel, url: e.url, note: e.note, date: e.date });
+          }
+        }
+      } catch {}
+      return {
+        jsonrpc: "2.0",
+        id,
+        result: {
+          content: [{
+            type: "text",
+            text: stale.length === 0
+              ? `🍵 matcha: ✅ No stale entries (>${maxAge} days)`
+              : `🍵 matcha: ${stale.length} stale entr${stale.length > 1 ? "ies" : "y"} needing re-research:\n` +
+                stale.map((e) => `- [${e.url}] — ${e.note} (${e.date}, in ${e.file})`).join("\n"),
+          }],
+        },
+      };
+    }
+
+    if (name === "matcha_research_lookup") {
+      const root = getWorkspaceRoot();
+      const read = (rel) => {
+        try {
+          return readFileSync(join(root, rel), "utf-8");
+        } catch {
+          return "";
+        }
+      };
+      // v2 two-stage lookup: index first, then only matched topic files.
+      // Falls back to the legacy single-file ledger when no index exists.
+      let hits = [];
+      const indexRaw = read(INDEX_PATH);
+      if (indexRaw.trim()) {
+        const topics = matchTopics(parseIndex(indexRaw), args.query);
+        for (const t of topics) {
+          const rel = t.file.startsWith(".agents/") ? t.file : `${RESEARCH_DIR}/${t.file.replace(/^\.\//, "")}`;
+          const content = read(rel);
+          hits.push(...findRelevant(content, args.query, 5));
+          if (hits.length >= 5) break;
+        }
+        hits = hits.slice(0, 5);
+      } else {
+        hits = findRelevant(read(LEDGER_PATH), args.query, 5);
+      }
+      const unreliable = read(UNRELIABLE_V2_PATH) || read(UNRELIABLE_PATH);
+      const blocked = (Array.isArray(args.urls) ? args.urls : []).filter((u) => isBlocked(unreliable, u));
+      const lines = hits.map((h) => `- [${h.url}] — ${h.note}${h.date ? ` (${h.date})` : ""}`);
+      return {
+        jsonrpc: "2.0",
+        id,
+        result: {
+          content: [{
+            type: "text",
+            text: [
+              hits.length > 0
+                ? `🍵 matcha: ledger hits (check freshness before reuse):\n${lines.join("\n")}`
+                : "🍵 matcha: ledger empty for this query — proceed with fan-out",
+              blocked.length > 0
+                ? `⛔ blocklisted — never use: ${blocked.join(", ")}`
+                : "",
+            ].filter(Boolean).join("\n"),
           }],
         },
       };

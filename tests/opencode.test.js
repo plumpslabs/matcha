@@ -4,9 +4,25 @@ import { readProjectFile, assertFile } from "./helpers.js";
 describe("OpenCode plugin", () => {
   const content = readProjectFile(".opencode/plugins/matcha.js");
 
-  test("uses factory-function format (opencode v1.18+ — export default no longer loads)", () => {
+  test("dual-host default export satisfies v2 loader schema ({ id, setup })", () => {
+    expect(content).toContain("export default {");
+    expect(content).toMatch(/id:\s*["']matcha["']/);
+    expect(content).toMatch(/setup\(ctx\)/);
+    expect(content).toContain("server,");
+  });
+
+  test("keeps v1 server() for v1 hosts (v1 ignores setup)", () => {
+    expect(content).toContain("async function server()");
+    expect(content).toContain("tool.execute.before");
+  });
+
+  test("retains v1 named factory export (legacy mode requires functions)", () => {
     expect(content).toContain("export const MatchaPlugin = async");
-    expect(content).not.toContain("export default {");
+  });
+
+  test("v2 setup guards missing tool.hook domain (load-green, never fails load)", () => {
+    expect(content).toContain("tool.hook");
+    expect(content).toContain("if (!hook) return;");
   });
 
   test("reads tool args from output.args (official location), not input.args", () => {

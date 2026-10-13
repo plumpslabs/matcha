@@ -314,7 +314,7 @@ Roo Code — `.roo/mcp.json` (per-project):
 node bin/matcha.js status
 
 # Should show:
-# Version: v2.6.1
+# Version: v2.6.2
 # Platform: [your platform]
 # AGENTS.md: ✅
 # Shield: ✅ active

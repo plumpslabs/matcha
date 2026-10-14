@@ -118,6 +118,18 @@ describe("Agent YAML frontmatter validation", () => {
         });
       }
 
+      if (agent === "matcha-researcher") {
+        test("researcher is orchestrator: task allow (spawns scouts+critic itself)", () => {
+          expect(content).toMatch(/^  task: allow$/m);
+          expect(content).not.toMatch(/^disallowedTools: .*\bTask\b/m);
+          expect(content).toMatch(/Fan out YOURSELF/);
+        });
+
+        test("researcher stays read-only on source (Write/Edit denied)", () => {
+          expect(content).toMatch(/^disallowedTools: Write, Edit$/m);
+        });
+      }
+
       if (["matcha-planner", "matcha-finder"].includes(agent)) {
         test("planner/finder: lean read-only bash whitelist (git + rg + find, deny fallback)", () => {
           expect(content).not.toMatch(/^  bash: (allow|deny)$/m);
@@ -204,6 +216,14 @@ describe("Claude Code agent format (transformed from canonical)", () => {
         test("writer: Edit + Write allowed", () => {
           expect(content).toMatch(/^tools: .*\bEdit\b.*\bWrite\b/m);
           expect(content).not.toMatch(/^disallowedTools: .*\bEdit\b/m);
+        });
+      }
+
+      if (agent === "matcha-researcher") {
+        test("researcher keeps Task + Web tools on Claude (orchestrator needs them)", () => {
+          expect(content).toMatch(/^tools: .*\bTask\b/m);
+          expect(content).toMatch(/^tools: .*\bWebFetch\b.*\bWebSearch\b/m);
+          expect(content).not.toMatch(/^disallowedTools: .*\bTask\b/m);
         });
       }
 

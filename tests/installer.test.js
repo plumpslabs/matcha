@@ -253,7 +253,7 @@ describe(".agents/ (universal format)", () => {
   const agentNames = [
     "matcha-planner", "matcha-finder", "matcha-auditor",
     "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
-    "matcha-researcher", "matcha-scout",
+    "matcha-researcher", "matcha-scout", "matcha-critic",
   ];
 
   for (const a of agentNames) {

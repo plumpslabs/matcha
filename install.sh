@@ -72,7 +72,7 @@ install_agents() {
   # permission block entirely. Pick the right source per platform.
   local src="${2:-.agents/agents}"
   mkdir -p "$target"
-  for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger matcha-researcher matcha-scout; do
+  for agent in matcha-planner matcha-finder matcha-auditor matcha-reviewer matcha-cleaner matcha-debugger matcha-researcher matcha-scout matcha-critic; do
     install_file "$target/$agent.md" "$src/$agent.md"
   done
 }

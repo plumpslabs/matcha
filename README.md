@@ -10,13 +10,13 @@
 
 <p align="center">
   <b>Engineering philosophy for AI coding agents.</b><br />
-  6 modules · 7 commands · 6 agents · 7 hooks · 1 MCP server
+  7 modules · 11 commands · 9 agents · 7 hooks · 1 MCP server
 </p>
 
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.6.2-purple" alt="v2.6.2" />
+  <img src="https://img.shields.io/badge/version-2.6.3-purple" alt="v2.6.3" />
   <img src="https://img.shields.io/badge/tests-554-passing-brightgreen" alt="554 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -136,11 +136,12 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 
 | Command | Purpose |
 |---------|---------|
-| `/matcha:toggle` | Toggle governance on/off instantly ( |
+| `/matcha:toggle` | Toggle governance on/off instantly |
 | `/matcha:on` | Enable matcha governance & safety checks |
 | `/matcha:off` | Pause governance & planning gate (free mode) |
 | `/matcha:why` | Intent Discovery — answer before coding |
 | `/matcha:review` | **Blocking review gate** — 9 categories |
+| `/matcha:research` | **Deep research** — scope JSON, scouts, critic, gap loop |
 | `/matcha:audit` | Stack health — overlaps, waste, security |
 | `/matcha:intensity` | Set level: observe / enforce / audit |
 | `/matcha:status` | Session dashboard |
@@ -157,8 +158,11 @@ Minimal cheat-sheet: **plan → reuse → implement → review**. Everything els
 | `@matcha-reviewer` | **Review gate** — blocks bad code |
 | `@matcha-cleaner` | Remove temp/debug/unused |
 | `@matcha-debugger` | Systematic debugging |
+| `@matcha-researcher` | Deep research lead (scope JSON, scouts, critic, gap loop) |
+| `@matcha-scout` | Targeted aspect researcher (highlights + sources) |
+| `@matcha-critic` | Adversarial research reviewer (primary vs drift, contradictions) |
 
-> 🔒 **Enforced permissions** (OpenCode `permission:` + Claude Code `disallowedTools:`): planner/finder/reviewer/auditor are read-only — `edit` is denied for all source code. Only plan/report files are writable (`.agents/plan/current.md`, `.agents/reports/**`). debugger/cleaner may modify code. Other providers: prompt-level + hooks.
+> 🔒 **Enforced permissions** (OpenCode `permission:` + Claude Code `disallowedTools:`): planner/finder/reviewer/auditor/scout/critic are read-only — `edit` is denied for all source code. Researcher is read-only on source but holds `task:allow` to spawn scouts/critic itself (single-prompt full loop). Only plan/report files are writable (`.agents/plan/current.md`, `.agents/reports/**`). debugger/cleaner may modify code. Other providers: prompt-level + hooks.
 
 ### Intensity Levels
 

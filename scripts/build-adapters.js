@@ -86,7 +86,7 @@ const WINDSURF_CONTENT = read(".windsurfrules");
 const AGENT_NAMES = [
   "matcha-planner", "matcha-finder", "matcha-auditor",
   "matcha-reviewer", "matcha-cleaner", "matcha-debugger",
-  "matcha-researcher", "matcha-scout",
+  "matcha-researcher", "matcha-scout", "matcha-critic",
 ];
 
 const COMMAND_NAMES = [
@@ -137,7 +137,12 @@ function toClaudeFormat(canonical, agent) {
 
   const tools = ["Read", "Grep", "Glob", "List"].concat(
     allow.has("Bash") ? ["Bash"] : [],
-    allow.has("Edit") ? ["Edit", "Write"] : []
+    allow.has("Edit") ? ["Edit", "Write"] : [],
+    // Task + Web tools are first-class Claude tools — emit when allowed
+    // (previously silently dropped, e.g. researcher could never spawn/web).
+    allow.has("Task") ? ["Task"] : [],
+    allow.has("WebFetch") ? ["WebFetch"] : [],
+    allow.has("WebSearch") ? ["WebSearch"] : []
   ).filter((t, i, a) => a.indexOf(t) === i);
   const disallowed = [...deny].filter(t => !tools.includes(t));
   if (!allow.has("Edit")) disallowed.push("Edit", "Write");

@@ -124,6 +124,34 @@ export function validateResearchContent(content) {
     }
   }
 
+  // 8b. Scope JSON — when a ## Scope section exists, it must parse as
+  //     {question, summary, angles:[{label, query, rationale}]} with every
+  //     angle complete. Structured scope beats prose plans.
+  const scopeMatch = body.match(/## Scope([\s\S]*?)(?=\n## |\n📊|$)/i);
+  if (scopeMatch) {
+    const jsonText = scopeMatch[1].replace(/```json|```/g, "").trim();
+    let scope = null;
+    try {
+      scope = JSON.parse(jsonText);
+    } catch {
+      issues.push("## Scope is not valid JSON (expected {question, summary, angles})");
+    }
+    if (scope) {
+      if (!scope.question || !scope.summary) {
+        issues.push("## Scope needs question + summary");
+      }
+      if (!Array.isArray(scope.angles) || scope.angles.length === 0) {
+        issues.push("## Scope needs at least one angle");
+      } else {
+        scope.angles.forEach((a, i) => {
+          if (!a || !a.label || !a.query || !a.rationale) {
+            issues.push(`## Scope angle #${i + 1} needs label + query + rationale`);
+          }
+        });
+      }
+    }
+  }
+
   // 9. High-stakes claims need 2+ independent sources. A claim line tagged
   //    [HIGH-STAKES] must cite at least two distinct [N].
   for (const line of claimLines) {

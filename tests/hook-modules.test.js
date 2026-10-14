@@ -852,8 +852,7 @@ Verdict: PARTIAL`;
     expect(validateResearchContent(bad).message).toContain("gap");
   });
 
-  test("evidence map must mirror Findings", async () => {
-    const { validateResearchContent } = await import("../hooks/research-validate.js");
+  test("evidence map must mirror Findings", async () => {    const { validateResearchContent } = await import("../hooks/research-validate.js");
     const base = `Query: x
 
 ## Plan
@@ -885,6 +884,45 @@ Verdict: COMPLETE`;
     const disclosed = dropped + `\ndropped: https://example.com/b superseded by newer docs\n`;
     expect(validateResearchRevision(prior, disclosed).valid).toBe(true);
   });
+
+  test("scope JSON must be complete", async () => {
+    const { validateResearchContent } = await import("../hooks/research-validate.js");
+    const base = (scope) => `Query: x
+
+## Plan
+- [x] topic one
+
+## Scope
+${scope}
+
+## Findings
+- claim about topic one [1]
+
+## Sources
+[1] https://example.com/a — source
+
+📊 Claims: 1 | Validated: 1 | Dropped: 0
+Verdict: COMPLETE`;
+    const good = base(`{"question":"x","summary":"s","angles":[{"label":"broad/primary","query":"q","rationale":"r"}]}`);
+    expect(validateResearchContent(good).valid).toBe(true);
+    const noRationale = base(`{"question":"x","summary":"s","angles":[{"label":"broad","query":"q"}]}`);
+    const res = validateResearchContent(noRationale);
+    expect(res.valid).toBe(false);
+    expect(res.message).toMatch(/rationale/);
+    const notJson = base(`just prose, no json`);
+    expect(validateResearchContent(notJson).valid).toBe(false);
+  });
+
+  test("150-claim report validates fast (scale guard)", async () => {
+    const { validateResearchContent } = await import("../hooks/research-validate.js");
+    const claims = Array.from({ length: 150 }, (_, i) => `- claim number ${i} about topic one [${(i % 10) + 1}]`).join("\n");
+    const sources = Array.from({ length: 10 }, (_, i) => `[${i + 1}] https://example.com/s${i} — source (2026-01-01)`).join("\n");
+    const r = `Query: x\n\n## Plan\n- [x] topic one\n\n## Findings\n${claims}\n\n## Sources\n${sources}\n\n📊 Claims: 150 | Validated: 150 | Dropped: 0\nVerdict: COMPLETE`;
+    const t0 = Date.now();
+    const res = validateResearchContent(r);
+    expect(res.valid).toBe(true);
+    expect(Date.now() - t0).toBeLessThan(1000);
+  });
 });
 
 describe("research-router.js — tiered retrieval", () => {
@@ -901,8 +939,29 @@ describe("research-router.js — tiered retrieval", () => {
 
   test("deep query routes tavily with key, free without", async () => {
     const { routeResearchQuery } = await import("../hooks/research-router.js");
-    expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", { tavilyKey: true }).tier).toBe("tavily");
-    expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", {}).tier).toBe("free");
+    const savedTavily = process.env.TAVILY_API_KEY;
+    const savedExa = process.env.EXA_API_KEY;
+    delete process.env.TAVILY_API_KEY;
+    delete process.env.EXA_API_KEY;
+    try {
+      expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", { tavilyKey: true }).tier).toBe("tavily");
+      expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", {}).tier).toBe("free");
+    } finally {
+      if (savedTavily !== undefined) process.env.TAVILY_API_KEY = savedTavily;
+      if (savedExa !== undefined) process.env.EXA_API_KEY = savedExa;
+    }
+  });
+
+  test("env keys are honored without explicit flags", async () => {
+    const { routeResearchQuery } = await import("../hooks/research-router.js");
+    const saved = process.env.TAVILY_API_KEY;
+    process.env.TAVILY_API_KEY = "test-key";
+    try {
+      expect(routeResearchQuery("compare survey landscape evaluate best practices across frameworks", {}).tier).toBe("tavily");
+    } finally {
+      if (saved === undefined) delete process.env.TAVILY_API_KEY;
+      else process.env.TAVILY_API_KEY = saved;
+    }
   });
 
   test("extraction budgets are capped", async () => {

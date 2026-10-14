@@ -140,7 +140,7 @@ tr:hover td{background:var(--bg-hover)}
     matcha
   </a>
   <div class="header-right">
-    <span class="header-badge">v2.6.5</span>
+    <span class="header-badge">v2.6.6</span>
     <a href="https://github.com/plumpslabs/matcha" target="_blank">GitHub</a>
   </div>
 </header>
@@ -892,7 +892,7 @@ matcha mcp</code><button class="code-copy" onclick="copyCode(this)">Copy</button
   <ol>
     <li><strong>Start</strong> — read it. Intent matches the current request? Continue and update in place. Mismatch → <strong>overwrite</strong> (never follow a stale plan).</li>
     <li><strong>During (step-by-step)</strong> — implement strictly in order from the Plan list: after each completed step check it off (<code>[x]</code>) and update the <code>**▶ Current:**</code> line (Step N/M, K done). Overwrite / check-off in place, never append. The plan always reflects the real position — a compacted or fresh session resumes exactly where you left off. Deviation → update the plan first.</li>
-    <li><strong>Done (task ships = review PASS)</strong> — the reviewer finalizes the handoff: append plan content to <code>reports/planner-&lt;YYYY-MM&gt;.md</code>, write the verdict to <code>reports/reviewer-&lt;YYYY-MM&gt;.md</code>, then <strong>reset</strong> <code>current.md</code> to the empty template (<code>status: active</code>, TBD). Only a PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.</li>
+    <li><strong>Done (task ships = review PASS)</strong> — the reviewer finalizes the handoff: append plan content to <code>reports/planner-&lt;YYYY-MM&gt;.md</code>, write the verdict to <code>reports/reviewer-&lt;YYYY-MM&gt;.md</code>, then reset <code>current.md</code> to a tombstone (<code>status: archived</code> + <code>archived-to:</code>). Only a PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.</li>
   </ol>
   <p><strong>Portable across providers</strong> — <code>.agents/plan/</code> + <code>.agents/reports/</code> are plain files in the project, readable by <em>any</em> provider (OpenCode, AGY, Claude, Cursor, …). Switch provider mid-task? The new session injects <code>AGENTS.md</code> → reads <code>current.md</code> → resumes. The filesystem is the memory; the provider is just the host.</p>
 </div>

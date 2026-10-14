@@ -225,6 +225,17 @@ check_version() {
   local file="$1"
   local full_path="${ROOT_DIR}/${file}"
   if [ ! -f "$full_path" ]; then return; fi
+  # docs/index.html embeds third-party CDN semvers (chart.js@4.4.1 etc) —
+  # scanning the whole file false-positives on those; check ONLY the badge.
+  if [ "$file" = "docs/index.html" ]; then
+    if grep -q "header-badge\">v${NEW_VERSION}<" "$full_path"; then
+      echo -e "  ${GREEN}✓${NC}     ${file}"
+    else
+      echo -e "  ${RED}STALE${NC} ${file} — badge is not v${NEW_VERSION}"
+      STALE_COUNT=$((STALE_COUNT + 1))
+    fi
+    return
+  fi
   # Check for any semver that is NOT the new version
   local stale
   stale=$(grep -oE '[0-9]+\.[0-9]+\.[0-9]+' "$full_path" | grep -v "^${NEW_VERSION}$" | grep -v '^4\.0\.0$' | head -1 || true)
@@ -246,6 +257,9 @@ if [ "$DRY_RUN" = false ]; then
   check_version "hooks/inject-rules.js"
   check_version "hooks/matcha-mcp-server.js"
   check_version "tests/core.test.js"
+  check_version "README.md"
+  check_version "INSTALL.md"
+  check_version "docs/index.html"
   echo ""
 
   if [ "$STALE_COUNT" -gt 0 ]; then

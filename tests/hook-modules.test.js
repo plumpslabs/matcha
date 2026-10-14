@@ -301,6 +301,7 @@ describe("planning-gate.js — anti-deadlock (never block the recovery path)", (
     expect(isPlanFilePath(".agents/matcha-state.json")).toBe(true);
     expect(isPlanFilePath(".agents/reports/reviewer-2026-08.md")).toBe(true);
     expect(isPlanFilePath("src/index.js")).toBe(false);
+    expect(isPlanFilePath("docs/current.md")).toBe(false);
   });
 
 describe("planning-gate.js — cwd resolution from tool args (opencode host)", () => {
@@ -334,6 +335,21 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
       rmSync(ws, { recursive: true, force: true });
     }
   });
+  test("out-of-workspace target path falls back to process.cwd (not the temp dir)", async () => {
+    // Regression: writing a scratch file in /tmp made resolveEventCwd return
+    // the /tmp tree (getWorkspaceRoot fallback), so findPlanPath missed the
+    // session's valid plan and the gate falsely blocked. Out-of-workspace
+    // candidates without .agents must be skipped → process.cwd() wins.
+    const { resolveEventCwd } = await import("../hooks/planning-gate.js");
+    const scratch = mkdtempSync(join(tmpdir(), "matcha-scratch-"));
+    try {
+      expect(resolveEventCwd({ input: { path: join(scratch, "probe.mjs") } })).toBe(
+        process.cwd(),
+      );
+    } finally {
+      rmSync(scratch, { recursive: true, force: true });
+    }
+  });
   test("plan found via workdir with no event.cwd", async () => {
     const { checkPlanningGate } = await import("../hooks/planning-gate.js");
     const ws = makeWorkspace();
@@ -350,7 +366,12 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
   test("missing plan still blocks even with file args", async () => {
     const { checkPlanningGate } = await import("../hooks/planning-gate.js");
     const ws = mkdtempSync(join(tmpdir(), "matcha-gate-noplan-"));
+    const cwdBack = process.cwd();
     try {
+      // Hermetic: out-of-workspace targets fall back to process.cwd(), so run
+      // from a dir with no .agents anywhere above (fresh tmpdir) — otherwise
+      // this test would accidentally inherit the matcha repo's own plan.
+      process.chdir(ws);
       const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
       const gate = checkPlanningGate({
         tool: "edit",
@@ -358,11 +379,29 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
       });
       expect(gate && gate.block).toBe(true);
     } finally {
+      process.chdir(cwdBack);
       rmSync(ws, { recursive: true, force: true });
     }
   });
 });
 
+  test("no-plan message states reason, searched path, and size exemption", () => {
+    const tmp = mkdtempSync(join(tmpdir(), "matcha-gate-msg-"));
+    try {
+      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const gate = checkPlanningGate({
+        cwd: tmp,
+        tool: "edit",
+        input: { path: join(tmp, "src", "app.js"), oldString: "a", newString: big },
+      });
+      expect(gate && gate.block).toBe(true);
+      expect(gate.message).toMatch(/no plan FILE found/);
+      expect(gate.message).toContain(join(tmp, ".agents", "plan", "current.md"));
+      expect(gate.message).toMatch(/≤30 lines/);
+    } finally {
+      try { rmSync(tmp, { recursive: true, force: true }); } catch {}
+    }
+  });
   test("deny message includes quick-unblock hint (intensity observe)", () => {
     const tmp = mkdtempSync(join(tmpdir(), "matcha-gate-hint-"));
     try {

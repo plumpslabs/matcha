@@ -34,6 +34,8 @@ function loadMetrics() {
       return JSON.parse(readFileSync(METRICS_FILE, "utf-8"));
     }
   } catch {}
+  // matcha: metrics-file schema version (pinned, NOT the package version) —
+  // bump only when the metrics JSON shape changes.
   return {
     version: "2.0.0",
     sessions: [],

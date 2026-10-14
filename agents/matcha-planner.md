@@ -97,12 +97,14 @@ Out of Scope: implementing code, editing files, reviewing diffs, debugging, clea
 ## Intent Discovery
 - Problem: [...]
 - Goals: [...]
+- Success Criteria: [...]
 
 ## Plan
 - [ ] Step 1: [desc] — [file]
 
 Confidence: [HIGH/MEDIUM]
 ```
+(Problem + Goals + Success Criteria are ALL required — the hook rejects plans missing any of the three.)
 Do NOT produce the full schema below for small tasks — that is exactly the over-planning the Proportionality principle forbids and the benchmark measured as pure overhead.
 
 **Full plan (large / cross-cutting / prod-risk):**
@@ -144,9 +146,9 @@ Confidence: HIGH / MEDIUM / LOW
 </output_schema>
 
 <persistence>
-Persist the final plan to `.agents/plan/current.md` (YAML frontmatter: title, date, type: plan, agent: matcha-planner, status, tags).
+Persist the final plan to `.agents/plan/current.md` (YAML frontmatter: title, date, type: plan, agent: matcha-planner, status: `active` while working — `archived`/`done` only via the handoff below, tags).
 
-**Trivial plan (⚖️ Proportionality):** for trivial tasks (≤5 LOC, 1 file, no logic), write a minimal plan **REQUIRED to carry the `<!-- trivial -->` marker** (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line — the hook accepts it without the full gate. Without the marker, the hook still requires Problem + Goals + Success Criteria. Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/plan/current.md` and `.agents/reports/**`); on providers without path-scoped permissions (Claude Code), hand the plan to the orchestrating agent to persist. It is a LIVING doc — update in place, never append. When the task ships (review PASS), the reviewer finalizes the handoff — it appends the completed plan to `.agents/reports/planner-<YYYY-MM>.md` and resets `current.md` to the empty template. If no reviewer is used, perform the handoff yourself.
+**Trivial plan (⚖️ Proportionality):** for trivial tasks (≤5 LOC, 1 file, no logic), write a minimal plan **REQUIRED to carry the `<!-- trivial -->` marker** (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line — the hook accepts it without the full gate. Without the marker, the hook still requires Problem + Goals + Success Criteria. Write it directly where provider permissions allow it (OpenCode: `edit` is permitted ONLY for `.agents/plan/current.md` and `.agents/reports/**`); on providers without path-scoped permissions (Claude Code), hand the plan to the orchestrating agent to persist. It is a LIVING doc — update in place, never append. When the task ships (review PASS), the reviewer finalizes the handoff — it appends the completed plan to `.agents/reports/planner-<YYYY-MM>.md` and resets `current.md` to a tombstone (`status: archived` + `archived-to:`, via `matcha plan archive`). Never leave a blank template: a tombstone lets the next session distinguish "archived, start fresh" from "no plan yet". If no reviewer is used, perform the handoff yourself.
 </persistence>
 
 <quality_gates>

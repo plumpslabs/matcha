@@ -9,6 +9,9 @@
  *   - skills/matcha/modules/*.md (modular skill components)
  *   - commands/*.md (slash commands)
  *   - hooks/*.js (lifecycle hooks)
+ *   - .agents/agents/*.md (canonical agent definitions — root agents/*.md
+ *     and .claude/agents/*.md are GENERATED from these; NEVER hand-edit the
+ *     generated copies, a build will silently overwrite them)
  *
  * Generated:
  *   - .claude/ (Claude Code)

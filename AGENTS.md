@@ -130,7 +130,7 @@ Engineering philosophy for AI coding agents. Enforces deliberate, modular, and s
 - **Plan compaction:** after 5+ completed steps, archive finished steps → `reports/planner-<YYYY-MM>.md` (via `matcha plan compact`), keeping only intent, unchecked steps, `**▶ Current:**`, active risks.
 - **Step execution:** implement strictly step-by-step from `current.md`'s Plan list; after each step check it off (`[x]`) and update the `**▶ Current:**` line (Step N/M, K done). Never batch-finish without updating; deviation → update the plan first.
 - Review/Audit verdict → append `.agents/reports/<agent>-<YYYY-MM>.md` (keep latest 5).
-- Task done (review PASS) → reviewer archives `current.md` → `reports/planner-<YYYY-MM>.md`, writes verdict → `reports/reviewer-<YYYY-MM>.md`, resets to empty template. Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.
+- Task done (review PASS) → reviewer archives `current.md` → `reports/planner-<YYYY-MM>.md`, writes verdict → `reports/reviewer-<YYYY-MM>.md`, resets to tombstone (`status: archived` + `archived-to:`). Only PASS resets — BLOCK / PASS_WITH_FIXES keeps the plan for fix iteration.
 - Lazy-load only — never auto-inject memory files into context.
 </project_context>
 

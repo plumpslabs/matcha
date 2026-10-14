@@ -64,6 +64,7 @@ In **enforce** and **audit** levels, you are blocked from modifying code until y
 - Documentation files (.md, .txt, .rst) and test files (any test pattern)
 - **Small source edits ≤30 lines** on a non-manifest file (guard clause, rename, config value, small bug fix) — do NOT write a plan; the hook lets them through immediately (measured fix for the +33% token / +70% time overhead on small edits)
 - **Trivial tasks** — a minimal plan carrying the `<!-- trivial -->` marker (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line satisfies the gate. Without the marker, Problem + Goals + Success Criteria are required.
+- Two distinct scales, not one rule: **trivial (≤5 LOC, plan-with-marker)** vs **small (≤30 lines, no plan at all)**. A 20-line edit needs no plan; a 4-line edit with a marker plan also passes; a 40-line edit always needs a full plan.
 
 **Enforced for:** new feature implementation, refactoring existing code, config changes, DB migrations, any production code changes.
 
@@ -183,7 +184,7 @@ Rules:
 - **`current.md` lifecycle (anti-stale) — always holds ONE active task:**
   1. **Start:** read it. Intent matches the current request? → continue, update in place. Mismatch → **overwrite** (never follow a stale plan).
   2. **Update:** overwrite / check-off in place. Never append (appending = bloat when re-read).
-  3. **Done (task ships = review PASS):** the reviewer finalizes the handoff — appends the completed plan → `reports/planner-<YYYY-MM>.md`, writes its verdict → `reports/reviewer-<YYYY-MM>.md`, then **reset** `current.md` to the empty template (`status: active`, TBD). Only a PASS resets; BLOCK / PASS_WITH_FIXES keeps `current.md` for fix iteration. If no reviewer is used, the planner performs the same handoff.
+  3. **Done (task ships = review PASS):** the reviewer finalizes the handoff — appends the completed plan → `reports/planner-<YYYY-MM>.md`, writes its verdict → `reports/reviewer-<YYYY-MM>.md`, then resets `current.md` to a tombstone (`status: archived` + `archived-to:`, via `matcha plan archive`). Never a blank template: a tombstone lets the next session distinguish "archived, start fresh" from "no plan yet". Only a PASS resets; BLOCK / PASS_WITH_FIXES keeps `current.md` for fix iteration. If no reviewer is used, the planner performs the same handoff.
 - **Step execution (plan → implement handoff):** implement STRICTLY step-by-step from `current.md`'s Plan list — one step at a time, in order. Never jump ahead, never batch-finish steps. After EACH completed step: check it off (`[ ]` → `[x]`) and update the `**▶ Current:**` line (Step N/M, K done). The plan must always reflect the real position — that's the anti-stale mechanism that lets a compacted or fresh session resume mid-task in <500 tokens. Deviation from the plan (different approach, added scope, different files) → update the plan FIRST; significant deviations need user approval before proceeding. Never rewrite the step list mid-task without syncing `**▶ Current:**` to match.
 - **Living over archive.** Reports append monthly, keep latest 5 per agent, delete older.
 - **Format:** YAML frontmatter (`title`, `date`, `type`, `agent`, `status`, `tags`) — grep-able, git-friendly, standard.

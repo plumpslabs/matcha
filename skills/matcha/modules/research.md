@@ -36,6 +36,11 @@ One user prompt → researcher runs the FULL loop itself (scope → scouts → c
 - Critic pass mandatory on deep: `@matcha-critic` attacks findings (no new research), tags confidence; one repair round max.
 - Gap loop max 2: assess, at most one targeted follow-up, verdict stands.
 - Every claim cites `[N]` → Sources section (URL or file:line, date for time-sensitive).
+- Tier every source `[P]` primary / `[S]` secondhand / `[C]` anecdote; decision-grade claims need `[P]` or 2× independent `[S]`; `[C]`-only claims cap at LOW.
+- Time-sensitive claims (pricing, model IDs, versions, limits) carry `as-of` dates; flag `STALE-RISK` if newest source >30 days old; live-probe (`GET /models`, changelog, status page) when feasible.
+- Codebase facts verified by direct read — never trust prompt-provided file:line blindly.
+- Adoption questions MUST include an Alternatives table (cost/quality/ops/migration) + conditional recommendation.
+- Report sections Critic, Dropped, Gaps are mandatory on deep (empty with reason if none) — a report without them fails validation.
 - High-stakes claims tagged `[HIGH-STAKES]` need 2+ independent sources.
 - Failed claims are dropped **and disclosed** (`dropped:` note).
 - Sources are deduplicated — the same URL twice is rejected.

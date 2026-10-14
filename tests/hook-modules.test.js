@@ -303,6 +303,66 @@ describe("planning-gate.js — anti-deadlock (never block the recovery path)", (
     expect(isPlanFilePath("src/index.js")).toBe(false);
   });
 
+describe("planning-gate.js — cwd resolution from tool args (opencode host)", () => {
+  const validPlan = `---\ntitle: t\ndate: 2026-10-14\ntype: plan\nstatus: active\n---\n# 🍵 Intent Discovery\n- **Problem:** probe\n- **Goals:** probe\n- **Success Criteria:** probe\n`;
+  function makeWorkspace() {
+    const ws = mkdtempSync(join(tmpdir(), "matcha-gate-cwd-"));
+    mkdirSync(join(ws, ".agents", "plan"), { recursive: true });
+    mkdirSync(join(ws, "src"), { recursive: true });
+    writeFileSync(join(ws, ".agents", "plan", "current.md"), validPlan);
+    return ws;
+  }
+  test("resolveEventCwd prefers explicit event.cwd", async () => {
+    const { resolveEventCwd } = await import("../hooks/planning-gate.js");
+    expect(resolveEventCwd({ cwd: "/x", input: { path: "/y/z.js" } })).toBe("/x");
+  });
+  test("relative paths are not trusted (fall back to process.cwd)", async () => {
+    const { resolveEventCwd } = await import("../hooks/planning-gate.js");
+    expect(resolveEventCwd({ input: { path: "src/rel.js" } })).toBe(process.cwd());
+  });
+  test("plan found via absolute target path with no event.cwd", async () => {
+    const { checkPlanningGate } = await import("../hooks/planning-gate.js");
+    const ws = makeWorkspace();
+    try {
+      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const gate = checkPlanningGate({
+        tool: "edit",
+        input: { path: join(ws, "src", "app.js"), oldString: "a", newString: big },
+      });
+      expect(gate).toBeNull();
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+  test("plan found via workdir with no event.cwd", async () => {
+    const { checkPlanningGate } = await import("../hooks/planning-gate.js");
+    const ws = makeWorkspace();
+    try {
+      const gate = checkPlanningGate({
+        tool: "bash",
+        input: { command: "pnpm build", workdir: join(ws, "src") },
+      });
+      expect(gate).toBeNull();
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+  test("missing plan still blocks even with file args", async () => {
+    const { checkPlanningGate } = await import("../hooks/planning-gate.js");
+    const ws = mkdtempSync(join(tmpdir(), "matcha-gate-noplan-"));
+    try {
+      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const gate = checkPlanningGate({
+        tool: "edit",
+        input: { path: join(ws, "src", "app.js"), oldString: "a", newString: big },
+      });
+      expect(gate && gate.block).toBe(true);
+    } finally {
+      rmSync(ws, { recursive: true, force: true });
+    }
+  });
+});
+
   test("deny message includes quick-unblock hint (intensity observe)", () => {
     const tmp = mkdtempSync(join(tmpdir(), "matcha-gate-hint-"));
     try {

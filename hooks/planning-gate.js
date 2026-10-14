@@ -14,9 +14,39 @@
  */
 
 import { readFileSync, existsSync } from "fs";
-import { join } from "path";
+import { join, dirname, isAbsolute } from "path";
 import { isSimpleTask } from "./danger-checks.js";
 import { getWorkspaceRoot } from "./workspace-root.js";
+
+// Resolve the workspace root for a gate event. Chain: explicit event.cwd
+// first, then derive from the tool's file/workdir args (hosts like OpenCode
+// run plugin hooks with process.cwd() = server dir, NOT the project —
+// without this the plan is invisible and every non-trivial edit false-blocks),
+// finally process.cwd().
+export function resolveEventCwd(event) {
+  const e = event || {};
+  if (e.cwd) return e.cwd;
+  const input = e.input || {};
+  const candidates = [
+    input.path,
+    input.filePath,
+    input.TargetFile,
+    input.workdir,
+    input.cwd,
+    input.directory,
+    ...(Array.isArray(input.files) ? input.files.map((f) => f?.path) : []),
+  // Only absolute paths are trusted — a relative path resolves against the
+  // (possibly wrong) process.cwd() and could walk up into an unrelated tree.
+  ].filter((v) => typeof v === "string" && isAbsolute(v));
+  for (const c of candidates) {
+    try {
+      return getWorkspaceRoot(dirname(c));
+    } catch {
+      continue; // unresolvable arg — try next candidate, then process.cwd()
+    }
+  }
+  return process.cwd();
+}
 
 // cwd override: hooks may run from a directory other than the workspace root
 // (e.g. AGY runs plugin hooks with cwd = the plugin dir). Providers that know
@@ -201,8 +231,10 @@ export function checkPlanningGate(event) {
   // Provider-provided workspace root wins over process.cwd() — AGY runs plugin
   // hooks with cwd = plugin dir, so the plan at the real project root would be
   // invisible (false "no plan" blocks). AGY sends workspacePaths; Claude/open
-  // code run hooks from the project root and leave cwd unset.
-  const cwd = event.cwd || process.cwd();
+  // code run hooks from the project root and leave cwd unset. Hosts that
+  // provide neither (e.g. OpenCode server cwd) fall back to deriving the root
+  // from the tool's file/workdir args via resolveEventCwd.
+  const cwd = resolveEventCwd(event);
   const intensity = getIntensity(cwd);
   if (intensity === "observe" || intensity === "off") return null;
 

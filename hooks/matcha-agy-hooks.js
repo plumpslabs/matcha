@@ -50,6 +50,10 @@ const TOOL_MAP = {
   grep_code: "grep",
 };
 
+/**
+ * Map AGY toolCall name to matcha internal tool name.
+ * Also pass workspacePaths from AGY so planning-gate finds the real plan.
+ */
 function mapEvent(event) {
   const toolCall = event.toolCall || {};
   const name = String(toolCall.name || "").toLowerCase();

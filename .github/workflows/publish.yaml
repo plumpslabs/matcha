@@ -15,9 +15,14 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      # matcha: publish the RELEASED TAG, never bare `main`. Checking out
+      # `main` silently published code that differed from the tag (drift:
+      # tag v2.6.9 pointed at broken hooks while npm 2.6.9 shipped the fix).
+      # On `release` events github.ref = refs/tags/vX.Y.Z; on manual dispatch
+      # it = refs/heads/<branch>, so both triggers stay correct.
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -52,9 +57,14 @@ jobs:
       id-token: write
 
     steps:
+      # matcha: publish the RELEASED TAG, never bare `main`. Checking out
+      # `main` silently published code that differed from the tag (drift:
+      # tag v2.6.9 pointed at broken hooks while npm 2.6.9 shipped the fix).
+      # On `release` events github.ref = refs/tags/vX.Y.Z; on manual dispatch
+      # it = refs/heads/<branch>, so both triggers stay correct.
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4
@@ -105,9 +115,14 @@ jobs:
       packages: write
 
     steps:
+      # matcha: publish the RELEASED TAG, never bare `main`. Checking out
+      # `main` silently published code that differed from the tag (drift:
+      # tag v2.6.9 pointed at broken hooks while npm 2.6.9 shipped the fix).
+      # On `release` events github.ref = refs/tags/vX.Y.Z; on manual dispatch
+      # it = refs/heads/<branch>, so both triggers stay correct.
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.ref }}
 
       - name: Install pnpm
         uses: pnpm/action-setup@v4

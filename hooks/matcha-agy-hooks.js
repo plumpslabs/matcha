@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
  * 🍵 matcha — AGY (Antigravity CLI) hooks adapter
+ *
  * AGY hooks (hooks.json) send tool events as JSON on stdin with a DIFFERENT
  * shape than Claude Code (toolCall.name / toolCall.args.CommandLine). This
  * adapter maps those to matcha's internal tool names and reuses the SAME
@@ -12,10 +13,11 @@
  *
  * Fail-open: any parse/runtime error returns allow — never lock the agent.
  */
-
-import { mapEvent, shouldBlock } from "./matcha-core.js";
-import { recordSubagentCall, recordSubagent } from "./subagent-trace.js";
-import { recordAuditLog } from "./audit-log.js";
+import { checkCommand } from "./danger-checks.js";
+import { checkPlanningGate, getIntensity } from "./planning-gate.js";
+import { autoIndexWorkspace } from "./auto-index.js";
+import { recordShieldBlock, recordPlanningGateBlock } from "./matcha-metrics.js";
+import { detectSubagentCall, recordSubagent } from "./subagent-trace.js";
 
 // AGY tool names → matcha internal tool names (already understood by the engine).
 // Names are lowercased before lookup (mapEvent does name.toLowerCase()), so
@@ -50,10 +52,6 @@ const TOOL_MAP = {
   grep_code: "grep",
 };
 
-/**
- * Map AGY toolCall name to matcha internal tool name.
- * Also pass workspacePaths from AGY so planning-gate finds the real plan.
- */
 function mapEvent(event) {
   const toolCall = event.toolCall || {};
   const name = String(toolCall.name || "").toLowerCase();
@@ -83,19 +81,14 @@ process.stdin.on("end", () => {
   try {
     const event = JSON.parse(raw || "{}");
     const { tool, input, cwd } = mapEvent(event);
-    const intensity = /* there's no getIntensity call needed here since
-       shouldBlock handles intensity internally, but we still need to know
-       if intensity is off to skip — let's check via the shared logic */
-        true; // placeholder — actual check happens in shouldBlock
-
-    // Safety shield — destructive commands
-    if (tool === "execute_command" && input.command) {
-      const danger = checkCommand(input.command);
-      if (danger) {
-        recordShieldBlock(input.command, danger.message);
-        return respond("deny", danger.message);
-      }
+    const intensity = getIntensity(cwd);
+    if (intensity === "off") {
+      return respond("allow", "");
     }
+
+    // Subagent trace: record finder/planner/auditor spawns (observable reuse proof)
+    const agent = detectSubagentCall(event?.toolCall?.name, event?.toolCall?.args);
+    if (agent) recordSubagent(agent, cwd);
 
     // Planning gate — blocks code writes/commands until a valid plan exists.
     // Pass the real workspace root (AGY's workspacePaths) so the plan is found
@@ -104,6 +97,15 @@ process.stdin.on("end", () => {
     if (gate) {
       recordPlanningGateBlock();
       return respond("deny", gate.message);
+    }
+
+    // Safety shield — destructive commands
+    if (tool === "execute_command" && input.command) {
+      const danger = checkCommand(input.command);
+      if (danger) {
+        recordShieldBlock(input.command, danger.message);
+        return respond("deny", danger.message);
+      }
     }
 
     try { autoIndexWorkspace(cwd); } catch {} 

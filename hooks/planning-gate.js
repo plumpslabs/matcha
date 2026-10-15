@@ -332,7 +332,7 @@ export function checkPlanningGate(event) {
       : "";
     return {
       block: true,
-      message: `🍵 matcha: Planning Gate Blocked\n\n${validation.message}${archivedHint}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).\n💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).`
+      message: `🍵 matcha: Planning Gate Blocked\n\nTrigger: INVALID_PLAN_CONTENT (plan file exists but fails validation -- not a missing-file block, not a size block; fix content below). Size rule: edits over EDIT_SIZE_LIMIT=30 lines need a valid plan (see hooks/danger-checks.js).\n\n${validation.message}${archivedHint}\n\n✅ Editing .agents/plan/current.md is ALWAYS allowed — fix the plan there via Edit/WriteFile (that write is never blocked).\n💡 Manual debugging / quick unblock? Run /matcha:intensity observe to bypass the gate (switch back with /matcha:intensity enforce).`
     };
   }
 

@@ -1,11 +1,7 @@
 /**
  * 🍵 matcha — matcha-shield.js
  * Deterministic safety gate. Blocks dangerous commands before they reach the OS.
- *
- * Thin orchestrator — logic lives in:
- *   - danger-checks.js  — dangerous command detection + simple task auto-skip
- *   - planning-gate.js  — Intent Discovery plan validation
- *   - mode-detect.js    — context-aware mode detection
+ * Thin orchestrator — core logic in hooks/matcha-core.js.
  *
  * Dual-mode:
  *   1. CLI mode (Claude Code PreToolUse hook):
@@ -16,31 +12,15 @@
  * Override: MATCHA_SHIELD_OFF=true
  */
 
-import { readFileSync } from "fs";
-import { join } from "path";
-import { checkCommand, DANGER_PATTERNS } from "./danger-checks.js";
-import { checkPlanningGate, getIntensity } from "./planning-gate.js";
-import { detectSubagentCall, recordSubagent } from "./subagent-trace.js";
-import { autoIndexWorkspace } from "./auto-index.js";
-import { detectMode, writeMode, getPreviousMode } from "./mode-detect.js";
-import { recordShieldBlock, recordPlanningGateBlock, recordModeSwitch } from "./matcha-metrics.js";
-
 import { recordAuditLog } from "./audit-log.js";
+import { shouldBlock, mapEvent } from "./matcha-core.js";
 
 // Re-export for backward compatibility with tests
 export { DANGER_PATTERNS, checkPlanningGate };
 
-function parseEvent(event) {
-  if (!event) return null;
-  const toolName = event.tool || event.toolName || "";
-  if (!["Bash", "ExecuteCommand", "bash", "execute_command"].includes(toolName))
-    return null;
-  return (event.input?.command || event.input?.code || "").trim() || null;
-}
-
 export async function beforeToolUse(event, context) {
   if (process.env.MATCHA_SHIELD_OFF === "true") {
-    const cmd = parseEvent(event);
+    const cmd = (event.input?.command || event.input?.code || "").trim();
     recordAuditLog({
       event: "SHIELD_OVERRIDE",
       actor: "environment",
@@ -50,107 +30,22 @@ export async function beforeToolUse(event, context) {
     return null;
   }
 
-  const intensity = getIntensity(event?.cwd);
-  if (intensity === "off") return null;
-
-  // Auto-detect mode
-  const toolName = event?.tool || event?.toolName || "";
+  const toolName = event.tool || event.toolName || "";
   const input = event?.input || {};
-  if (toolName) {
-    const mode = detectMode(toolName, input);
-    const prevState = getPreviousMode();
-    writeMode(mode);
-    if (prevState.mode && prevState.mode !== mode) recordModeSwitch(mode, prevState.mode);
-    // Subagent trace: record finder/planner/auditor spawns (observable reuse proof)
-    const agent = detectSubagentCall(toolName, input);
-    if (agent) recordSubagent(agent, event?.cwd);
+  const cwd = event?.cwd || process.cwd();
+
+  // Map AGY-style events if needed (for compatibility)
+  const mapped = mapEvent ? mapEvent(event) : { tool: toolName, input, cwd };
+
+  const { block, reason } = shouldBlock(mapped.tool, mapped.input, mapped.cwd, event);
+  if (block) {
+    recordAuditLog({
+      event: "SHIELD_BLOCK",
+      actor: "engine",
+      details: reason || "planning-gate or danger-check",
+      reason: reason || "unknown",
+    }, cwd);
   }
 
-  // Planning gate
-  const gateResult = checkPlanningGate(event);
-  try { autoIndexWorkspace(); } catch {}
-  if (gateResult) {
-    recordPlanningGateBlock();
-    return { block: true, message: gateResult.message, metadata: { gate: true, convention: "matcha" } };
-  }
-
-  // Danger check
-  const command = parseEvent(event);
-  if (!command) return null;
-
-  const result = checkCommand(command);
-  if (result) {
-    recordShieldBlock(command, result.message);
-    return {
-      block: true,
-      message: result.message,
-      metadata: { shield: true, convention: "matcha", blocked_pattern: result.blockedPattern },
-    };
-  }
-
-  return null;
-}
-
-export default async function handler(event, context) {
-  return beforeToolUse(event, context);
-}
-
-// ─── CLI Mode ─────────────────────────────────────────────────────────────
-const isDirectInvocation = process.argv[1] && (
-  process.argv[1].replace(/\\/g, "/").endsWith("matcha-shield.js") ||
-  process.argv[1].replace(/\\/g, "/").endsWith("matcha-shield")
-);
-
-if (isDirectInvocation) {
-  let input = "";
-  process.stdin.setEncoding("utf-8");
-  process.stdin.on("data", (chunk) => (input += chunk));
-  process.stdin.on("end", () => {
-    if (process.env.MATCHA_SHIELD_OFF === "true") {
-      recordAuditLog({
-        event: "SHIELD_OVERRIDE",
-        actor: "cli",
-        details: "MATCHA_SHIELD_OFF stdin bypass",
-        reason: process.env.MATCHA_OVERRIDE_REASON || "MATCHA_SHIELD_OFF=true active",
-      });
-      process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
-      process.exit(0);
-    }
-
-    try {
-      const event = JSON.parse(input);
-      const intensity = getIntensity(event?.cwd);
-      if (intensity === "off") {
-        process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
-        process.exit(0);
-      }
-
-      const gateResult = checkPlanningGate(event);
-      if (gateResult) {
-        process.stdout.write(JSON.stringify({ decision: "deny", message: gateResult.message, metadata: { gate: true, convention: "matcha" } }) + "\n");
-        process.stderr.write(gateResult.message + "\n");
-        process.exit(2);
-      }
-
-      const command = parseEvent(event);
-      if (!command) {
-        process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
-        process.exit(0);
-      }
-
-      const result = checkCommand(command);
-      if (result) {
-        process.stdout.write(JSON.stringify({ decision: "deny", message: result.message, metadata: { shield: true, convention: "matcha" } }) + "\n");
-        process.stderr.write(result.message + "\n");
-        process.exit(2);
-      }
-
-      process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
-      process.exit(0);
-    } catch (e) {
-      process.stderr.write(`matcha-shield: parse error — ${e.message}\n`);
-      process.stdout.write(JSON.stringify({ decision: "allow" }) + "\n");
-      process.exit(0);
-    }
-  });
+  return { block, reason };
 }

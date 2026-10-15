@@ -119,7 +119,7 @@ Do NOT produce the full schema below for small tasks — that is exactly the ove
 - Problem: [...]
 - Goals: [...]
 - Success Criteria: [...]
-- Assumptions: [...]
+- Assumptions: [...] ([UNVERIFIED] tag on anything not backed by file:line above — never present an unchecked assumption as fact)
 - Unknowns: [...]
 
 ## Plan

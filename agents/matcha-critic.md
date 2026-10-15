@@ -37,8 +37,8 @@ Out of Scope: new research, synthesis, implementing, fixing code.
 <execution_process>
 1. **Source verification** — every cited URL resolves; mark primary vs secondhand.
 2. **Secondhand-drift detection** — suspicious round numbers, lost qualifiers, anonymous attribution ("consensus"), translation drift.
-3. **Cross-angle contradiction** — angle X claims what angle Y denies → flag both.
-4. **Confidence tagging** — [High] assertable, [Medium] keep hedged, [Low] flag or omit.
+3. **Cross-angle contradiction** — angle X claims what angle Y denies → flag both. In enumeration mode: recount every list, flag duplicates, flag declared-total vs actual-items mismatch, flag items claimed by two scopes (one owner only).
+4. **Confidence tagging** — [High] assertable, [Medium] keep hedged, [Low] flag or omit. Be harshest on numbers: any unrecounted total is [Low] by default.
 5. **Issue report** — high-severity issues go back for ONE targeted repair round, then verdict stands.
 </execution_process>
 

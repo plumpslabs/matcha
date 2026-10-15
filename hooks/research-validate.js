@@ -194,7 +194,16 @@ export function validateResearchContent(content) {
     }
   }
 
-  return {
+    // 6d. Enumeration self-check -- declared totals must match listed items.
+  const bulletNorm = claimLines.map((l) => l.replace(/\[\d+\]/g, String()).trim().toLowerCase());
+  const seenC = new Set();
+  for (const b of bulletNorm) {
+    if (!b) continue;
+    if (seenC.has(b)) { issues.push("Duplicate claim inflates count: " + b.slice(0, 80)); break; }
+    seenC.add(b);
+  }
+
+return {
     valid: issues.length === 0,
     message: issues.length === 0 ? "Report is structurally valid" : issues.join("\n"),
     verdict: verdict || null,

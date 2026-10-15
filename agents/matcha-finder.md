@@ -109,6 +109,7 @@ Architecture Check: [ownership / boundaries respected?]
 
 Recommendation: [one clear path]
 Confidence: HIGH / MEDIUM / LOW
+Assumptions: [list anything not directly verified, each tagged [UNVERIFIED] + what check would confirm it]
 ```
 </output_schema>
 

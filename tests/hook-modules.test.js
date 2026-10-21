@@ -183,16 +183,16 @@ describe("danger-checks.js", () => {
       expect(isSimpleTask("UnknownTool", {})).toBe(false);
     });
 
-    // Benchmark-backed: small source edits (≤30 lines) skip the gate (Proportionality Small),
+    // Benchmark-backed: small source edits (≤80 lines) skip the gate (Proportionality Small),
     // while edits without inspectable size still gate (unknown ≠ trivial).
-    test("small source edit (≤30 lines) skips the gate (size-based fast pass)", () => {
+    test("small source edit (≤80 lines) skips the gate (size-based fast pass)", () => {
       expect(isSimpleTask("EditFile", { path: "src/index.js", newString: "const x = 1;\n" })).toBe(true);
       expect(isSimpleTask("WriteFile", { path: "src/app.ts", content: "export const MAX = 10;\n" })).toBe(true);
       expect(isSimpleTask("edit", { filePath: "src/util.js", newString: "// guard\nif (!input) return null;\n" })).toBe(true);
     });
 
-    test("large source edit (>30 lines) still gates", () => {
-      const big = Array.from({ length: 50 }, (_, i) => `line ${i}`).join("\n");
+    test("large source edit (>80 lines) still gates", () => {
+      const big = Array.from({ length: 100 }, (_, i) => `line ${i}`).join("\n");
       expect(isSimpleTask("WriteFile", { path: "src/index.js", content: big })).toBe(false);
     });
 
@@ -325,7 +325,7 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
     const { checkPlanningGate } = await import("../hooks/planning-gate.js");
     const ws = makeWorkspace();
     try {
-      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const big = Array.from({ length: 100 }, () => "const x = 1;").join("\n");
       const gate = checkPlanningGate({
         tool: "edit",
         input: { path: join(ws, "src", "app.js"), oldString: "a", newString: big },
@@ -372,7 +372,7 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
       // from a dir with no .agents anywhere above (fresh tmpdir) — otherwise
       // this test would accidentally inherit the matcha repo's own plan.
       process.chdir(ws);
-      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const big = Array.from({ length: 100 }, () => "const x = 1;").join("\n");
       const gate = checkPlanningGate({
         tool: "edit",
         input: { path: join(ws, "src", "app.js"), oldString: "a", newString: big },
@@ -388,7 +388,7 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
   test("no-plan message states reason, searched path, and size exemption", () => {
     const tmp = mkdtempSync(join(tmpdir(), "matcha-gate-msg-"));
     try {
-      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const big = Array.from({ length: 100 }, () => "const x = 1;").join("\n");
       const gate = checkPlanningGate({
         cwd: tmp,
         tool: "edit",
@@ -397,7 +397,7 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
       expect(gate && gate.block).toBe(true);
       expect(gate.message).toMatch(/no plan FILE found/);
       expect(gate.message).toContain(join(tmp, ".agents", "plan", "current.md"));
-      expect(gate.message).toMatch(/≤30 lines/);
+      expect(gate.message).toMatch(/≤80 lines/);
     } finally {
       try { rmSync(tmp, { recursive: true, force: true }); } catch {}
     }
@@ -408,7 +408,7 @@ describe("planning-gate.js — cwd resolution from tool args (opencode host)", (
       // No plan file → no-plan deny message must carry the quick-unblock hint.
       // cwd is forced to the temp dir (no .agents ancestor) so the gate can't
       // find this repo's own plan and must deny.
-      const big = Array.from({ length: 40 }, () => "const x = 1;").join("\n");
+      const big = Array.from({ length: 100 }, () => "const x = 1;").join("\n");
       const gate = checkPlanningGate({
         cwd: tmp,
         tool: "EditFile",

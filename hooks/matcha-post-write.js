@@ -11,6 +11,7 @@
  */
 
 import { readFileSync, existsSync } from "fs";
+import { execSync } from "child_process";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 import { recordReviewIssue } from "./matcha-metrics.js";
@@ -152,6 +153,77 @@ function pathIgnored(filePath, checkConfig) {
   });
 }
 
+// ─── Unused import detection (requiresUsageCheck) ────────────────────────────
+
+function extractImportBindings(specifierText) {
+  const m = specifierText.match(/^import\s+(.+?)\s+from\b/s);
+  if (!m) return [];
+  let spec = m[1].trim();
+  spec = spec.replace(/^type\s+/, "");
+  const names = [];
+  const braceMatch = spec.match(/\{([^}]*)\}/);
+  let namedPart = "";
+  let defaultPart = spec;
+  if (braceMatch) {
+    namedPart = braceMatch[1];
+    defaultPart = spec.replace(/\{[^}]*\}/, "").trim().replace(/,$/, "").trim();
+  }
+  if (defaultPart && defaultPart !== "" && defaultPart !== "type") {
+    const d = defaultPart.replace(/,$/, "").trim();
+    if (d && /^\w+$/.test(d)) names.push(d);
+  }
+  if (namedPart) {
+    for (const part of namedPart.split(",")) {
+      const p = part.trim().replace(/^type\s+/, "");
+      if (!p) continue;
+      const asMatch = p.match(/^\w+\s+as\s+(\w+)$/);
+      if (asMatch) { names.push(asMatch[1]); continue; }
+      const id = p.match(/^(\w+)/);
+      if (id) names.push(id[1]);
+    }
+  }
+  const nsMatch = spec.match(/^\*\s+as\s+(\w+)/);
+  if (nsMatch) names.push(nsMatch[1]);
+  return [...new Set(names)];
+}
+
+function findUnusedImportLine(content) {
+  const lines = content.split("\n");
+  const imports = [];
+  let i = 0;
+  while (i < lines.length) {
+    if (/^\s*import\b/.test(lines[i])) {
+      if (/^\s*import\s+['"]/.test(lines[i])) {
+        imports.push({ startLine: i + 1, text: lines[i] });
+        i++;
+        continue;
+      }
+      let stmt = lines[i];
+      let start = i;
+      while (i + 1 < lines.length && (!/\bfrom\b/.test(stmt) || !/['"]\s*;?\s*$/.test(stmt.trim()))) {
+        i++;
+        stmt += "\n" + lines[i];
+      }
+      imports.push({ startLine: start + 1, text: stmt });
+    }
+    i++;
+  }
+
+  for (const imp of imports) {
+    const bindings = extractImportBindings(imp.text);
+    if (bindings.length === 0) continue;
+    const without = content.replace(imp.text, "");
+    for (const name of bindings) {
+      const usageRegex = new RegExp("\\b" + name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\b");
+      if (!usageRegex.test(without)) {
+        return imp.startLine;
+      }
+    }
+  }
+  return 0;
+}
+
+
 // ─── Cleanup checks ──────────────────────────────────────────────────────────
 
 /**
@@ -160,6 +232,46 @@ function pathIgnored(filePath, checkConfig) {
  * plus registry-level exemptPaths and justification rules).
  * Returns array of findings.
  */
+function getChangedLines(filePath) {
+  // Returns a Set of 1-based line numbers that are added/changed vs HEAD,
+  // or null when unavailable (not a git repo / no diff / unchanged file).
+  // Used to baseline pre-existing issues: only findings on changed lines are
+  // reported, so legacy code does not create noise (M4).
+  const dir = filePath.replace(/[\\/][^\\/]*$/, "") || ".";
+  try {
+    execSync("git rev-parse --is-inside-work-tree", { cwd: dir, stdio: ["pipe", "pipe", "pipe"] });
+  } catch {
+    return null;
+  }
+  let diff = "";
+  try {
+    diff = execSync(`git diff -U0 HEAD -- "${filePath}"`, { cwd: dir, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }) || "";
+  } catch {
+    diff = "";
+  }
+  if (diff.trim()) {
+    const set = new Set();
+    for (const m of diff.matchAll(/@@ -\\d+(?:,\\d+)? \\+(\\d+)(?:,(\\d+))? @@/g)) {
+      const start = parseInt(m[1], 10);
+      const count = m[2] === undefined ? 1 : parseInt(m[2], 10);
+      for (let i = 0; i < count; i++) set.add(start + i);
+    }
+    return set.size ? set : null;
+  }
+  // Untracked file → every line counts as new.
+  try {
+    const status = execSync(`git status --porcelain -- "${filePath}"`, { cwd: dir, encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }).trim();
+    if (status.startsWith("??")) {
+      const content = readFileSync(filePath, "utf-8");
+      const n = content.split("\\n").length;
+      return new Set(Array.from({ length: n }, (_, i) => i + 1));
+    }
+  } catch {
+    // ignore
+  }
+  return null;
+}
+
 export function scanFile(filePath) {
   if (!filePath || !existsSync(filePath)) return [];
 
@@ -191,29 +303,51 @@ export function scanFile(filePath) {
       const severity = SEVERITY_BUCKET[fineSeverity] || "minor";
       let found = false;
 
-      for (let i = 0; i < lines.length && !found; i++) {
-        const line = lines[i];
-        if (lineJustified(line, justification, fineSeverity)) continue;
-        if (valueIgnored(line, checkConfig.ignoreValues)) continue;
-        if (contextIgnored(line, checkConfig.ignoreContext)) continue;
+      if (checkConfig.requiresUsageCheck) {
+        // requiresUsageCheck: only flag an import when at least one of its
+        // imported bindings is never referenced elsewhere in the file.
+        // Handles single-line and multi-line import statements (M4).
+        const unusedLine = findUnusedImportLine(content);
+        if (unusedLine > 0) {
+          const targetLine = lines[unusedLine - 1] || "";
+          if (!lineJustified(targetLine, justification, fineSeverity)) {
+            findings.push({
+              file: filePath,
+              line: unusedLine,
+              issue,
+              fix,
+              severity,
+              language: lang,
+              check: checkKey,
+            });
+            found = true;
+          }
+        }
+      } else {
+        for (let i = 0; i < lines.length && !found; i++) {
+          const line = lines[i];
+          if (lineJustified(line, justification, fineSeverity)) continue;
+          if (valueIgnored(line, checkConfig.ignoreValues)) continue;
+          if (contextIgnored(line, checkConfig.ignoreContext)) continue;
 
-        for (const rawPattern of rawPatterns) {
-          try {
-            if (new RegExp(rawPattern).test(line)) {
-              findings.push({
-                file: filePath,
-                line: i + 1,
-                issue,
-                fix,
-                severity,
-                language: lang,
-                check: checkKey,
-              });
-              found = true;
-              break;
+          for (const rawPattern of rawPatterns) {
+            try {
+              if (new RegExp(rawPattern).test(line)) {
+                findings.push({
+                  file: filePath,
+                  line: i + 1,
+                  issue,
+                  fix,
+                  severity,
+                  language: lang,
+                  check: checkKey,
+                });
+                found = true;
+                break;
+              }
+            } catch {
+              // Skip invalid regex patterns
             }
-          } catch {
-            // Skip invalid regex patterns
           }
         }
       }
@@ -345,6 +479,10 @@ export function scanFile(filePath) {
     }
   }
 
+  const changed = getChangedLines(filePath);
+  if (changed) {
+    return findings.filter((f) => changed.has(f.line));
+  }
   return findings;
 }
 

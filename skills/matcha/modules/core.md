@@ -62,9 +62,9 @@ In **enforce** and **audit** levels, you are blocked from modifying code until y
 **Auto-skip (hook, benchmark-backed).** The gate is skipped for:
 - Read-only commands (grep, ls, cat, find, git status), test runners, linters/formatters
 - Documentation files (.md, .txt, .rst) and test files (any test pattern)
-- **Small source edits ≤30 lines** on a non-manifest file (guard clause, rename, config value, small bug fix) — do NOT write a plan; the hook lets them through immediately (measured fix for the +33% token / +70% time overhead on small edits)
+- **Small source edits ≤80 lines** on a non-manifest file (guard clause, rename, config value, small bug fix) — do NOT write a plan; the hook lets them through immediately (measured fix for the +33% token / +70% time overhead on small edits)
 - **Trivial tasks** — a minimal plan carrying the `<!-- trivial -->` marker (or `type: plan-trivial` in frontmatter) plus a `**Problem:**` line satisfies the gate. Without the marker, Problem + Goals + Success Criteria are required.
-- Two distinct scales, not one rule: **trivial (≤5 LOC, plan-with-marker)** vs **small (≤30 lines, no plan at all)**. A 20-line edit needs no plan; a 4-line edit with a marker plan also passes; a 40-line edit always needs a full plan.
+- Two distinct scales, not one rule: **trivial (≤5 LOC, plan-with-marker)** vs **small (≤80 lines, no plan at all)**. A 60-line edit needs no plan; a 4-line edit with a marker plan also passes; a 100-line edit always needs a full plan.
 
 **Enforced for:** new feature implementation, refactoring existing code, config changes, DB migrations, any production code changes.
 
@@ -307,3 +307,12 @@ Recommendation: [which and why]
 | Planning overhead > 20% | Reduce friction |
 | Reuse rate < 30% | Agent not searching enough |
 | Compliance < 80% | Rules too complex? |
+
+## Fennec onboarding (observability)
+- Fennec dipakai hanya untuk observability/telemetry (metrics, tracing). Matcha tidak membutuhkannya untuk governance; gunakan saat butuh pengukuran performa/token, bukan default.
+- Jika tidak dipakai, abaikan (zero overhead).
+
+## Token budget per task
+- Task trivial (≤5 LOC, 1 file, no logic): 0 plan file, no review, hanya test.
+- Task kecil (≤80 LOC): fast pass, tanpa plan penuh.
+- Matcha/Kuma otomatis skip langkah berat untuk task trivial berdasarkan diff stat.

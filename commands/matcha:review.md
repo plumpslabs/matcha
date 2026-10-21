@@ -12,6 +12,10 @@ description: "🍵 Review gate — risk-based code review (L0-L3). Nothing ships
 
 Always run `matcha_review_validate` on the rendered verdict before finalizing — malformed verdicts are caught at write time, not later.
 
+## Fallback (reviewer subagent unavailable)
+
+If `@matcha-reviewer` cannot run (rate limit, timeout, or provider error), do **not** fail the gate. Run the review **inline** using the tier checklist above (L0/L1/L2/L3) and render the same verdict format (`Risk Tier`, `Scope`, `Verdict`, counts, `file:line` evidence). Then validate with `matcha_review_validate`. A self-review is weaker than an independent gate, so note `Reviewer: inline (fallback)` in the verdict.
+
 ## Risk-Based Routing
 
 Not all code needs the same review. Matcha auto-detects risk tier and routes accordingly:

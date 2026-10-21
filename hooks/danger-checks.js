@@ -112,7 +112,7 @@ const DEPENDENCY_MANIFESTS = [
 // source file is a *small* change (Proportionality: Small = 1-3 files, contained
 // logic → short plan + L1, no full gate). Benchmark-proven: the full gate on small
 // source edits cost matcha +33% tokens / +70% wall time with zero correctness gain.
-export const EDIT_SIZE_LIMIT = 30;
+export const EDIT_SIZE_LIMIT = 80;
 
 function countLines(value) {
   if (!value) return 0;

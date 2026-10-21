@@ -10,11 +10,12 @@
  */
 
 import { execSync } from "child_process";
-import { readFileSync, existsSync, readdirSync } from "fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "fs";
 import { join } from "path";
 import { getWorkspaceRoot } from "./workspace-root.js";
 import { getIntensity } from "./planning-gate.js";
 import { validateReviewContent } from "./review-validate.js";
+import { compactPlan } from "./plan-compact.js";
 import { checkReuseTrace } from "./subagent-trace.js";
 
 // ─── Tip generators ──────────────────────────────────────────────────────────
@@ -262,8 +263,30 @@ function tipReuseTrace(cwd) {
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 
+function tipAutoCompact(cwd) {
+  try {
+    const planPath = join(cwd, ".agents", "plan", "current.md");
+    if (!existsSync(planPath)) return null;
+    const content = readFileSync(planPath, "utf-8");
+    const res = compactPlan(content, 5);
+    if (!res.compacted) return null;
+    writeFileSync(planPath, res.content, "utf-8");
+    return {
+      icon: "📦",
+      title: "plan-compact",
+      roast: "5+ finished steps auto-compacted to keep the plan lean",
+      fix: "archived steps moved out of current.md; review reports/planner-<YYYY-MM>.md for history",
+    };
+  } catch {
+    return null;
+  }
+}
+
 function generateTips(cwd) {
   const tips = [];
+
+  const autoCompact = tipAutoCompact(cwd);
+  if (autoCompact) tips.push(autoCompact);
 
   const efficiency = tipEfficiency(cwd);
   if (efficiency) tips.push(efficiency);

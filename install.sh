@@ -352,6 +352,31 @@ MATCHA_EOF
   fi
 fi
 
+# ─── CodeBuddy hooks: create settings.json with matcha hooks ─────────────────
+if [ -d "$TARGET/.codebuddy" ]; then
+  SETTINGS="$TARGET/.codebuddy/settings.json"
+  if [ ! -f "$SETTINGS" ]; then
+    cat > "$SETTINGS" <<'MATCHA_EOF'
+{
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash|Edit|Write|MultiEdit", "hooks": [ { "type": "command", "command": "node hooks/matcha-shield.js", "timeout": 5000 } ] }
+    ],
+    "PostToolUse": [
+      { "hooks": [ { "type": "command", "command": "node hooks/matcha-post-write.js", "timeout": 3000 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "node hooks/matcha-stop.js", "timeout": 5000 } ] }
+    ]
+  }
+}
+MATCHA_EOF
+    echo "  ✅ $SETTINGS (created with matcha hooks)"
+  else
+    echo "  ℹ️  $SETTINGS exists — skipped (merge manually if needed)"
+  fi
+fi
+
 echo ""
 echo "🍵 matcha: install complete"
 echo ""

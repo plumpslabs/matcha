@@ -1,7 +1,7 @@
 ---
 name: matcha-critic
 description: Adversarial research reviewer. No original research — attacks findings (primary-vs-secondhand, contradictions, confidence tags). Read-only.
-tools: Read, Grep, Glob, List, Bash, WebFetch, WebSearch
+tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 disallowedTools: Task, Edit, Write
 permissionMode: default
 ---

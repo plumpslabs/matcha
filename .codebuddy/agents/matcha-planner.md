@@ -1,7 +1,7 @@
 ---
 name: matcha-planner
 description: Engineering planning. Intent Discovery → context → constraints → reuse → alternatives → roadmap. Read-only — never implements, never edits source code.
-tools: Read, Grep, Glob, List, Bash
+tools: Read, Grep, Glob, Bash
 disallowedTools: WebFetch, WebSearch, Task, Edit, Write
 permissionMode: default
 ---

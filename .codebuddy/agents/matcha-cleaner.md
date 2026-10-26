@@ -1,7 +1,7 @@
 ---
 name: matcha-cleaner
 description: Cleanup. Removes temp, debug, unused code. Confirm before delete. May edit after confirmation.
-tools: Read, Grep, Glob, List, Bash, Edit, Write
+tools: Read, Grep, Glob, Bash, Edit, Write
 disallowedTools: WebFetch, WebSearch
 permissionMode: default
 ---

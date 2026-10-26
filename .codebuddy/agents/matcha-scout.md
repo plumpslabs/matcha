@@ -1,7 +1,7 @@
 ---
 name: matcha-scout
 description: Single-use research scout. Explores one sub-topic via web/codebase, returns findings with sources. Read-only.
-tools: Read, Grep, Glob, List, Bash, WebFetch, WebSearch
+tools: Read, Grep, Glob, Bash, WebFetch, WebSearch
 disallowedTools: Task, Edit, Write
 permissionMode: default
 ---

@@ -1,7 +1,7 @@
 ---
 name: matcha-finder
 description: Reuse decision engine. Finds existing code before writing new — classifies REUSE/EXTEND/COMPOSE/REFERENCE/NEW. Never duplicate. Read-only.
-tools: Read, Grep, Glob, List, Bash
+tools: Read, Grep, Glob, Bash
 disallowedTools: WebFetch, WebSearch, Task, Edit, Write
 permissionMode: default
 ---

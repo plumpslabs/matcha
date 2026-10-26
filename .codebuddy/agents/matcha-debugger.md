@@ -1,7 +1,7 @@
 ---
 name: matcha-debugger
 description: Systematic debugger. One hypothesis at a time. Evidence required. May apply minimal fixes.
-tools: Read, Grep, Glob, List, Bash, Edit, Write
+tools: Read, Grep, Glob, Bash, Edit, Write
 disallowedTools: WebFetch, WebSearch
 permissionMode: default
 ---

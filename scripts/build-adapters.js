@@ -246,7 +246,11 @@ for (const agent of AGENT_NAMES) {
   try {
     if (lstatSync(p).isSymbolicLink()) rmSync(p);
   } catch {}
-  write(`.codebuddy/agents/${agent}.md`, toClaudeFormat(read(`.agents/agents/${agent}.md`), agent));
+  const cbAgentMd = toClaudeFormat(read(`.agents/agents/${agent}.md`), agent).replace(/^tools: .*$/m, (m) => {
+    const tools = m.slice("tools: ".length).split(",").map((t) => t.trim()).filter((t) => t && t !== "List");
+    return "tools: " + tools.join(", ");
+  });
+  write(`.codebuddy/agents/${agent}.md`, cbAgentMd);
 }
 
 // Skills: symlink to canonical

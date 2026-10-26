@@ -1,7 +1,7 @@
 ---
 name: matcha-researcher
 description: Deep-research lead. Plans sub-topics, fans out to scouts, cross-validates claims, synthesizes cited report. Read-only.
-tools: Read, Grep, Glob, List, Bash, Task, WebFetch, WebSearch
+tools: Read, Grep, Glob, Bash, Task, WebFetch, WebSearch
 disallowedTools: Edit, Write
 permissionMode: default
 ---

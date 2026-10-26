@@ -1,7 +1,7 @@
 ---
 name: matcha-auditor
 description: Stack audit. Finds overlaps, waste, security risks. Read-only.
-tools: Read, Grep, Glob, List, Bash
+tools: Read, Grep, Glob, Bash
 disallowedTools: WebFetch, WebSearch, Task, Edit, Write
 permissionMode: default
 ---

@@ -351,6 +351,7 @@ const PLATFORM_OPTIONS = [
   { num: "10", dir: ".agents",   label: "Universal (.agents)" },
   { num: "11", dir: ".agents",   label: "Antigravity (agy) — GEMINI.md + .agents" },
   { num: "12", dir: ".qwen",     label: "Qwen Code (QWEN.md)" },
+  { num: "13", dir: ".codebuddy", label: "CodeBuddy (Tencent)" },
 ];
 
 function detectExistingPlatforms() {
@@ -566,6 +567,7 @@ function cmdStatus() {
     [".openclaw", "OpenClaw"],
     [".qoder", "Qoder"],
     [".qwen", "Qwen Code"],
+    [".codebuddy", "CodeBuddy"],
   ];
 
   const found = [];

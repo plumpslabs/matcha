@@ -236,6 +236,38 @@ for (const s of ACTION_SKILL_NAMES) {
 
 console.log("");
 
+// ─── .codebuddy/ (CodeBuddy / Tencent) ──────────────────────────────────────
+
+console.log("── .codebuddy/ ──");
+
+// Agents: REAL FILES in CodeBuddy format (Claude Code-style tools:/disallowedTools:).
+for (const agent of AGENT_NAMES) {
+  const p = join(ROOT, `.codebuddy/agents/${agent}.md`);
+  try {
+    if (lstatSync(p).isSymbolicLink()) rmSync(p);
+  } catch {}
+  write(`.codebuddy/agents/${agent}.md`, toClaudeFormat(read(`.agents/agents/${agent}.md`), agent));
+}
+
+// Skills: symlink to canonical
+symlink(".codebuddy/skills/matcha/SKILL.md", "../../../skills/matcha/SKILL.md");
+symlink(".codebuddy/skills/matcha/modules", "../../../skills/matcha/modules");
+for (const s of ACTION_SKILL_NAMES) {
+  symlink(`.codebuddy/skills/${s}/SKILL.md`, `../../../skills/${s}/SKILL.md`);
+}
+
+// Commands: regular files (full)
+cleanLegacyCommands(".codebuddy/commands");
+for (const cmd of COMMAND_NAMES) {
+  write(`.codebuddy/commands/${cmd}.md`, read(`commands/${cmd}.md`));
+}
+
+// Rules
+ensureDir(".codebuddy/rules");
+write(".codebuddy/rules/matcha.md", read(".agents/rules/matcha.md"));
+
+console.log("");
+
 // ─── .agents/ ────────────────────────────────────────────────────────────────
 
 console.log("── .agents/ ──");

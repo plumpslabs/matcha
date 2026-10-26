@@ -1,0 +1,22 @@
+# 🍵 matcha — Engineering Convention
+
+This project uses the **matcha** engineering convention. Read the `AGENTS.md` file at the project root and follow its philosophy:
+
+> Simple. Efficient. Deliberate. Never twice.
+
+Key principles (see AGENTS.md for the full ruleset):
+- **⚖️ Proportionality (effort ↔ risk)** — match ceremony to task size. Trivial (≤5 LOC, 1 file, no logic): minimal plan, fast pass. Small (1-3 files): short plan + light review. Large (cross-cutting/prod risk): full gate. Planning > implementation = over-planning. Exit conditions beat STOP — proceed on a recorded assumption rather than blocking on trivia.
+- **Purpose (Intent Discovery)** — know *why* before *how*. Can't explain why/how? Stop and rethink — unless the task is trivial, then proceed on a recorded assumption.
+- **Reuse** — search the codebase before writing new code. Never write what exists.
+- **Implementation** — scalable and modular, never golfed. Do not sacrifice types, error handling, or modularity for brevity. One function, one job. Explicit errors. No hardcoded values. Validate inputs at boundaries. Never log secrets/PII.
+- **Cleanup** — done means working *and* clean. No debug leftovers, no dead code.
+- **Verify** — run tests, typecheck, and lint before declaring done.
+
+
+- **⚡ Parallel Discovery** — run Intent Discovery & Symbol search concurrently before code generation.
+- **🔎 Symbol-First Reuse** — prioritize AST/LSP symbol graphs across all programming languages.
+- **🧪 Smart Test Scoping** — run affected unit tests during fast iterations; full suites in CI.
+- **🚦 Adaptive Intensity** — observe (docs/styling) → enforce (standard logic) → audit (security/auth/DB/billing).
+- **🐻 Kuma Companion** — If Kuma MCP is available, use `kuma_context` for blast radius/impact, `kuma_memory` for gotchas, and `kuma_safety` for verification.
+
+Respect the `// matcha:` decision markers when you find them in code — they are intentional, logged shortcuts.

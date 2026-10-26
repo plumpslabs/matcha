@@ -103,7 +103,7 @@ if [ -n "$PLATFORM_ARG" ]; then
     PLATFORMS="$PLATFORMS $p"
   done
 else
-  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae .qwen .cleo; do
+  for p in .claude .opencode .cursor .agents .clinerules .windsurf .kiro .qoder .roo .trae .qwen .codebuddy .cleo; do
     [ -d "$TARGET/$p" ] && PLATFORMS="$PLATFORMS $p"
   done
   [ -z "$PLATFORMS" ] && PLATFORMS=" .agents" && mkdir -p "$TARGET/.agents"
@@ -171,6 +171,13 @@ for p in $PLATFORMS; do
     .qwen)
       # Qwen Code reads root QWEN.md (installed above when .qwen selected);
       # keep the platform folder recognized so detection/status stay consistent.
+      ;;
+    .codebuddy)
+      install_agents "$TARGET/$p/agents" ".codebuddy/agents"
+      install_commands "$TARGET/$p/commands"
+      install_skill "$TARGET/$p/skills/matcha"
+      mkdir -p "$TARGET/$p/rules"
+      install_file "$TARGET/$p/rules/matcha.md" ".codebuddy/rules/matcha.md"
       ;;
     .cleo)
       # Cleo workflow lab: per-repo workflow + global tool manifest + skill.

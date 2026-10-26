@@ -16,7 +16,7 @@
 <p align="center">
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT" /></a>
   <a href="https://github.com/plumpslabs/matcha"><img src="https://img.shields.io/badge/PRs-welcome-brightgreen" alt="PRs" /></a>
-  <img src="https://img.shields.io/badge/version-2.6.11-purple" alt="v2.6.11" />
+  <img src="https://img.shields.io/badge/version-2.6.12-purple" alt="v2.6.12" />
   <img src="https://img.shields.io/badge/tests-554-passing-brightgreen" alt="554 tests" />
   <img src="https://img.shields.io/badge/languages-13+-blue" alt="13+ languages" />
 </p>
@@ -275,6 +275,7 @@ npm run mcp
 | Claude Code | `.claude/settings.json` hooks |
 | OpenCode | `.opencode/plugins/matcha.js` |
 | Any MCP client | MCP server (see above) |
+| CodeBuddy (Tencent) | `.codebuddy/` rules, agents, commands, skills |
 | Any platform | `.agents/` universal format |
 
 ---
